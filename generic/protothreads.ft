@@ -1,0 +1,20 @@
+HEX
+
+: PT:                                   \ create protothread word
+    CREATE HERE CELL + , ]              \ reserve one cell for the word's IP
+    DOES> @ >R                          \ fetch IP and jump there via the return stack
+;
+
+: ;PT                                   \ restore IP at word exit
+    LATEST @ LINK> >BODY DUP CELL + POSTPONE LITERAL    \ push IP as word's body
+    POSTPONE LITERAL                                    \ push addr of IP cell
+    POSTPONE ! POSTPONE EXIT POSTPONE [ REVEAL          \ set IP and compile normal exit
+; IMMEDIATE
+
+: ?YIELD                                \ insert yield
+    POSTPONE ?BRANCH HERE DUP ,         \ start IF
+    SWAP POSTPONE LITERAL                   \ push point of BEGIN
+    LATEST @ LINK> >BODY POSTPONE LITERAL   \ push addr of IP cell
+    POSTPONE ! POSTPONE EXIT                \ update IP and exit
+    HERE OVER - SWAP !                  \ end IF
+; IMMEDIATE

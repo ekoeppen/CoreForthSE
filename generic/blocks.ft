@@ -1,0 +1,12 @@
+: LOAD   ( n -- )
+    0 STATE !
+    C/L SOURCE# !   BLOCK (SOURCE) !
+    C/BLK C/L / 0 DO    \ can't have anything on the stack within this loop
+                        \ as control structures might use the stack during parsing
+        0 >SOURCE !
+        (INTERPRET) 0= IF ." Error parsing line " I . CR THEN DROP
+        C/L (SOURCE) +!
+    LOOP
+    ;
+
+: THRU   ( start end -- )   SWAP DO I LOAD LOOP ;
