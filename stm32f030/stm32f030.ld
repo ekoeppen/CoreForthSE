@@ -4,8 +4,8 @@ ENTRY(reset_handler)
 
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 64k
-    SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00002000
+    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 0x00800000
+    SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00001000
 }
 
 SECTIONS
@@ -13,8 +13,9 @@ SECTIONS
     .flash : {
         *(.text)
         *(.rodata)
+        . = 0x00040000 ;
+        *(.host)
         KEEP(*(interrupt_vector))
-        flash_end = . ;
     } > FLASH
 
     .data : {
@@ -23,7 +24,7 @@ SECTIONS
         *(.bss)
     } >SRAM AT> FLASH
 
-    ram_top = 0x20000000 + 0x00001c00 ;
+    ram_top = 0x20000000 + 0x00000d00 ;
     irq_stack_top = ram_top - 0x40;
     trace_buffer = ram_top;
     trace_ptr = trace_buffer + 0x100;

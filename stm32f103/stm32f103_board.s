@@ -111,7 +111,7 @@ init_board:
 
     @ switch to 72MHz clock
     ldr r0, =FPEC
-    mov r1, #0x32
+    movs r1, #0x32
     str r1, [r0, #FLASH_ACR]
     ldr r0, =RCC
     ldr r1, [r0, #RCC_CFGR]
@@ -135,18 +135,11 @@ init_board:
     ldr r1, [r0, #RCC_CFGR]
     ldr r2, =0xfffffffc
     ands r1, r2
-    orrs r1, #0x2
+    movs r2, #2
+    orrs r1, r2
     str r1, [r0, #RCC_CFGR]
 
-    @ reset the interrupt vector table
-    ldr r0, =addr_IVT
-    movs r1, #0
-    movs r2, #(end_of_irq - _start) / 4
-1:  str r1, [r0], #4
-    subs r2, r2, #1
-    bgt 1b
-
-    @ enable PIC interrupts
+    @ enable interrupts
     movs r0, #0
     msr primask, r0
     movs r0, #0
@@ -171,23 +164,12 @@ init_board:
     ldr r1, =0x444444b4
     str r1, [r0, #GPIO_CRH]
 
-    @ reset console buffers
-    movs r1, #0
-    ldr r2, =addr_CON_RX_TAIL
-    str r1, [r2]
-    ldr r2, =addr_CON_RX_HEAD
-    str r1, [r2]
-    ldr r2, =addr_CON_TX_TAIL
-    str r1, [r2]
-    ldr r2, =addr_CON_TX_HEAD
-    str r1, [r2]
-
     @ enable UART
     ldr r0, =(NVIC + NVIC_SETENA_BASE)
     movs r1, #0x20
     str r1, [r0, #4]
     ldr r0, =UART1
-    ldr r1, =0x206c
+    ldr r1, =0x200c
     str r1, [r0, #UART_CR1]
 
     @ set UART baud rate
@@ -212,83 +194,41 @@ init_board:
     pop {pc}
     .ltorg
 
-readkey_polled:
-    push {r1, r2}
+readkey:
+    ldr r0, =CPUID
+    ldr r0, [r0]
+    cmp r0, #0
+    bne 2f
+    ldr r0, =EMULATOR_UART
+    ldr r0, [r0]
+    bx lr
+2:  push {r1, r2}
     ldr r1, =UART1
+    movs r0, #32
 1:  ldr r2, [r1, #UART_SR]
-    ands r2, #32
+    ands r2, r0
     beq 1b
     ldrb r0, [r1, #UART_DR]
     pop {r1, r2}
     bx lr
 
-putchar_polled:
-    push {r1, r2}
-    ldr r1, =UART1
-1:  ldr r2, [r1, #UART_SR]
-    ands r2, #0x80
-    beq 1b
-    str r0, [r1, #UART_DR]
-    pop {r1, r2}
-    bx lr
-
-readkey:
-readkey_int:
-    ldr r0, =CPUID
-    ldr r0, [r0]
-    cmp r0, #0
-    bne 3f
-    ldr r0, =EMULATOR_UART
-    ldr r0, [r0]
-    bx lr
-3:  push {r1, r2, r3, lr}
-    ldr r1, =addr_CON_RX_TAIL
-    ldr r3, [r1]
-2:  ldr r2, =addr_CON_RX_HEAD
-    ldr r2, [r2]
-    cmp r2, r3
-    bne 1f
-    wfi
-    b 2b
-1:  ldr r0, =addr_CON_RX
-    ldrb r0, [r0, r3]
-    adds r3, #1
-    ands r3, #0x3f
-    str r3, [r1]
-    pop {r1, r2, r3, pc}
-
 putchar:
-putchar_int:
-    push {r1, r2, r3, lr}
+    push {r1, r2, r3}
     ldr r1, =CPUID
     ldr r1, [r1]
     cmp r1, #0
-    bne 5f
+    bne 1f
     ldr r1, =EMULATOR_UART
     str r0, [r1]
-    b 4f
-5:  ldr r1, =addr_CON_TX_HEAD
-    ldr r2, [r1]
-    ldr r3, =addr_CON_TX_TAIL
-    ldr r3, [r3]
-    cmp r2, r3
-    bne 2f
-    bl putchar_polled
-    b 4f
-2:  ldr r3, =addr_CON_TX_HEAD
-    adds r2, #1
-    ands r2, #0x3f
-3:  ldr r3, [r3]
-    cmp r2, r3
-    bne 1f
-    wfi
-    b 3b
-1:  str r2, [r1]
-    subs r2, #1
-    ands r2, #0x3f
-    ldr r3, =addr_CON_TX
-    strb r0, [r3, r2]
-4:  pop {r1, r2, r3, pc}
+    b 2f
+1:  ldr r1, =UART1
+    movs r3, #0x80
+3:  ldr r2, [r1, #UART_SR]
+    ands r2, r3
+    beq 3b
+    str r0, [r1, #UART_DR]
+2:  pop {r1, r2, r3}
+    bx lr
 
 @ ---------------------------------------------------------------------
 @ -- IRQ handlers -----------------------------------------------------
@@ -299,32 +239,16 @@ putchar_int:
 @ generic handler is not clearing the interrupt.
 
 generic_forth_handler:
-    ldr r0, =addr_IVT
-    mrs r1, ipsr
-    sub r1, r1, #1
-    lsl r1, #2
-    add r0, r0, r1
-    ldr r2, [r0]
-    cmp r2, #0
-    beq 1f
-    push {r4 - r12, lr}
-    ldr r6, =irq_stack_top
-    mov r7, r0
-    ldr r0, [r7]
-    adds r7, #4
-    ldr r1, [r0]
-    adds r1, #1
-    bx r1
-1:  bx lr
+    b .
 
 nmi_handler:
     b .
 
 hardfault_handler:
-    tst lr, #4
-    ite eq
-    mrseq r0, msp
-    mrsne r0, psp
+    @tst lr, #4
+    @ite eq
+    @mrseq r0, msp
+    @mrsne r0, psp
     b .
 
 memmanage_handler:
@@ -346,42 +270,7 @@ pendsv_handler:
     b .
 
 usart1_handler:
-    ldr r1, =(UART1 + UART_SR)
-    ldr r1, [r1]
-    tst r1, #0x20
-    beq 1f
-    ldr r0, =addr_CON_RX
-    ldr r1, =addr_CON_RX_HEAD
-    ldr r2, [r1]
-    ldr r3, =(UART1 + UART_DR)
-    ldrb r3, [r3]
-    strb r3, [r0, r2]
-    adds r2, #1
-    ands r2, #0x3f
-    str r2, [r1]
-    b 2f
-1:  ldr r1, =(UART1 + UART_SR)
-    ldr r1, [r1]
-    tst r1, #0x60
-    beq 2f
-    ldr r1, =addr_CON_TX_HEAD
-    ldr r1, [r1]
-    ldr r2, =addr_CON_TX_TAIL
-    ldr r3, [r2]
-    cmp r1, r3
-    beq 2f
-    ldr r0, =addr_CON_TX
-    ldrb r1, [r0, r3]
-    ldr r0, =(UART1 + UART_DR)
-    strb r1, [r0]
-    adds r3, #1
-    ands r3, #0x3f
-    str r3, [r2]
-2:  movs r0, #0
-    ldr r1, =(UART1 + UART_SR)
-    str r0, [r1]
-    bx lr
-    .align 2,0
+    b .
 
 systick_handler:
 adc1_2_handler:
