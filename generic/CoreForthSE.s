@@ -1368,14 +1368,12 @@ is_positive:
     end_target_conditional
 
     defcode "(DO)", XDO
-    pop {r0, r1}
-    ldr r2, [RSP]
-    subs RSP, RSP, #4
-    str r1, [RSP]
-    subs RSP, RSP, #4
-    str r0, [RSP]
-    subs RSP, RSP, #4
-    str r2, [RSP]
+    ppop r0
+    ppop r1
+    pop {r2}
+    push {r1}
+    push {r0}
+    push {r2}
     mov pc, lr
 
     defcode "I", INDEX
@@ -1386,17 +1384,17 @@ is_positive:
     adds r0, #4
     ldr r0, [r0]
     .endif
-    stm PSP!, {r0}
+    ppush r0
     mov pc, lr
 
     defcode "(LOOP)", XLOOP
     .ifndef THUMB1
-    ldr r0, [RSP, #4]
-    adds r0, r0, #1
+    ldr r2, [RSP, #4]
+    adds r2, r2, #1
     ldr r1, [RSP, #8]
-    cmp r0, r1
+    cmp r2, r1
     bge 1f
-    str r0, [RSP, #4]
+    str r2, [RSP, #4]
     .else
     mov r0, RSP
     subs r0, #4
@@ -1412,15 +1410,18 @@ is_positive:
     str r0, [r0]
     .endif
     movs r0, #0
-    stm PSP!, {r0}
+    ppush r0
     mov pc, lr
-1:  ldr r0, [RSP]
-    adds RSP, RSP, #8
-    str r0, [RSP]
-    adds RSP, #4
+1:  pop {r0, r1, r2}
+    push {r0}
     movs r0, #0
     mvns r0, r0
-    stm PSP!, {r0}
+    ppush r0
+    mov pc, lr
+
+    defcode "UNLOOP", UNLOOP
+    pop {r0, r1, r2}
+    push {r0}
     mov pc, lr
 
     target_conditional ENABLE_COMPILER
