@@ -1724,6 +1724,7 @@ is_positive:
     bl BUILDS;
     ldr r4, =DOCON;
     ldr r0, [r4]; ppush r0; bl COMMA;
+    ldr r0, [r4, #4]; ppush r0; bl COMMA;
     exit
     .ltorg
     .align 2, 0
