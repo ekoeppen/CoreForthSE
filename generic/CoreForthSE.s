@@ -1459,16 +1459,17 @@ is_positive:
     mov pc, lr
 
     defcode "EMULATOR-BKPT", EMULATOR_BKPT
+    ppop r0
+    push {r0}
     bkpt 0xab
     mov pc, lr
 
     target_conditional ENABLE_COMPILER
 
     defword "ROM-DUMP", ROM_DUMP
-    movs r0, #0x80
-    bl LIT; .word _start; ppop r1
-    bl ROM_DP; bl FETCH; ppop r2
-    bl EMULATOR_BKPT
+    ldr r0, =_start; push {r0}
+    bl ROM_DP; bl FETCH; ppop r0; push {r0}
+    movs r0, #0x80; push {r0}; bkpt 0xab
     exit
 
     end_target_conditional
@@ -1476,7 +1477,7 @@ is_positive:
     defword "BYE", BYE
     bl EMULATIONQ
     bl QBRANCH; .word 1f - .
-    movs r0, #0x18; bl EMULATOR_BKPT
+    movs r0, #0x18; push {r0}; bkpt 0xab
 1:  b .
     exit
 
