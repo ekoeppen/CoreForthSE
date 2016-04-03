@@ -1754,8 +1754,6 @@ DODATA:
     mov pc, lr
     exit
 
-    .set DATA, CREATE
-
     defword "BUFFER", BUFFER
     bl XCONSTANT
     bl ROM_ACTIVE; bl FETCH
@@ -1892,12 +1890,12 @@ interpret_eol:
 
     defword ":", COLON
     bl BUILDS;
-    movs r0, #0xb500; ppush r0; bl COMMAH;
+    movs r0, #0xb5; lsls r0, #8; ppush r0; bl COMMAH;
     bl HIDE; bl RBRACKET;
     exit
 
     defword ";", SEMICOLON, F_IMMED
-    movs r0, #0xbd00; ppush r0; bl COMMAH;
+    movs r0, #0xbd; lsls r0, #8; ppush r0; bl COMMAH;
     bl REVEAL; bl LBRACKET
     exit
 
