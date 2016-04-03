@@ -359,6 +359,15 @@ delay:
     ppush r2
     mov pc, lr
 
+    defcode "PICK", PICK
+    ppop r2
+    mov r1, PSP
+    lsls r2, #2
+    subs r1, r2
+    ldr r1, [r1]
+    ppush r1
+    mov pc, lr
+
     defcode ">R", TOR
     ppop r0
     push {r0}
@@ -831,6 +840,20 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
 1:  bl NEGATE; bl ROR
     exit
 
+    defcode "LSHIFT", LSHIFT
+    ppop r1
+    ppop r0
+    lsls r0, r1
+    ppush r0
+    mov pc, lr
+
+    defword "RSHIFT", RSHIFT
+    ppop r1
+    ppop r0
+    lsrs r0, r1
+    ppush r0
+    mov pc, lr
+
     defword "NEGATE", NEGATE
     bl LIT; .word -1; bl MUL
     exit
@@ -1222,6 +1245,9 @@ is_positive:
 
 @ ---------------------------------------------------------------------
 @ -- Control flow -----------------------------------------------------
+
+    defcode "EXIT", EXIT
+    exit
 
     defcode "NOOP", NOOP
     mov pc, lr
@@ -1909,6 +1935,15 @@ interpret_eol:
 
     defword "S0", SZ
     bl 0x08
+
+    defcode "DEPTH", DEPTH
+    ldr r1, =addr_TASKZTOS
+    mov r2, r6
+    subs r2, r1
+    subs r2, #4
+    lsrs r2, #2
+    ppush r2
+    mov pc, lr
 
 @ ---------------------------------------------------------------------
 @ -- System variables -------------------------------------------------
