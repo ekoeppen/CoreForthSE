@@ -578,7 +578,7 @@ fill_done:
     exit
 
     defword "(S\")", XSQUOTE
-    bl RFROM; bl COUNT; bl TWODUP; bl ADD; bl ALIGNED; bl TOR
+    bl RFROM; bl DECR; bl COUNT; bl TWODUP; bl ADD; bl ALIGNED; bl INCR; bl TOR
     exit
 
     defword ">>SOURCE", GTGTSOURCE
