@@ -273,18 +273,18 @@ delay:
     mov pc, lr
 
     defcode "SWAP", SWAP
-    ppop r0
     ppop r1
-    ppush r0
+    ppop r0
     ppush r1
+    ppush r0
     mov pc, lr
 
     defcode "OVER", OVER
-    ppop r0
     ppop r1
-    ppush r1
+    ppop r0
     ppush r0
     ppush r1
+    ppush r0
     mov pc, lr
 
     defcode "ROT", ROT
@@ -369,18 +369,18 @@ delay:
     mov pc, lr
 
     defcode ">R", TOR
-    ppop r0
-    push {r0}
+    ppop r1
+    push {r1}
     mov pc, lr
 
     defcode "R>", RFROM
-    pop {r0}
-    ppush r0
+    pop {r1}
+    ppush r1
     mov pc, lr
 
     defcode "R@", RFETCH
-    ldr r0, [RSP]
-    ppush r0
+    ldr r1, [RSP]
+    ppush r1
     mov pc, lr
 
     defcode "RDROP", RDROP
