@@ -231,7 +231,7 @@ readline_end:
     pop {r3, r4, r5, pc}
 
 puthexnumber:
-    push {r4, r5, r6, r7, lr}
+    push {r3, r4, r5, r6, r7, lr}
     movs r3, #0
     movs r5, #8
     movs r6, #15
@@ -257,7 +257,8 @@ puthexnumber_loop:
     bne 4f
     movs r0, #'0'
     bl putchar
-4:  pop {r4, r5, r6, r7, pc}
+4:  pop {r3, r4, r5, r6, r7, pc}
+
     @ Busy delay with three ticks per count
 delay:
     subs r0, #1
