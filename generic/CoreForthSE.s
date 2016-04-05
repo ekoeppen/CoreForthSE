@@ -873,6 +873,17 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
 @ ---------------------------------------------------------------------
 @ -- Boolean operators -----------------------------------------------
 
+    defcode "TRUE", TRUE
+    movs r0, #0
+    mvns r0, r0
+    ppush r0
+    mov pc, lr
+
+    defcode "FALSE", FALSE
+    movs r0, #0
+    ppush r0
+    mov pc, lr
+
     defcode "AND", AND
     ppop r1
     ppop r0
@@ -1021,6 +1032,16 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     defword "SPACE", SPACE
     bl BL; bl EMIT
     exit
+
+    defword "SPACES", SPACES
+2:  ppop r1
+    cmp r1, #0
+    beq 1f
+    subs r1, #1
+    ppush r1
+    bl SPACE
+    b 2b
+1:  exit
 
     defword "HOLD", HOLD
     bl LIT; .word 1; bl HP; bl SUBSTORE; bl HP; bl FETCH; bl CSTORE
