@@ -828,10 +828,10 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     mov pc, lr
 
     defcode "ROR", ROR
-    ppop r0
     ppop r1
-1:  rors r1, r0
-    ppush r0
+    ppop r2
+1:  rors r2, r1
+    ppush r2
     mov pc, lr
 
     defword "ROTATE", ROTATE
