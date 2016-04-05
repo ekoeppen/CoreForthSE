@@ -153,9 +153,9 @@ reset_handler:
     bl init_board
     ldr RSP, =addr_TASKZRTOS
     ldr PSP, =addr_TASKZTOS
-    @bl TASKZ; bl UPSTORE
-    @bl TASKZRTOS; bl RZ; bl STORE
-    @bl TASKZTOS; bl SZ; bl STORE
+    bl TASKZ; bl UPSTORE
+    bl TASKZRTOS; bl RZ; bl STORE
+    bl TASKZTOS; bl SZ; bl STORE
     bl LIT; .word 16; bl BASE; bl STORE
     bl RAM
     bl LIT; .word init_here; bl FETCH; bl ROM_DP; bl STORE
@@ -414,12 +414,17 @@ delay:
 @ ---------------------------------------------------------------------
 @ -- Memory operations -----------------------------------------------
 
-    defconst "CHAR", CHAR, 1
     defconst "CELL", CELL, 4
 
-    defword "CELLS", CELLS
-    bl LIT; .word 4; bl MUL
-    exit
+    defcode "CELLS", CELLS
+    ppop r1
+    movs r2, #4
+    muls r1, r2, r1
+    ppush r1
+    mov pc, lr
+
+    defcode "CHARS", CHARS
+    mov pc, lr
 
     defcode "ALIGNED", ALIGNED
     pfetch r0
@@ -467,11 +472,11 @@ delay:
     mov pc, lr
 
     defword "2!", TWOSTORE
-    bl SWAP; bl OVER; bl STORE; bl CELL; bl ADD; bl STORE
+    bl SWAP; bl OVER; bl STORE; bl CELLADD; bl STORE
     exit
 
     defword "2@", TWOFETCH
-    bl DUP; bl CELL; bl ADD; bl FETCH; bl SWAP; bl FETCH
+    bl DUP; bl CELLADD; bl FETCH; bl SWAP; bl FETCH
     exit
 
     defcode "+!", ADDSTORE
@@ -525,15 +530,24 @@ fill_done:
     ppop r0
     ppop r1
     ppop r2
-2:  subs r0, r0, #1
+3:  subs r0, r0, #1
     cmp r0, #0
-    blt 1f
+    blt 4f
     ldrb r3, [r2]
     strb r3, [r1]
     adds r1, #1
     adds r2, #1
-    b 2b
-1:  mov pc, lr
+    b 3b
+4:  mov pc, lr
+
+    defcode "MOVE", MOVE
+    ppop r0
+    ppop r1
+    ppop r2
+    adds r3, r2, r0
+    cmp r1, r3
+    bge 2b
+    b 3b
 
     defcode "ALIGNED-MOVE>", ALIGNED_MOVEGT
     ppop r0
@@ -589,7 +603,7 @@ fill_done:
 
     defword "S\"", SQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; bl LIT; .word '"'; bl WORD
-    bl FETCHBYTE; bl INCR; bl ALIGNED; bl ALLOT
+    bl FETCHBYTE; bl INCR; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
 
@@ -600,11 +614,19 @@ fill_done:
     defword "SZ\"", SZQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; bl LIT; .word '"'; bl WORD
     bl LIT; .word 1; bl OVER; bl ADDSTORE; bl LIT; .word 0; bl OVER; bl DUP; bl FETCHBYTE; bl ADD; bl STOREBYTE
-    bl FETCHBYTE; bl INCR; bl ALIGNED; bl ALLOT
+    bl FETCHBYTE; bl INCR; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
 
+    defword "CHAR", CHAR, F_IMMED
+    bl BL; bl WORD; bl CHARADD; bl CFETCH
+    exit
+
     end_target_conditional
+
+    defword "[CHAR]", BRACKETCHAR, F_IMMED
+    bl CHAR; bl LIT_XT; .word LIT; bl COMMAXT; bl COMMA
+    exit
 
     defword "PAD", PAD
     bl HERE; bl LIT; .word 128; bl ADD
@@ -619,7 +641,19 @@ fill_done:
     pstore r0
     mov pc, lr
 
+    defcode "CHAR+", CHARADD
+    pfetch r0
+    adds r0, r0, #1
+    pstore r0
+    mov pc, lr
+
     defcode "1-", DECR
+    pfetch r0
+    subs r0, r0, #1
+    pstore r0
+    mov pc, lr
+
+    defcode "CHAR-", CHARSUB
     pfetch r0
     subs r0, r0, #1
     pstore r0
@@ -631,7 +665,19 @@ fill_done:
     pstore r0
     mov pc, lr
 
+    defcode "CELL+", CELLADD
+    pfetch r0
+    adds r0, r0, #4
+    pstore r0
+    mov pc, lr
+
     defcode "4-", DECR4
+    pfetch r0
+    subs r0, r0, #4
+    pstore r0
+    mov pc, lr
+
+    defcode "CELL-", CELLSUB
     pfetch r0
     subs r0, r0, #4
     pstore r0
@@ -1001,16 +1047,16 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     .ltorg
 
     defword "(.S)", XPRINTSTACK
-1:  bl TWODUP; bl LTGT; bl QBRANCH; .word 2f - .; bl CELL; bl MINUS; bl DUP; bl FETCH; bl DOT; bl BRANCH; .word 1b - .
+1:  bl TWODUP; bl GE; bl QBRANCH; .word 2f - .; bl DUP; bl FETCH; bl DOT; bl CELLADD; bl BRANCH; .word 1b - .
 2:  bl TWODROP; bl CR
     exit
 
     defword ".S", PRINTSTACK
-    bl SPFETCH; bl SZ; bl FETCH; bl XPRINTSTACK
+    bl SPFETCH; bl SZ; bl FETCH; bl CELLADD; bl XPRINTSTACK
     exit
 
     defword ".R", PRINTRSTACK
-    bl RZ; bl FETCH; bl CELL; bl ADD; bl RPFETCH; bl CELL; bl ADD; bl XPRINTSTACK
+    bl RZ; bl FETCH; bl CELLSUB; bl RPFETCH; bl XPRINTSTACK
     exit
 
     defcode "PUTCHAR", PUTCHAR
@@ -1331,7 +1377,7 @@ is_positive:
     bl LIT_XT; .word LIT_XT; bl COMMAXT; bl COMMA
     bl LIT_XT; .word COMMAXT; bl COMMAXT; bl BRANCH; .word 2f - .
 1:  bl COMMAXT
-    exit
+2:  exit
 
     defword "LITERAL", LITERAL, F_IMMED
     bl LIT_XT; .word LIT; bl COMMAXT; bl COMMA
@@ -1538,11 +1584,11 @@ is_positive:
     mov pc, r0
 
     defword "ROM", ROM
-    bl LIT; .word 1; bl ROM_ACTIVE; bl STORE
+    bl TRUE; bl ROM_ACTIVE; bl STORE
     exit
 
     defword "RAM", RAM
-    bl LIT; .word 0; bl ROM_ACTIVE; bl STORE
+    bl FALSE; bl ROM_ACTIVE; bl STORE
     exit
 
     defword "ROM?", ROMQ
@@ -1586,7 +1632,7 @@ is_positive:
 
     defword ",XT", COMMAXT
     bl DUP;
-    bl HERE; bl CELL; bl ADD; bl SUB;
+    bl HERE; bl CELLADD; bl SUB;
     ppop r0
     ldr r1, =0x00400000
     cmp r1, r0
@@ -1647,7 +1693,7 @@ is_positive:
     exit
 
     defword "LINK>", FROMLINK
-    bl LINKTONAME; bl DUP; bl FETCHBYTE; bl LIT; .word F_LENMASK; bl AND; bl CHAR; bl ADD; bl ADD; bl ALIGNED
+    bl LINKTONAME; bl DUP; bl FETCHBYTE; bl LIT; .word F_LENMASK; bl AND; bl CHARADD; bl ADD; bl ALIGNED
     exit
 
     defcode ">FLAGS", TOFLAGS
@@ -1660,7 +1706,7 @@ is_positive:
     mov pc, lr
 
     defword ">NAME", TONAME
-    bl TOFLAGS; bl CHAR; bl ADD
+    bl TOFLAGS; bl CHARADD
     exit
 
     .ltorg
@@ -1880,7 +1926,7 @@ interpret_eol:
     bl SOURCECOUNT; bl STORE; bl XSOURCE; bl STORE; bl LIT; .word 0; bl SOURCEINDEX; bl STORE
     bl XINTERPRET; bl QBRANCH; .word 3f - .; bl DROP
     bl SOURCECOUNT; bl FETCH; bl XSOURCE; bl ADDSTORE; bl BRANCH; .word 1b - .
-2:  bl DROP
+2:  bl TWODROP
     exit
 3:  bl DROP; bl DUP; bl DOT; bl SPACE; bl COUNT; bl TYPE; bl LIT; .word '?'; bl EMIT; bl CR
     exit
@@ -1925,7 +1971,7 @@ interpret_eol:
     defword "WORDS", WORDS
     bl LATEST; bl FETCH
 1:
-    bl DUP; bl CELL; bl ADD; bl CHAR; bl ADD; bl COUNT; bl TYPE; bl SPACE
+    bl DUP; bl CELLADD; bl CHARADD; bl COUNT; bl TYPE; bl SPACE
     bl FETCH; bl QDUP; bl ZEQU; bl QBRANCH; .word 1b - .
     exit
 
@@ -1936,7 +1982,7 @@ interpret_eol:
 @ ---------------------------------------------------------------------
 @ -- User variables  --------------------------------------------------
 
-    defword "USER", USER
+    defword "zUSER", USER
     bl CREATE; bl COMMA; bl XDOES
     .set USER_XT, .
     ldr r1, [pc]
@@ -1953,16 +1999,17 @@ interpret_eol:
     exit
 
     defword "R0", RZ
-    bl 0x04
+    bl UPFETCH; bl LIT; .word 0x04; bl ADD
+    exit
 
     defword "S0", SZ
-    bl 0x08
+    bl UPFETCH; bl LIT; .word 0x08; bl ADD
+    exit
 
     defcode "DEPTH", DEPTH
     ldr r1, =addr_TASKZTOS
     mov r2, r6
     subs r2, r1
-    subs r2, #4
     lsrs r2, #2
     ppush r2
     mov pc, lr
@@ -1981,7 +2028,7 @@ interpret_eol:
     defvar "TIB#", TIBCOUNT
     defvar "(SOURCE)", XSOURCE
     defvar "SOURCE#", SOURCECOUNT
-    defvar ">SOURCE", SOURCEINDEX
+    defvar ">IN", SOURCEINDEX
     defvar "UP", UP
     defvar "HP", HP
     defvar "\047KEY", TICKKEY
@@ -2004,7 +2051,7 @@ interpret_eol:
     defvar "TASK0SZ", TASKZSZ
     defvar "TASK0TOS", TASKZTOS, 0
     defvar "TASK0STACK", TASKZSTACK, 512
-    defvar "TASK0RTACK", TASKZRSTACK, 512
+    defvar "TASK0RSTACK", TASKZRSTACK, 512
     defvar "TASK0RTOS", TASKZRTOS, 0
 
     .ltorg

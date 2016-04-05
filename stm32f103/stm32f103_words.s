@@ -122,11 +122,12 @@ con_store:
     movs r0, PSP; bl puthexnumber; bl CR
     exit
 
-    defword ".S", DOTS
+    defword "((.S))", DOTSX
     ldr r5, =addr_TASKZTOS;
     movs r6, PSP
+    adds r5, #4
 2:  cmp r5, r6
-    bge 1f
+    bgt 1f
     ldr r0, [r5]
     bl puthexnumber; bl SPACE;
     adds r5, #4
