@@ -544,10 +544,11 @@ fill_done:
     ppop r0
     ppop r1
     ppop r2
-    adds r3, r2, r0
-    cmp r1, r3
-    bge 2b
-    b 3b
+    cmp r2, r1
+    blt 2b
+    bgt 3b
+    mov pc, lr
+
 
     defcode "ALIGNED-MOVE>", ALIGNED_MOVEGT
     ppop r0
@@ -1716,9 +1717,11 @@ is_positive:
     bl TONAME; bl LIT; .word 5; bl SUB
     exit
 
-    defword ">BODY", GTBODY
-    bl CELL; bl ADD
-    exit
+    defcode ">BODY", GTBODY
+    pfetch r0
+    adds r0, #16
+    pstore r0
+    mov pc, lr
 
     defword "LINK>NAME", LINKTONAME
     bl LIT; .word 5; bl ADD
