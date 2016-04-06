@@ -893,7 +893,8 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     ppush r0
     mov pc, lr
 
-    defword "RSHIFT", RSHIFT
+    defcode "RSHIFT", RSHIFT
+    movs r1, r1
     ppop r1
     ppop r0
     lsrs r0, r1
