@@ -34,7 +34,7 @@
     tst r1, r0
     beq 1f
     subs r2, #1
-1:  push {r2}
+1:  ppush r2
     mov pc, lr
 
     defvar "SBUF", SBUF, 16
@@ -43,17 +43,23 @@
     defvar "IVT", IVT, 48 * 4
     defvar "UART0-TASK", UARTZ_TASK
 
-    defword "COLD", COLD
-    /*
-    .word EMULATIONQ, QBRANCH, 1f - .
-    .word ROM, LIT, eval_words, EVALUATE
-    .word HERE, LIT, init_here, STORE
-    .word RAM_DP, FETCH, LIT, init_data_start, STORE
-    .word LATEST, FETCH, LIT, init_last_word, STORE
-    .word ROM_DUMP, BYE
-1:  .word LATEST, FETCH, FROMLINK, EXECUTE
-    */
-    b .
+    defword ".SP", DOTSP
+    movs r0, PSP; bl puthexnumber; bl CR
+    exit
+
+    defword "((.S))", DOTSX
+    ldr r5, =addr_TASKZTOS;
+    movs r6, PSP
+    adds r5, #4
+2:  cmp r5, r6
+    bgt 1f
+    ldr r0, [r5]
+    bl puthexnumber; bl SPACE;
+    adds r5, #4
+    b 2b
+1:  bl CR; exit
+
+    .ltorg
 
     .set last_word, link
     .set last_host, link_host
