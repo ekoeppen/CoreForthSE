@@ -1186,12 +1186,15 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     exit
 
     defword "READ-LINE", READ_LINE
+    push {r0}
     ldr r0, =constaddr_TIB
     ldr r0, [r0]
     ldr r1, =constaddr_TIBSIZE
     ldr r1, [r1]
     bl readline
-    ppush r0
+    movs r1, r0
+    pop {r0}
+    ppush r1
     exit
 
     .ltorg
