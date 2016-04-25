@@ -563,7 +563,7 @@ delay:
     ppop r0
     ppop r1
     ppop r2
-2:  subs r0, r0, #1
+2:  subs r0, #1
     cmp r0, #0
     blt 1f
     ldrb r3, [r2, r0]
@@ -575,7 +575,7 @@ delay:
     ppop r0
     ppop r1
     ppop r2
-3:  subs r0, r0, #1
+3:  subs r0, #1
     cmp r0, #0
     blt 4f
     ldrb r3, [r2]
@@ -608,23 +608,23 @@ delay:
 1:  mov pc, lr
 
     defcode "S=", SEQU
+    ppop r3
     ppop r2
     ppop r1
-    ppop r0
     push {r4, r5}
-1:  cmp r2, #0
+1:  cmp r3, #0
     beq 2f
-    ldrb r4, [r0]
-    adds r0, r0, #1
-    ldrb r5, [r1]
+    ldrb r4, [r1]
     adds r1, r1, #1
+    ldrb r5, [r2]
+    adds r2, r2, #1
     subs r5, r5, r4
     bne 3f
-    subs r2, r2, #1
+    subs r3, r3, #1
     b 1b
-3:  mov r2, r5
+3:  mov r3, r5
 2:  pop {r4, r5}
-    ppush r2
+    ppush r3
     mov pc, lr
 
     .ltorg
@@ -1111,8 +1111,7 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     bl RZ; bl FETCH; bl CELLSUB; bl RPFETCH; bl XPRINTSTACK
     exit
 
-    defcode "PUTCHAR", PUTCHAR
-    enter
+    defword "PUTCHAR", PUTCHAR
     ppop r0
     bl putchar
     exit
@@ -1400,51 +1399,51 @@ is_positive:
     @ .endif
 
     defcode "?BRANCH", QBRANCH
-    ppop r0
-    cmp r0, #0
+    ppop r1
+    cmp r1, #0
     beq BRANCH
     @ .ifndef THUMB1
     @ adds lr, lr, #4
     @ mov pc, lr
     @ .else
-    mov r0, lr
-    adds r0, r0, #4
-    mov pc, r0
+    mov r1, lr
+    adds r1, r1, #4
+    mov pc, r1
     @ .endif
 
     defcode "(FARCALL)", XFARCALL
     .ifndef THUMB1
-    mov r0, lr
-    subs r0, #1
-    ldr r1, [r0]
-    adds r0, #5
+    mov r1, lr
+    subs r1, #1
+    ldr r2, [r1]
+    adds r1, #5
     .else
-    mov r2, lr
-    mov r0, lr
-    subs r2, #1
-    ldrh r1, [r2]
-    adds r2, #2
-    ldrh r2, [r2]
-    lsls r2, #16
-    orrs r1, r2
-    adds r0, #4
+    mov r3, lr
+    mov r1, lr
+    subs r3, #1
+    ldrh r2, [r3]
+    adds r3, #2
+    ldrh r3, [r3]
+    lsls r3, #16
+    orrs r2, r3
+    adds r1, #4
     .endif
-    mov lr, r0
+    mov lr, r1
     mov pc, r1
 
     defcode "COPY-FARCALL", COPY_FARCALL
-    ldr r0, =addr_FARCALL
-    ldr r1, =XFARCALL
+    ldr r1, =addr_FARCALL
+    ldr r2, =XFARCALL
     .ifndef THUMB1
-    movs r2, #4
+    movs r3, #4
     .else
-    movs r2, #6
+    movs r3, #6
     .endif
-1:  ldr r3, [r1]
-    str r3, [r0]
-    adds r0, #4
+1:  ldr r4, [r2]
+    str r4, [r1]
     adds r1, #4
-    subs r2, #1
+    adds r2, #4
+    subs r3, #1
     bne 1b
     mov pc, lr
     .ltorg
