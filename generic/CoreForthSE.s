@@ -55,11 +55,8 @@ PSP .req r6
     .endm
 
     .macro pdup
-    pfetch r0
-    ppush r0
-    .endm
-
-    .macro pswap
+    pfetch r1
+    ppush r1
     .endm
 
     .macro checkdef name
@@ -307,34 +304,34 @@ delay:
     mov pc, lr
 
     defcode "SWAP", SWAP
+    ppop r2
     ppop r1
-    ppop r0
+    ppush r2
     ppush r1
-    ppush r0
     mov pc, lr
 
     defcode "OVER", OVER
+    ppop r2
     ppop r1
-    ppop r0
-    ppush r0
     ppush r1
-    ppush r0
+    ppush r2
+    ppush r1
     mov pc, lr
 
     defcode "ROT", ROT
-    ppop r0
-    ppop r1
+    ppop r3
     ppop r2
-    ppush r1
-    ppush r0
+    ppop r1
     ppush r2
+    ppush r3
+    ppush r1
     mov pc, lr
 
     defcode "?DUP", QDUP
-    pfetch r0
-    cmp r0, #0
+    pfetch r1
+    cmp r1, #0
     beq 1f
-    ppush r0
+    ppush r1
 1:  mov pc, lr
 
     defcode "DUP", DUP
@@ -342,37 +339,37 @@ delay:
     mov pc, lr
 
     defcode "NIP", NIP
-    ppop r0
     ppop r1
-    ppush r0
+    ppop r2
+    ppush r1
     mov pc, lr
 
     defcode "TUCK", TUCK
-    ppop r0
     ppop r1
-    ppush r0
+    ppop r2
     ppush r1
-    ppush r0
+    ppush r2
+    ppush r1
     mov pc, lr
 
     defcode "2DUP", TWODUP
-    ppop r0
     ppop r1
+    ppop r2
+    ppush r2
     ppush r1
-    ppush r0
+    ppush r2
     ppush r1
-    ppush r0
     mov pc, lr
 
     defcode "2SWAP", TWOSWAP
-    ppop r0
     ppop r1
     ppop r2
     ppop r3
-    ppush r1
-    ppush r0
-    ppush r3
+    ppop r4
     ppush r2
+    ppush r1
+    ppush r4
+    ppush r3
     mov pc, lr
 
     defcode "2DROP", TWODROP
@@ -380,16 +377,16 @@ delay:
     mov pc, lr
 
     defcode "2OVER", TWOOVER
-    ppop r0
     ppop r1
     ppop r2
     ppop r3
+    ppop r4
+    ppush r4
     ppush r3
     ppush r2
     ppush r1
-    ppush r0
+    ppush r4
     ppush r3
-    ppush r2
     mov pc, lr
 
     defcode "PICK", PICK
@@ -560,50 +557,50 @@ delay:
     exit
 
     defcode "CMOVE>", CMOVEUP
-    ppop r0
     ppop r1
     ppop r2
-2:  subs r0, #1
-    cmp r0, #0
+    ppop r3
+2:  subs r1, #1
+    cmp r1, #0
     blt 1f
-    ldrb r3, [r2, r0]
-    strb r3, [r1, r0]
+    ldrb r4, [r3, r1]
+    strb r4, [r2, r1]
     b 2b
 1:  mov pc, lr
 
     defcode "CMOVE", CMOVE
-    ppop r0
     ppop r1
     ppop r2
-3:  subs r0, #1
-    cmp r0, #0
+    ppop r3
+3:  subs r1, #1
+    cmp r1, #0
     blt 4f
-    ldrb r3, [r2]
-    strb r3, [r1]
-    adds r1, #1
+    ldrb r4, [r3]
+    strb r4, [r2]
     adds r2, #1
+    adds r3, #1
     b 3b
 4:  mov pc, lr
 
     defcode "MOVE", MOVE
-    ppop r0
     ppop r1
     ppop r2
-    cmp r2, r1
+    ppop r3
+    cmp r3, r2
     blt 2b
     bgt 3b
     mov pc, lr
 
 
     defcode "ALIGNED-MOVE>", ALIGNED_MOVEGT
-    ppop r0
     ppop r1
     ppop r2
-2:  subs r0, r0, #4
-    cmp r0, #0
+    ppop r3
+2:  subs r1, r1, #4
+    cmp r1, #0
     blt 1f
-    ldr r3, [r2, r0]
-    str r3, [r1, r0]
+    ldr r4, [r3, r1]
+    str r4, [r2, r1]
     b 2b
 1:  mov pc, lr
 
@@ -798,55 +795,55 @@ delay:
 
     .else
 
-unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
-    mov     r2, r1              @ put divisor in r2
-    mov     r3, r0
+unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
+    mov     r4, r2              @ put divisor in r4
+    mov     r3, r1
     lsrs    r3, #1
-1:  cmp     r2, r3
+1:  cmp     r4, r3
     bhi     3f
-    lsls    r2, #1              @ until r2 > r3 / 2
+    lsls    r4, #1              @ until r4 > r3 / 2
     b       1b
 3:  movs    r3, #0              @ initialize quotient
 2:  adds    r3, r3              @ double quotien
-    cmp     r0, r2              @ can we subtract r2?
+    cmp     r1, r4              @ can we subtract r4?
     blo     4f
     adds    r3, #1              @ if we can, increment quotiend
-    subs    r0, r0, r2          @ and substract
-4:  lsrs    r2, #1              @ halve r2,
-    cmp     r2, r1              @ and loop until
+    subs    r1, r1, r4          @ and substract
+4:  lsrs    r4, #1              @ halve r4,
+    cmp     r4, r2              @ and loop until
     bhs     2b                  @ less than divisor
     bx      lr
 
     defword "U/MOD", UDIVMOD
+    ppop r2
     ppop r1
-    ppop r0
     bl unsigned_div_mod
-    ppush r0
+    ppush r1
     ppush r3
     exit
 
     defword "/MOD", DIVMOD
+    ppop r2
     ppop r1
-    ppop r0
     bl unsigned_div_mod
-    ppush r0
+    ppush r1
     ppush r3
     exit
 
     defword "/", DIV
+    ppop r2
     ppop r1
-    ppop r0
     movs r3, #0
     movs r4, #1
     movs r5, #1
-    cmp r0, r3
+    cmp r1, r3
     bge 1f
     subs r4, #2
-    muls r0, r4
-1:  cmp r1, r3
+    muls r1, r4
+1:  cmp r2, r3
     bge 2f
     subs r5, #2
-    muls r1, r5
+    muls r2, r5
 2:  bl unsigned_div_mod
     muls r3, r4
     muls r3, r5
@@ -854,29 +851,29 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     exit
 
     defword "MOD", MOD
+    ppop r2
     ppop r1
-    ppop r0
     movs r3, #0
     movs r4, #1
     movs r5, #0
     subs r5, #1
-    cmp r0, r3
+    cmp r1, r3
     bge 1f
     subs r4, #2
-    muls r0, r4
-1:  cmp r1, r3
+    muls r1, r4
+1:  cmp r2, r3
     bge 2f
-    muls r1, r5
+    muls r2, r5
 2:  bl unsigned_div_mod
-    muls r0, r4
-    ppush r0
+    muls r1, r4
+    ppush r1
     exit
 
     defword "UMOD", UMOD
+    ppop r2
     ppop r1
-    ppop r0
     bl unsigned_div_mod
-    ppush r0
+    ppush r1
     exit
     .endif
 
@@ -1112,8 +1109,11 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     exit
 
     defword "PUTCHAR", PUTCHAR
-    ppop r0
+    ppop r1
+    push {r0}
+    movs r0, r1
     bl putchar
+    pop {r0}
     exit
 
     defword "LF", LF
@@ -1221,8 +1221,11 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
 
     defword "(TYPE)", XTYPE
     ppop r1
-    ppop r0
+    ppop r2
+    push {r0}
+    movs r0, r2
     bl putstring
+    pop {r0}
     exit
 
     defword "ACCEPT", ACCEPT
