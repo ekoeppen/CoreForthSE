@@ -32,6 +32,40 @@ PSP .req r6
     push {lr}
     .endm
 
+    .if 1
+
+    .macro ppush reg
+    adds PSP, #4
+    str r0, [PSP]
+    movs r0, \reg
+    .endm
+
+    .macro ppop reg
+    movs \reg, r0
+    ldr r0, [PSP]
+    subs PSP, #4
+    .endm
+
+    .macro pfetch reg
+    movs \reg, r0
+    .endm
+
+    .macro pstore reg
+    movs r0, \reg
+    .endm
+
+    .macro pdrop
+    ldr r0, [PSP]
+    subs PSP, #4
+    .endm
+
+    .macro pdup
+    adds PSP, #4
+    str r0, [PSP]
+    .endm
+
+    .else
+
     .macro ppush reg
     adds PSP, #4
     str \reg, [PSP]
@@ -58,6 +92,8 @@ PSP .req r6
     pfetch r1
     ppush r1
     .endm
+
+    .endif
 
     .macro checkdef name
     .ifdef \name
@@ -136,7 +172,7 @@ PSP .req r6
     .align 2, 0
     .global \label
     .set \label , .
-    ldr r1, [pc, #4]
+    ldr r1, [pc, #8]
     ppush r1
     mov pc, lr
     .align 2, 0
@@ -184,6 +220,8 @@ reset_handler:
     mov RSP, r0
     ldr r0, =addr_TASKZTOS
     mov PSP, r0
+    movs r0, #0
+    subs r0, #1
     bl TASKZ; bl UPSTORE
     bl TASKZRTOS; bl RZ; bl STORE
     bl TASKZTOS; bl SZ; bl STORE
@@ -373,7 +411,8 @@ delay:
     mov pc, lr
 
     defcode "2DROP", TWODROP
-    subs PSP, PSP, #8
+    pdrop
+    pdrop
     mov pc, lr
 
     defcode "2OVER", TWOOVER
@@ -390,13 +429,11 @@ delay:
     mov pc, lr
 
     defcode "PICK", PICK
-    ppop r2
     mov r1, PSP
-    lsls r2, #2
-    subs r1, r2
-    ldr r1, [r1]
-    ppush r1
-    mov pc, lr
+    lsls r0, #2
+    subs r1, r0
+    ldr r0, [r1]
+1:  mov pc, lr
 
     defcode ">R", TOR
     ppop r1
@@ -1097,15 +1134,19 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     defword "(.S)", XPRINTSTACK
 1:  bl TWODUP; bl GE; ppop r1; cmp r1, #0; beq 2f; pdup; bl FETCH; bl DOT; bl CELLADD;
     b 1b
-2:  bl TWODROP; bl CR
+2:  bl TWODROP
     exit
 
     defword ".S", PRINTSTACK
-    bl SPFETCH; bl SZ; bl FETCH; bl CELLADD; bl XPRINTSTACK
-    exit
+    bl DEPTH; ppop r1; cmp r1, #0; beq 1f
+    bl SPFETCH; bl SZ; bl FETCH; bl CELLADD; bl CELLADD; bl XPRINTSTACK;
+    bl DUP; bl DOT;
+    bl CR
+1:  exit
 
     defword ".R", PRINTRSTACK
     bl RZ; bl FETCH; bl CELLSUB; bl RPFETCH; bl XPRINTSTACK
+    bl CR
     exit
 
     defword "PUTCHAR", PUTCHAR
@@ -1387,23 +1428,23 @@ is_positive:
     @ mov pc, lr
     @ .else
     .ifndef THUMB1
-    mov r0, lr
-    subs r0, r0, #1
-    ldr r1, [r0]
-    adds r0, r1
-    adds r0, r0, #1
-    mov pc, r0
+    mov r1, lr
+    subs r1, r1, #1
+    ldr r2, [r1]
+    adds r1, r2
+    adds r1, r1, #1
+    mov pc, r1
     .else
-    mov r2, lr
-    mov r0, lr
-    subs r2, #1
-    ldrh r1, [r2]
-    adds r2, #2
-    ldrh r2, [r2]
-    lsls r2, #16
-    orrs r1, r2
-    adds r0, r1
-    mov pc, r0
+    mov r3, lr
+    mov r1, lr
+    subs r3, #1
+    ldrh r2, [r3]
+    adds r3, #2
+    ldrh r3, [r3]
+    lsls r3, #16
+    orrs r2, r3
+    adds r1, r2
+    mov pc, r1
     .endif
     @ .endif
 
@@ -1438,7 +1479,7 @@ is_positive:
     adds r1, #4
     .endif
     mov lr, r1
-    mov pc, r1
+    mov pc, r2
 
     defcode "COPY-FARCALL", COPY_FARCALL
     ldr r1, =addr_FARCALL
@@ -1483,6 +1524,9 @@ is_positive:
     ldr r1, [r4]
     ppush r1
     bl COMMA
+    ldrh r1, [r4, #4]
+    ppush r1
+    bl COMMAH
     exit
 1:  bl LIT_XT; .word LIT; bl COMMAXT; bl COMMA
     exit
@@ -1510,6 +1554,7 @@ is_positive:
     ldr r4, =1f;
     ldr r2, [r4]; ppush r2; bl COMMA
     ldr r2, [r4, #4]; ppush r2; bl COMMA
+    ldrh r2, [r4, #8]; ppush r2; bl COMMAH
     bl HERE; bl DECR; bl DECR
     exit
     .align 2
@@ -1904,7 +1949,7 @@ is_positive:
     defword "(DOES>)", XDOES
     bl HERE
     pop {r1}; subs r1, #1; ppush r1
-    lit8 -12; bl ALLOT;
+    lit8 -10; bl ALLOT;
     lit32 0xb500; bl COMMAH
     bl COMMAXT;
     bl ORG
@@ -1932,11 +1977,12 @@ is_positive:
     ldr r4, =DOCON;
     ldr r1, [r4]; ppush r1; bl COMMA;
     ldr r1, [r4, #4]; ppush r1; bl COMMA;
+    ldr r1, [r4, #8]; ppush r1; bl COMMA;
     exit
     .ltorg
     .align 2, 0
 DOCON:
-    ldr	r1, [pc, #4]
+    ldr	r1, [pc, #8]
     ppush r1
     mov pc, lr
 
@@ -1950,7 +1996,7 @@ DOCON:
     ldr r1, [r4]; ppush r1; bl COMMA;
     ldr r1, [r4, #4]; ppush r1; bl COMMA;
     ldr r1, [r4, #8]; ppush r1; bl COMMA;
-    lit8 4; bl COMMA
+    ldr r1, [r4, #12]; ppush r1; bl COMMA;
     exit
     .ltorg
     .align 2, 0
@@ -2184,7 +2230,7 @@ interpret_eol:
 
     defcode "DEPTH", DEPTH
     ldr r1, =addr_TASKZTOS
-    mov r2, r6
+    mov r2, PSP
     subs r2, r1
     lsrs r2, #2
     ppush r2
