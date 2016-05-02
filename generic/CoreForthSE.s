@@ -803,7 +803,7 @@ unsigned_div_mod:               @ r0 / r1 = r3, remainder = r0
     mov     r3, r0
     lsrs    r3, #1
 1:  cmp     r2, r3
-    bgt     3f
+    bhi     3f
     lsls    r2, #1              @ until r2 > r3 / 2
     b       1b
 3:  movs    r3, #0              @ initialize quotient
@@ -2061,7 +2061,7 @@ interpret_eol:
 6:  pdup; bl FETCHBYTE; lit8 10; bl NEQU; ppop r1; cmp r1, #0; beq 4f
     bl INCR; b 6b
 4:  bl OVER; bl SUB
-@    bl TWODUP; bl TYPE; bl CR
+    bl TWODUP; bl TYPE; bl CR
     bl SOURCECOUNT; bl STORE; bl XSOURCE; bl STORE; lit8 0; bl SOURCEINDEX; bl STORE
     bl XINTERPRET; ppop r1; cmp r1, #0; beq 3f; pdrop
     bl SOURCECOUNT; bl FETCH; bl XSOURCE; bl ADDSTORE; b 1b
