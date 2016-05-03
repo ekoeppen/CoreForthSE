@@ -32,10 +32,8 @@ PSP .req r6
     push {lr}
     .endm
 
-    .if 1
-
     .macro ppush reg
-    adds PSP, #4
+    subs PSP, #4
     str r0, [PSP]
     movs r0, \reg
     .endm
@@ -43,7 +41,7 @@ PSP .req r6
     .macro ppop reg
     movs \reg, r0
     ldr r0, [PSP]
-    subs PSP, #4
+    adds PSP, #4
     .endm
 
     .macro pfetch reg
@@ -56,44 +54,13 @@ PSP .req r6
 
     .macro pdrop
     ldr r0, [PSP]
-    subs PSP, #4
+    adds PSP, #4
     .endm
 
     .macro pdup
-    adds PSP, #4
+    subs PSP, #4
     str r0, [PSP]
     .endm
-
-    .else
-
-    .macro ppush reg
-    adds PSP, #4
-    str \reg, [PSP]
-    .endm
-
-    .macro ppop reg
-    ldr \reg, [PSP]
-    subs PSP, #4
-    .endm
-
-    .macro pfetch reg
-    ldr \reg, [PSP]
-    .endm
-
-    .macro pstore reg
-    str \reg, [PSP]
-    .endm
-
-    .macro pdrop
-    subs PSP, #4
-    .endm
-
-    .macro pdup
-    pfetch r1
-    ppush r1
-    .endm
-
-    .endif
 
     .macro checkdef name
     .ifdef \name
@@ -431,7 +398,7 @@ delay:
     defcode "PICK", PICK
     mov r1, PSP
     lsls r0, #2
-    subs r1, r0
+    adds r1, r0
     ldr r0, [r1]
 1:  mov pc, lr
 
@@ -1139,8 +1106,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
 
     defword ".S", PRINTSTACK
     bl DEPTH; ppop r1; cmp r1, #0; beq 1f
-    bl SPFETCH; bl SZ; bl FETCH; bl CELLADD; bl CELLADD; bl XPRINTSTACK;
-    bl DUP; bl DOT;
+    bl SZ; bl FETCH; bl CELLSUB; bl CELLSUB; bl SPFETCH; bl XPRINTSTACK;
     bl CR
 1:  exit
 
@@ -2110,7 +2076,7 @@ interpret_eol:
 6:  pdup; bl FETCHBYTE; lit8 10; bl NEQU; ppop r1; cmp r1, #0; beq 4f
     bl INCR; b 6b
 4:  bl OVER; bl SUB
-    bl TWODUP; bl TYPE; bl CR
+    @ bl TWODUP; bl TYPE; bl CR
     bl SOURCECOUNT; bl STORE; bl XSOURCE; bl STORE; lit8 0; bl SOURCEINDEX; bl STORE
     bl XINTERPRET; ppop r1; cmp r1, #0; beq 3f; pdrop
     bl SOURCECOUNT; bl FETCH; bl XSOURCE; bl ADDSTORE; b 1b
@@ -2229,8 +2195,8 @@ interpret_eol:
     exit
 
     defcode "DEPTH", DEPTH
-    ldr r1, =addr_TASKZTOS
-    mov r2, PSP
+    ldr r2, =addr_TASKZTOS
+    mov r1, PSP
     subs r2, r1
     lsrs r2, #2
     ppush r2
@@ -2271,8 +2237,8 @@ interpret_eol:
     defvar "TASK0FOLLOWER", TASKZFOLLOWER
     defvar "TASK0RZ", TASKZRZ
     defvar "TASK0SZ", TASKZSZ
-    defvar "TASK0TOS", TASKZTOS, 0
     defvar "TASK0STACK", TASKZSTACK, 512
+    defvar "TASK0TOS", TASKZTOS, 0
     defvar "TASK0RSTACK", TASKZRSTACK, 512
     defvar "TASK0RTOS", TASKZRTOS, 0
 
