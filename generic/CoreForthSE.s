@@ -62,6 +62,64 @@ PSP .req r6
     str r0, [PSP]
     .endm
 
+    .macro pnip
+    adds PSP, #4
+    .endm
+
+    .macro pincr
+    adds r0, #1
+    .endm
+
+    .macro pdecr
+    subs r0, #1
+    .endm
+
+    .macro pincr4
+    adds r0, #4
+    .endm
+
+    .macro pdecr4
+    subs r0, #4
+    .endm
+
+    .macro pcelladd
+    adds r0, #4
+    .endm
+
+    .macro pcellsub
+    subs r0, #4
+    .endm
+
+    .macro pcharadd
+    adds r0, #1
+    .endm
+
+    .macro pcharsub
+    subs r0, #1
+    .endm
+
+    .macro ptwomul
+    .ifndef THUMB1
+    lsls r0, r0, #1
+    .else
+    adds r0, r0
+    .endif
+    .endm
+
+    .macro ptwodiv
+    asrs r0, r0, #1
+    .endm
+
+    .macro pinvert
+    mvns r0, r0
+    .endm
+
+    .macro pand
+    ldr r1, [PSP]
+    adds PSP, #4
+    ands r0, r1
+    .endm
+
     .macro checkdef name
     .ifdef \name
     .print "Redefining \name"
@@ -309,34 +367,30 @@ delay:
     mov pc, lr
 
     defcode "SWAP", SWAP
-    ppop r2
-    ppop r1
-    ppush r2
-    ppush r1
+    ldr r1, [PSP]
+    str r0, [PSP]
+    movs r0, r1
     mov pc, lr
 
     defcode "OVER", OVER
-    ppop r2
-    ppop r1
-    ppush r1
-    ppush r2
-    ppush r1
+    subs PSP, #4
+    str r0, [PSP]
+    ldr r0, [PSP, #4]
     mov pc, lr
 
     defcode "ROT", ROT
-    ppop r3
-    ppop r2
-    ppop r1
-    ppush r2
-    ppush r3
-    ppush r1
+    ldr r3, [PSP, #4]
+    ldr r2, [PSP]
+    movs r1, r0
+    str r2, [PSP, #4]
+    str r1, [PSP]
+    movs r0, r3
     mov pc, lr
 
     defcode "?DUP", QDUP
-    pfetch r1
-    cmp r1, #0
+    cmp r0, #0
     beq 1f
-    ppush r1
+    pdup
 1:  mov pc, lr
 
     defcode "DUP", DUP
@@ -344,37 +398,31 @@ delay:
     mov pc, lr
 
     defcode "NIP", NIP
-    ppop r1
-    ppop r2
-    ppush r1
+    pnip
     mov pc, lr
 
     defcode "TUCK", TUCK
-    ppop r1
-    ppop r2
-    ppush r1
-    ppush r2
-    ppush r1
+    ldr r1, [PSP]
+    str r0, [PSP]
+    subs PSP, #4
+    str r1, [PSP]
     mov pc, lr
 
     defcode "2DUP", TWODUP
-    ppop r1
-    ppop r2
-    ppush r2
-    ppush r1
-    ppush r2
-    ppush r1
+    ldr r1, [PSP]
+    subs PSP, #8
+    str r0, [PSP, #4]
+    str r1, [PSP]
     mov pc, lr
 
     defcode "2SWAP", TWOSWAP
-    ppop r1
-    ppop r2
-    ppop r3
-    ppop r4
-    ppush r2
-    ppush r1
-    ppush r4
-    ppush r3
+    ldr r3, [PSP, #8]
+    ldr r2, [PSP, #4]
+    ldr r1, [PSP]
+    str r1, [PSP, #8]
+    str r0, [PSP, #4]
+    str r3, [PSP]
+    movs r0, r2
     mov pc, lr
 
     defcode "2DROP", TWODROP
@@ -403,13 +451,15 @@ delay:
 1:  mov pc, lr
 
     defcode ">R", TOR
-    ppop r1
-    push {r1}
+    push {r0}
+    ldr r0, [PSP]
+    adds PSP, #4
     mov pc, lr
 
     defcode "R>", RFROM
-    pop {r1}
-    ppush r1
+    subs PSP, #4
+    str r0, [PSP]
+    pop {r0}
     mov pc, lr
 
     defcode "R@", RFETCH
@@ -451,28 +501,22 @@ delay:
     defconst "CELL", CELL, 4
 
     defcode "CELLS", CELLS
-    ppop r1
-    movs r2, #4
-    muls r1, r2, r1
-    ppush r1
+    movs r1, #4
+    muls r0, r1
     mov pc, lr
 
     defcode "CHARS", CHARS
     mov pc, lr
 
     defcode "ALIGNED", ALIGNED
-    pfetch r0
     adds r0, r0, #3
     movs r1, #3
     mvns r1, r1
     ands r0, r0, r1
-    pstore r0
     mov pc, lr
 
     defcode "C@", FETCHBYTE
-    pfetch r0
     ldrb r0, [r0]
-    pstore r0
     mov pc, lr
 
     defcode "C!", STOREBYTE
@@ -635,11 +679,11 @@ delay:
     exit
 
     defword "COUNT", COUNT
-    pdup; bl INCR; bl SWAP; bl FETCHBYTE
+    pdup; pincr; bl SWAP; bl FETCHBYTE
     exit
 
     defword "(S\")", XSQUOTE
-    bl RFROM; bl DECR; bl COUNT; bl TWODUP; bl ADD; bl ALIGNED; bl INCR; bl TOR
+    bl RFROM; pdecr; bl COUNT; bl TWODUP; bl ADD; bl ALIGNED; pincr; bl TOR
     exit
 
     defword ">>SOURCE", GTGTSOURCE
@@ -650,7 +694,7 @@ delay:
 
     defword "S\"", SQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD
-    bl FETCHBYTE; bl INCR; bl ALLOT; bl ALIGN
+    bl FETCHBYTE; pincr; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
 
@@ -665,12 +709,12 @@ delay:
     defword "SZ\"", SZQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD
     lit8 1; bl OVER; bl ADDSTORE; lit8 0; bl OVER; pdup; bl FETCHBYTE; bl ADD; bl STOREBYTE
-    bl FETCHBYTE; bl INCR; bl ALLOT; bl ALIGN
+    bl FETCHBYTE; pincr; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
 
     defword "CHAR", CHAR, F_IMMED
-    bl BL; bl WORD; bl CHARADD; bl CFETCH
+    bl BL; bl WORD; pcharadd; bl CFETCH
     exit
 
     end_target_conditional
@@ -687,72 +731,50 @@ delay:
 @ -- Arithmetic ------------------------------------------------------
 
     defcode "1+", INCR
-    pfetch r0
-    adds r0, r0, #1
-    pstore r0
+    pincr
     mov pc, lr
 
     defcode "CHAR+", CHARADD
-    pfetch r0
-    adds r0, r0, #1
-    pstore r0
+    pcharadd
     mov pc, lr
 
     defcode "1-", DECR
-    pfetch r0
-    subs r0, r0, #1
-    pstore r0
+    pdecr
     mov pc, lr
 
     defcode "CHAR-", CHARSUB
-    pfetch r0
-    subs r0, r0, #1
-    pstore r0
+    pcharsub
     mov pc, lr
 
     defcode "4+", INCR4
-    pfetch r0
-    adds r0, r0, #4
-    pstore r0
+    pincr4
     mov pc, lr
 
     defcode "CELL+", CELLADD
-    pfetch r0
-    adds r0, r0, #4
-    pstore r0
+    pcelladd
     mov pc, lr
 
     defcode "4-", DECR4
-    pfetch r0
-    subs r0, r0, #4
-    pstore r0
+    pdecr4
     mov pc, lr
 
     defcode "CELL-", CELLSUB
-    pfetch r0
-    subs r0, r0, #4
-    pstore r0
+    pcellsub
     mov pc, lr
 
     defcode "+", ADD
     ppop r1
-    pfetch r0
     adds r0, r1, r0
-    pstore r0
     mov pc, lr
 
     defcode "-", SUB
     ppop r1
-    pfetch r0
     subs r0, r0, r1
-    pstore r0
     mov pc, lr
 
     defcode "*", MUL
     ppop r1
-    pfetch r0
     muls r0, r1, r0
-    pstore r0
     mov pc, lr
 
     .ifndef THUMB1
@@ -882,28 +904,18 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     .endif
 
     defcode "2*", TWOMUL
-    pfetch r0
-    .ifndef THUMB1
-    lsls r0, r0, #1
-    .else
-    adds r0, r0
-    .endif
-    pstore r0
+    ptwomul
     mov pc, lr
 
     defcode "2/", TWODIV
-    pfetch r0
-    asrs r0, r0, #1
-    pstore r0
+    ptwodiv
     mov pc, lr
 
     defcode "ABS", ABS
-    pfetch r0
     cmp r0, #0
     bge 1f
     mvns r0, r0
     adds r0, #1
-    pstore r0
 1:  mov pc, lr
 
     defcode "MAX", MAX
@@ -961,7 +973,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "BITE", BITE
-    pdup; lit8 0xff; bl AND; bl SWAP; lit8 8; bl ROR
+    pdup; lit8 0xff; pand; bl SWAP; lit8 8; bl ROR
     exit
 
     defword "CHEW", CHEW
@@ -983,63 +995,56 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     mov pc, lr
 
     defcode "AND", AND
-    ppop r2
-    ppop r1
-    ands r1, r2, r1
-    ppush r1
+    pand
     mov pc, lr
 
     defcode "OR", OR
-    ppop r2
-    ppop r1
-    orrs r1, r2, r1
-    ppush r1
+    ldr r1, [PSP]
+    adds PSP, #4
+    orrs r0, r1
     mov pc, lr
 
     defcode "XOR", XOR
-    ppop r2
-    ppop r1
-    eors r1, r2, r1
-    ppush r1
+    ldr r1, [PSP]
+    adds PSP, #4
+    eors r0, r1
     mov pc, lr
 
     defcode "INVERT", INVERT
-    pfetch r0
-    mvns r0, r0
-    pstore r0
+    pinvert
     mov pc, lr
 
 @ ---------------------------------------------------------------------
 @ -- Comparisons -----------------------------------------------------
 
     defcode "=", EQU
-    ppop r2
-    ppop r1
+    ldr r1, [PSP]
+    adds PSP, #4
     movs r3, #0
-    cmp r1, r2
+    cmp r0, r1
     bne 1f
     mvns r3, r3
-1:  ppush r3
+1:  movs r0, r3
     mov pc, lr
 
     defcode "<", LT
-    ppop r2
-    ppop r1
+    ldr r1, [PSP]
+    adds PSP, #4
     movs r3, #0
-    cmp r1, r2
+    cmp r1, r0
     bge 1f
     mvns r3, r3
-1:  ppush r3
+1:  movs r0, r3
     mov pc, lr
 
     defcode "U<", ULT
-    ppop r2
-    ppop r1
+    ldr r1, [PSP]
+    adds PSP, #4
     movs r3, #0
-    cmp r1, r2
+    cmp r1, r0
     bcs 1f
     mvns r3, r3
-1:  ppush r3
+1:  movs r0, r3
     mov pc, lr
 
     defword ">", GT
@@ -1051,39 +1056,63 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "<>", NEQU
-    bl EQU; bl INVERT
+    bl EQU; pinvert
     exit
 
     defword "<=", LE
-    bl GT; bl INVERT
+    bl GT; pinvert
     exit
 
     defword ">=", GE
-    bl LT; bl INVERT
+    bl LT; pinvert
     exit
 
     defword "0=", ZEQU
-    lit8 0; bl EQU
+    movs r3, #0
+    cmp r0, #0
+    bne 1f
+    mvns r3, r3
+1:  movs r0, r3
     exit
 
     defword "0<>", ZNEQU
-    lit8 0; bl NEQU
+    movs r3, #0
+    cmp r0, #0
+    beq 1f
+    mvns r3, r3
+1:  movs r0, r3
     exit
 
     defword "0<", ZLT
-    lit8 0; bl LT
+    movs r3, #0
+    cmp r0, #0
+    bge 1f
+    mvns r3, r3
+1:  movs r0, r3
     exit
 
     defword "0>", ZGT
-    lit8 0; bl GT
+    movs r3, #0
+    cmp r0, #0
+    ble 1f
+    mvns r3, r3
+1:  movs r0, r3
     exit
 
     defword "0<=", ZLE
-    lit8 0; bl LE
+    movs r3, #0
+    cmp r0, #0
+    bgt 1f
+    mvns r3, r3
+1:  movs r0, r3
     exit
 
     defword "0>=", ZGE
-    lit8 0; bl GE
+    movs r3, #0
+    cmp r0, #0
+    blt 1f
+    mvns r3, r3
+1:  movs r0, r3
     exit
 
 @ ---------------------------------------------------------------------
@@ -1099,28 +1128,26 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     .ltorg
 
     defword "(.S)", XPRINTSTACK
-1:  bl TWODUP; bl GE; ppop r1; cmp r1, #0; beq 2f; pdup; bl FETCH; bl DOT; bl CELLADD;
+1:  bl TWODUP; bl LE; ppop r1; cmp r1, #0; beq 2f; pdup; bl FETCH; bl DOT; bl CELLSUB;
     b 1b
 2:  bl TWODROP
     exit
 
     defword ".S", PRINTSTACK
     bl DEPTH; ppop r1; cmp r1, #0; beq 1f
-    bl SZ; bl FETCH; bl CELLSUB; bl CELLSUB; bl SPFETCH; bl XPRINTSTACK;
+    bl SPFETCH; bl SZ; bl FETCH; pcellsub; pcellsub; bl XPRINTSTACK; pdup; bl DOT;
     bl CR
 1:  exit
 
     defword ".R", PRINTRSTACK
-    bl RZ; bl FETCH; bl CELLSUB; bl RPFETCH; bl XPRINTSTACK
+    bl RPFETCH; bl RZ; bl FETCH; pcellsub; bl XPRINTSTACK
     bl CR
     exit
 
     defword "PUTCHAR", PUTCHAR
-    ppop r1
-    push {r0}
-    movs r0, r1
     bl putchar
-    pop {r0}
+    ldr r0, [PSP]
+    adds PSP, #4
     exit
 
     defword "LF", LF
@@ -1138,14 +1165,13 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "SPACES", SPACES
-2:  ppop r1
-    cmp r1, #0
+2:  cmp r0, #0
     beq 1f
-    subs r1, #1
-    ppush r1
+    subs r0, #1
     bl SPACE
     b 2b
-1:  exit
+1:  pdrop
+    exit
 
     defword "HOLD", HOLD
     lit8 1; bl HP; bl SUBSTORE; bl HP; bl FETCH; bl CSTORE
@@ -1156,7 +1182,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword ">DIGIT", TODIGIT
-    pdup; lit8 9; bl GT; lit8 7; bl AND; bl PLUS; lit8 48; bl PLUS
+    pdup; lit8 9; bl GT; lit8 7; pand; bl PLUS; lit8 48; bl PLUS
     exit
 
     defword "#", NUM
@@ -1185,11 +1211,9 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "READ-KEY", READ_KEY
-    push {r0}
+    subs PSP, #4
+    str r0, [PSP]
     bl readkey
-    movs r1, r0
-    pop {r0}
-    ppush r1
     exit
 
     defword "READ-LINE", READ_LINE
@@ -1227,12 +1251,11 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "(TYPE)", XTYPE
-    ppop r1
-    ppop r2
-    push {r0}
-    movs r0, r2
+    movs r1, r0
+    ldr r0, [PSP]
     bl putstring
-    pop {r0}
+    ldr r0, [PSP, #4]
+    adds PSP, #8
     exit
 
     defword "ACCEPT", ACCEPT
@@ -1269,9 +1292,9 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
 dump_start_line:
     bl XDUMP_ADDR
 dump_line:
-    pdup; bl FETCHBYTE; bl LTNUM; bl NUM; bl NUM; bl NUMGT; bl TYPE; bl SPACE; bl INCR
-    bl SWAP; bl DECR; bl QDUP; ppop r1; cmp r1, #0; beq dump_end
-    bl SWAP; pdup; lit8 7; bl AND; ppop r1; cmp r1, #0; beq dump_start_line
+    pdup; bl FETCHBYTE; bl LTNUM; bl NUM; bl NUM; bl NUMGT; bl TYPE; bl SPACE; pincr
+    bl SWAP; pdecr; bl QDUP; ppop r1; cmp r1, #0; beq dump_end
+    bl SWAP; pdup; lit8 7; pand; ppop r1; cmp r1, #0; beq dump_start_line
     b dump_line
 dump_end:
     pdrop; bl RFROM; bl BASE; bl STORE
@@ -1283,9 +1306,9 @@ dump_end:
 dumpw_start_line:
     bl XDUMP_ADDR
 dumpw_line:
-    pdup; bl FETCH; bl LTNUM; bl FOURNUM; bl FOURNUM; bl NUMGT; bl TYPE; bl SPACE; bl INCR4
-    bl SWAP; bl DECR4; pdup; bl ZGT; ppop r1; cmp r1, #0; beq dumpw_end
-    bl SWAP; pdup; lit8 0x1f; bl AND; ppop r1; cmp r1, #0; beq dumpw_start_line
+    pdup; bl FETCH; bl LTNUM; bl FOURNUM; bl FOURNUM; bl NUMGT; bl TYPE; bl SPACE; pincr4
+    bl SWAP; pdecr4; pdup; bl ZGT; ppop r1; cmp r1, #0; beq dumpw_end
+    bl SWAP; pdup; lit8 0x1f; pand; ppop r1; cmp r1, #0; beq dumpw_start_line
     b dumpw_line
 dumpw_end:
     pdrop
@@ -1295,7 +1318,7 @@ dumpw_end_final:
 
     defword "SKIP", SKIP
     bl TOR
-1:  bl OVER; bl FETCHBYTE; bl RFETCH; bl EQU; bl OVER; bl ZGT; bl AND; ppop r1; cmp r1, #0; beq 2f
+1:  bl OVER; bl FETCHBYTE; bl RFETCH; bl EQU; bl OVER; bl ZGT; pand; ppop r1; cmp r1, #0; beq 2f
     lit8 1; bl TRIMSTRING;
     b 1b
 2:  bl RDROP
@@ -1303,7 +1326,7 @@ dumpw_end_final:
 
     defword "SCAN", SCAN
     bl TOR
-1:  bl OVER; bl FETCHBYTE; bl RFETCH; bl NEQU; bl OVER; bl ZGT; bl AND; ppop r1; cmp r1, #0; beq 2f
+1:  bl OVER; bl FETCHBYTE; bl RFETCH; bl NEQU; bl OVER; bl ZGT; pand; ppop r1; cmp r1, #0; beq 2f
     lit8 1; bl TRIMSTRING;
     b 1b
 2:  bl RDROP
@@ -1311,13 +1334,13 @@ dumpw_end_final:
 
     defword "?SIGN", ISSIGN
     bl OVER; bl FETCHBYTE; lit8 0x2c; bl SUB; pdup; bl ABS
-    lit8 1; bl EQU; bl AND; pdup; ppop r1; cmp r1, #0; beq 1f
-    bl INCR; bl TOR; lit8 1; bl TRIMSTRING; bl RFROM
+    lit8 1; bl EQU; pand; pdup; ppop r1; cmp r1, #0; beq 1f
+    pincr; bl TOR; lit8 1; bl TRIMSTRING; bl RFROM
 1:  exit
 
     defword "DIGIT?", ISDIGIT
-    pdup; lit8 '9'; bl GT; lit32 0x100; bl AND; bl ADD
-    pdup; lit32 0x140; bl GT; lit32 0x107; bl AND; bl SUB; lit8 0x30; bl SUB
+    pdup; lit8 '9'; bl GT; lit32 0x100; pand; bl ADD
+    pdup; lit32 0x140; bl GT; lit32 0x107; pand; bl SUB; lit8 0x30; bl SUB
     pdup; bl BASE; bl FETCH; bl ULT
     exit
 
@@ -1475,7 +1498,6 @@ is_positive:
 2:  exit
 
     defword "LITERAL", LITERAL, F_IMMED
-    pfetch r0
     cmp r0, #255
     bgt 1f
     cmp r0, #0
@@ -1521,7 +1543,7 @@ is_positive:
     ldr r2, [r4]; ppush r2; bl COMMA
     ldr r2, [r4, #4]; ppush r2; bl COMMA
     ldrh r2, [r4, #8]; ppush r2; bl COMMAH
-    bl HERE; bl DECR; bl DECR
+    bl HERE; pdecr; pdecr
     exit
     .align 2
 1:  ppop r1
@@ -1530,12 +1552,12 @@ is_positive:
 
     defword "ELSE", ELSE, F_IMMED
     movs r1, #0xe0; lsls r1, #8; ppush r1; bl COMMAH
-    bl HERE; bl DECR; bl DECR;
+    bl HERE; pdecr; pdecr;
     bl SWAP; bl THEN
     exit
 
     defword "THEN", THEN, F_IMMED
-    bl HERE; bl OVER; bl SUB; bl CELLSUB; bl TWODIV; bl SWAP
+    bl HERE; bl OVER; bl SUB; pcellsub; ptwodiv; bl SWAP
     bl CSTORE
     exit
 
@@ -1829,7 +1851,7 @@ is_positive:
     exit
 
     defword "UPPERCASE", UPPERCASE
-    pdup; lit8 0x61; lit8 0x7b; bl WITHIN; lit8 0x20; bl AND; bl XOR
+    pdup; lit8 0x61; lit8 0x7b; bl WITHIN; lit8 0x20; pand; bl XOR
     exit
 
     defword "SI=", SIEQU
@@ -1842,7 +1864,7 @@ is_positive:
     exit
 
     defword "LINK>", FROMLINK
-    bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_LENMASK; bl AND; bl CHARADD; bl ADD; bl ALIGNED
+    bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_LENMASK; pand; pcharadd; bl ADD; bl ALIGNED
     exit
 
     defcode ">FLAGS", TOFLAGS
@@ -1855,7 +1877,7 @@ is_positive:
     mov pc, lr
 
     defword ">NAME", TONAME
-    bl TOFLAGS; bl CHARADD
+    bl TOFLAGS; pcharadd
     exit
 
     .ltorg
@@ -1865,9 +1887,7 @@ is_positive:
     exit
 
     defcode ">BODY", GTBODY
-    pfetch r0
     adds r0, #16
-    pstore r0
     mov pc, lr
 
     defword "LINK>NAME", LINKTONAME
@@ -1881,7 +1901,7 @@ is_positive:
     defword "ANY>LINK", ANYTOLINK
     bl LATEST
 1:  bl FETCH; bl TWODUP; bl GT; ppop r1; cmp r1, #0; beq 1b
-    bl NIP
+    pnip
     exit
 
     defcode "EXECUTE", EXECUTE
@@ -1935,7 +1955,7 @@ is_positive:
     bl HERE; bl LATEST; bl STORE
     bl COMMALINK
     lit8 F_MARKER; bl CCOMMA
-    bl BL; bl WORD; bl FETCHBYTE; bl INCR; bl INCR; bl ALIGNED; bl DECR; bl ALLOT
+    bl BL; bl WORD; bl FETCHBYTE; pincr; pincr; bl ALIGNED; pdecr; bl ALLOT
     exit
 
     defword "(CONSTANT)", XCONSTANT
@@ -2010,7 +2030,7 @@ DODATA:
     pdrop; bl FETCH; pdup
 1:  bl ZEQU; ppop r1; cmp r1, #0; beq 2b
     pdup; ppop r1; cmp r1, #0; beq 3f
-    bl NIP; pdup; bl LINKGT; bl SWAP; bl LINKGTFLAGS; bl CFETCH; lit8 0x1; bl AND; bl ZEQU; lit8 0x1; bl OR
+    pnip; pdup; bl LINKGT; bl SWAP; bl LINKGTFLAGS; bl CFETCH; lit8 0x1; pand; bl ZEQU; lit8 0x1; bl OR
 3:  exit
 
     defword "FIND", FIND
@@ -2033,12 +2053,12 @@ DODATA:
     pdup; bl SOURCE; bl SOURCEINDEX; bl FETCH; bl TRIMSTRING
     pdup; bl TOR; bl ROT; bl SKIP
     bl OVER; bl TOR; bl ROT; bl SCAN
-    pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq noskip_delim; bl DECR
+    pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq noskip_delim; pdecr
 noskip_delim:
     bl RFROM; bl RFROM; bl ROT; bl SUB; bl SOURCEINDEX; bl ADDSTORE
     bl TUCK; bl SUB
     pdup; bl HERE; bl STOREBYTE
-    bl HERE; bl INCR; bl SWAP; bl CMOVE
+    bl HERE; pincr; bl SWAP; bl CMOVE
     bl HERE
     exit
 
@@ -2047,7 +2067,7 @@ interpret_loop:
     bl BL; bl WORD; pdup; bl FETCHBYTE; ppop r1; cmp r1, #0; beq interpret_eol
     bl FIND; bl QDUP; ppop r1; cmp r1, #0; beq interpret_check_number
     bl STATE; bl FETCH; ppop r1; cmp r1, #0; beq interpret_execute
-    bl INCR; ppop r1; cmp r1, #0; beq interpret_compile_word
+    pincr; ppop r1; cmp r1, #0; beq interpret_compile_word
     bl EXECUTE; b interpret_loop
 interpret_compile_word:
     bl COMMAXT; b interpret_loop
@@ -2071,10 +2091,10 @@ interpret_eol:
     lit8 0; bl STATE; bl STORE
 1:  bl XSOURCE; bl FETCH;
 5:  pdup; bl FETCHBYTE; pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq 2f; lit8 10; bl EQU; ppop r1; cmp r1, #0; beq 7f
-    bl INCR; b 5b
+    pincr; b 5b
 7:  pdup
 6:  pdup; bl FETCHBYTE; lit8 10; bl NEQU; ppop r1; cmp r1, #0; beq 4f
-    bl INCR; b 6b
+    pincr; b 6b
 4:  bl OVER; bl SUB
     @ bl TWODUP; bl TYPE; bl CR
     bl SOURCECOUNT; bl STORE; bl XSOURCE; bl STORE; lit8 0; bl SOURCEINDEX; bl STORE
@@ -2094,7 +2114,7 @@ interpret_eol:
     exit
 
     defword "REVEAL", REVEAL
-    bl LATEST; bl FETCH; bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_HIDDEN; bl INVERT; bl AND; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_HIDDEN; pinvert; pand; bl SWAP; bl STOREBYTE
     exit
 
     defword "IMMEDIATE", IMMEDIATE
@@ -2125,12 +2145,12 @@ interpret_eol:
     defword "WORDS", WORDS
     bl LATEST; bl FETCH
 1:
-    pdup; bl CELLADD; bl CHARADD; bl COUNT; bl TYPE; bl SPACE
+    pdup; bl CELLADD; pcharadd; bl COUNT; bl TYPE; bl SPACE
     bl FETCH; bl QDUP; bl ZEQU; ppop r1; cmp r1, #0; beq 1b
     exit
 
     defword "DEFINED?", DEFINEDQ
-    bl BL; bl WORD; bl FIND; bl NIP
+    bl BL; bl WORD; bl FIND; pnip
     exit
 
     defword "COLD", COLD
