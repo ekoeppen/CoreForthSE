@@ -120,6 +120,18 @@ PSP .req r6
     ands r0, r1
     .endm
 
+    .macro por
+    ldr r1, [PSP]
+    adds PSP, #4
+    orrs r0, r1
+    .endm
+
+    .macro pxor
+    ldr r1, [PSP]
+    adds PSP, #4
+    eors r0, r1
+    .endm
+
     .macro checkdef name
     .ifdef \name
     .print "Redefining \name"
@@ -999,15 +1011,11 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     mov pc, lr
 
     defcode "OR", OR
-    ldr r1, [PSP]
-    adds PSP, #4
-    orrs r0, r1
+    por
     mov pc, lr
 
     defcode "XOR", XOR
-    ldr r1, [PSP]
-    adds PSP, #4
-    eors r0, r1
+    pxor
     mov pc, lr
 
     defcode "INVERT", INVERT
@@ -1851,7 +1859,7 @@ is_positive:
     exit
 
     defword "UPPERCASE", UPPERCASE
-    pdup; lit8 0x61; lit8 0x7b; bl WITHIN; lit8 0x20; pand; bl XOR
+    pdup; lit8 0x61; lit8 0x7b; bl WITHIN; lit8 0x20; pand; pxor
     exit
 
     defword "SI=", SIEQU
@@ -2022,7 +2030,7 @@ DODATA:
     exit
 
     defword "DECLARE", DECLARE
-    bl CREATE; bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; bl FETCH; lit8 F_NODISASM; bl OR; bl SWAP; bl STORE
+    bl CREATE; bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; bl FETCH; lit8 F_NODISASM; por; bl SWAP; bl STORE
     exit
 
     defword "(FIND)", XFIND
@@ -2030,7 +2038,7 @@ DODATA:
     pdrop; bl FETCH; pdup
 1:  bl ZEQU; ppop r1; cmp r1, #0; beq 2b
     pdup; ppop r1; cmp r1, #0; beq 3f
-    pnip; pdup; bl LINKGT; bl SWAP; bl LINKGTFLAGS; bl CFETCH; lit8 0x1; pand; bl ZEQU; lit8 0x1; bl OR
+    pnip; pdup; bl LINKGT; bl SWAP; bl LINKGTFLAGS; bl CFETCH; lit8 0x1; pand; bl ZEQU; lit8 0x1; por
 3:  exit
 
     defword "FIND", FIND
@@ -2110,7 +2118,7 @@ interpret_eol:
     exit
 
     defword "HIDE", HIDE
-    bl LATEST; bl FETCH; bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_HIDDEN; bl OR; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_HIDDEN; por; bl SWAP; bl STOREBYTE
     exit
 
     defword "REVEAL", REVEAL
@@ -2118,7 +2126,7 @@ interpret_eol:
     exit
 
     defword "IMMEDIATE", IMMEDIATE
-    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; bl FETCHBYTE; lit8 F_IMMED; bl OR; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; bl FETCHBYTE; lit8 F_IMMED; por; bl SWAP; bl STOREBYTE
     exit
 
     defword "[", LBRACKET, F_IMMED
