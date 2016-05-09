@@ -132,6 +132,14 @@ PSP .req r6
     eors r0, r1
     .endm
 
+    .macro pfetchbyte
+    ldrb r0, [r0]
+    .endm
+
+    .macro phfetch
+    ldrh r0, [r0]
+    .endm
+
     .macro checkdef name
     .ifdef \name
     .print "Redefining \name"
@@ -230,17 +238,19 @@ PSP .req r6
 
     .macro lit8, value
     .if \value >= 0
-    movs r1, \value
+    subs PSP, #4
+    str r0, [PSP]
+    movs r0, \value
     .else
     .if \value < 0
     .if \value > -255
     movs r2, -\value
     movs r1, #0
     subs r1, r2
-    .endif
-    .endif
-    .endif
     ppush r1
+    .endif
+    .endif
+    .endif
     .endm
 
     .macro lit32, value
@@ -532,21 +542,21 @@ delay:
     mov pc, lr
 
     defcode "C!", STOREBYTE
-    ppop r2
-    ppop r1
-    strb r1, [r2]
+    ldr r1, [PSP]
+    strb r1, [r0]
+    ldr r0, [PSP, #4]
+    adds PSP, #8
     mov pc, lr
 
     defcode "H@", HFETCH
-    ppop r1
-    ldrh r1, [r1]
-    ppush r1
+    phfetch
     mov pc, lr
 
     defcode "H!", HSTORE
-    ppop r2
-    ppop r1
-    strh r1, [r2]
+    ldr r1, [PSP]
+    strh r1, [r0]
+    ldr r0, [PSP, #4]
+    adds PSP, #8
     mov pc, lr
 
     defcode "@", FETCH
@@ -691,7 +701,7 @@ delay:
     exit
 
     defword "COUNT", COUNT
-    pdup; pincr; bl SWAP; bl FETCHBYTE
+    pdup; pincr; bl SWAP; pfetchbyte
     exit
 
     defword "(S\")", XSQUOTE
@@ -706,7 +716,7 @@ delay:
 
     defword "S\"", SQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD
-    bl FETCHBYTE; pincr; bl ALLOT; bl ALIGN
+    pfetchbyte; pincr; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
 
@@ -720,8 +730,8 @@ delay:
 
     defword "SZ\"", SZQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD
-    lit8 1; bl OVER; bl ADDSTORE; lit8 0; bl OVER; pdup; bl FETCHBYTE; bl ADD; bl STOREBYTE
-    bl FETCHBYTE; pincr; bl ALLOT; bl ALIGN
+    lit8 1; bl OVER; bl ADDSTORE; lit8 0; bl OVER; pdup; pfetchbyte; bl ADD; bl STOREBYTE
+    pfetchbyte; pincr; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
 
@@ -1300,7 +1310,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
 dump_start_line:
     bl XDUMP_ADDR
 dump_line:
-    pdup; bl FETCHBYTE; bl LTNUM; bl NUM; bl NUM; bl NUMGT; bl TYPE; bl SPACE; pincr
+    pdup; pfetchbyte; bl LTNUM; bl NUM; bl NUM; bl NUMGT; bl TYPE; bl SPACE; pincr
     bl SWAP; pdecr; bl QDUP; ppop r1; cmp r1, #0; beq dump_end
     bl SWAP; pdup; lit8 7; pand; ppop r1; cmp r1, #0; beq dump_start_line
     b dump_line
@@ -1326,7 +1336,7 @@ dumpw_end_final:
 
     defword "SKIP", SKIP
     bl TOR
-1:  bl OVER; bl FETCHBYTE; bl RFETCH; bl EQU; bl OVER; bl ZGT; pand; ppop r1; cmp r1, #0; beq 2f
+1:  bl OVER; pfetchbyte; bl RFETCH; bl EQU; bl OVER; bl ZGT; pand; ppop r1; cmp r1, #0; beq 2f
     lit8 1; bl TRIMSTRING;
     b 1b
 2:  bl RDROP
@@ -1334,14 +1344,14 @@ dumpw_end_final:
 
     defword "SCAN", SCAN
     bl TOR
-1:  bl OVER; bl FETCHBYTE; bl RFETCH; bl NEQU; bl OVER; bl ZGT; pand; ppop r1; cmp r1, #0; beq 2f
+1:  bl OVER; pfetchbyte; bl RFETCH; bl NEQU; bl OVER; bl ZGT; pand; ppop r1; cmp r1, #0; beq 2f
     lit8 1; bl TRIMSTRING;
     b 1b
 2:  bl RDROP
     exit
 
     defword "?SIGN", ISSIGN
-    bl OVER; bl FETCHBYTE; lit8 0x2c; bl SUB; pdup; bl ABS
+    bl OVER; pfetchbyte; lit8 0x2c; bl SUB; pdup; bl ABS
     lit8 1; bl EQU; pand; pdup; ppop r1; cmp r1, #0; beq 1f
     pincr; bl TOR; lit8 1; bl TRIMSTRING; bl RFROM
 1:  exit
@@ -1353,7 +1363,7 @@ dumpw_end_final:
     exit
 
     defword "SETBASE", SETBASE
-    bl OVER; bl FETCHBYTE
+    bl OVER; pfetchbyte
     pdup; lit8 '$'; bl EQU; ppop r1; cmp r1, #0; beq 1f; bl HEX; b 4f
 1:  pdup; lit8 '#'; bl EQU; ppop r1; cmp r1, #0; beq 2f; bl DECIMAL; b 4f
 2:  pdup; lit8 '%'; bl EQU; ppop r1; cmp r1, #0; beq 3f; bl BINARY; b 4f
@@ -1366,7 +1376,7 @@ dumpw_end_final:
     bl BASE; bl FETCH; bl TOR; bl SETBASE
 tonumber_loop:
     pdup; ppop r1; cmp r1, #0; beq tonumber_done
-    bl OVER; bl FETCHBYTE; bl ISDIGIT
+    bl OVER; pfetchbyte; bl ISDIGIT
     bl ZEQU; ppop r1; cmp r1, #0; beq tonumber_cont
     pdrop; b tonumber_done
 tonumber_cont:
@@ -1872,16 +1882,14 @@ is_positive:
     exit
 
     defword "LINK>", FROMLINK
-    bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_LENMASK; pand; pcharadd; bl ADD; bl ALIGNED
+    bl LINKTONAME; pdup; pfetchbyte; lit8 F_LENMASK; pand; pcharadd; bl ADD; bl ALIGNED
     exit
 
     defcode ">FLAGS", TOFLAGS
-    ppop r1
-1:  subs r1, #1
-    ldrb r2, [r1]
-    cmp r2, #F_MARKER
-    blt 1b
-    ppush r1
+1:  subs r0, #1
+    ldrb r1, [r0]
+    cmp r1, #F_MARKER
+    blo 1b
     mov pc, lr
 
     defword ">NAME", TONAME
@@ -1963,7 +1971,7 @@ is_positive:
     bl HERE; bl LATEST; bl STORE
     bl COMMALINK
     lit8 F_MARKER; bl CCOMMA
-    bl BL; bl WORD; bl FETCHBYTE; pincr; pincr; bl ALIGNED; pdecr; bl ALLOT
+    bl BL; bl WORD; pfetchbyte; pincr; pincr; bl ALIGNED; pdecr; bl ALLOT
     exit
 
     defword "(CONSTANT)", XCONSTANT
@@ -2098,10 +2106,10 @@ interpret_eol:
     bl XSOURCE; bl STORE
     lit8 0; bl STATE; bl STORE
 1:  bl XSOURCE; bl FETCH;
-5:  pdup; bl FETCHBYTE; pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq 2f; lit8 10; bl EQU; ppop r1; cmp r1, #0; beq 7f
+5:  pdup; pfetchbyte; pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq 2f; lit8 10; bl EQU; ppop r1; cmp r1, #0; beq 7f
     pincr; b 5b
 7:  pdup
-6:  pdup; bl FETCHBYTE; lit8 10; bl NEQU; ppop r1; cmp r1, #0; beq 4f
+6:  pdup; pfetchbyte; lit8 10; bl NEQU; ppop r1; cmp r1, #0; beq 4f
     pincr; b 6b
 4:  bl OVER; bl SUB
     @ bl TWODUP; bl TYPE; bl CR
@@ -2118,15 +2126,15 @@ interpret_eol:
     exit
 
     defword "HIDE", HIDE
-    bl LATEST; bl FETCH; bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_HIDDEN; por; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; por; bl SWAP; bl STOREBYTE
     exit
 
     defword "REVEAL", REVEAL
-    bl LATEST; bl FETCH; bl LINKTONAME; pdup; bl FETCHBYTE; lit8 F_HIDDEN; pinvert; pand; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; bl SWAP; bl STOREBYTE
     exit
 
     defword "IMMEDIATE", IMMEDIATE
-    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; bl FETCHBYTE; lit8 F_IMMED; por; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_IMMED; por; bl SWAP; bl STOREBYTE
     exit
 
     defword "[", LBRACKET, F_IMMED
