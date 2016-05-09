@@ -1903,7 +1903,7 @@ is_positive:
     bl TONAME; lit8 5; bl SUB
     exit
 
-    defcode ">BODY", GTBODY
+    defcode ">BODY", TOBODY
     adds r0, #16
     mov pc, lr
 
@@ -2035,7 +2035,7 @@ DODATA:
     exit
 
     defword "IS", IS
-    bl TICK; bl GTBODY; bl STORE
+    bl TICK; bl TOBODY; bl STORE
     exit
 
     defword "DECLARE", DECLARE
@@ -2226,7 +2226,7 @@ interpret_eol:
 @ ---------------------------------------------------------------------
 @ -- User variables  --------------------------------------------------
 
-    defword "zUSER", USER
+    defword "USER", USER
     bl CREATE; bl COMMA; bl XDOES
     .set USER_XT, .
     ldr r1, [pc]
