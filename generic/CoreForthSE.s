@@ -295,7 +295,7 @@ init_last_word:
 putstring:
     cmp r1, #0
     bgt 1f
-    exit
+    mov pc, lr
 1:  push {r4, r5, lr}
     mov r5, r0
     mov r4, r1
