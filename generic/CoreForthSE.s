@@ -1952,7 +1952,7 @@ is_positive:
     defword "(DOES>)", XDOES
     bl HERE
     pop {r1}; subs r1, #1; ppush r1
-    lit8 -8; bl ALLOT;
+    bl LATEST; bl FETCH; bl FROMLINK; lit8 10; bl ADD; bl ORG
     lit32 0xb500; bl COMMAH
     bl COMMAXT;
     bl ORG
