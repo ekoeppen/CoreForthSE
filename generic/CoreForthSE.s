@@ -6,6 +6,7 @@
 @ -- Variable definitions ---------------------------------------------
 
     .set F_IMMED,           0x01
+    .set F_INLINE,          0x02
     .set F_HIDDEN,          0x20
     .set F_NODISASM,        0x40
     .set F_LENMASK,         0x1f
@@ -384,17 +385,17 @@ delay:
 @ ---------------------------------------------------------------------
 @ -- Stack manipulation -----------------------------------------------
 
-    defcode "DROP", DROP
+    defcode "DROP", DROP, F_INLINE
     pdrop
     mov pc, lr
 
-    defcode "SWAP", SWAP
+    defcode "SWAP", SWAP, F_INLINE
     ldr r1, [PSP]
     str r0, [PSP]
     movs r0, r1
     mov pc, lr
 
-    defcode "OVER", OVER
+    defcode "OVER", OVER, F_INLINE
     subs PSP, #4
     str r0, [PSP]
     ldr r0, [PSP, #4]
@@ -415,11 +416,11 @@ delay:
     pdup
 1:  mov pc, lr
 
-    defcode "DUP", DUP
+    defcode "DUP", DUP, F_INLINE
     pdup
     mov pc, lr
 
-    defcode "NIP", NIP
+    defcode "NIP", NIP, F_INLINE
     pnip
     mov pc, lr
 
@@ -489,7 +490,7 @@ delay:
     ppush r1
     mov pc, lr
 
-    defcode "RDROP", RDROP
+    defcode "RDROP", RDROP, F_INLINE
     pop {r4}
     mov pc, lr
 
@@ -522,7 +523,7 @@ delay:
 
     defconst "CELL", CELL, 4
 
-    defcode "CELLS", CELLS
+    defcode "CELLS", CELLS, F_INLINE
     movs r1, #4
     muls r0, r1
     mov pc, lr
@@ -530,15 +531,15 @@ delay:
     defcode "CHARS", CHARS
     mov pc, lr
 
-    defcode "ALIGNED", ALIGNED
+    defcode "ALIGNED", ALIGNED, F_INLINE
     adds r0, r0, #3
     movs r1, #3
     mvns r1, r1
     ands r0, r0, r1
     mov pc, lr
 
-    defcode "C@", FETCHBYTE
-    ldrb r0, [r0]
+    defcode "C@", FETCHBYTE, F_INLINE
+    pfetchbyte
     mov pc, lr
 
     defcode "C!", STOREBYTE
@@ -752,35 +753,35 @@ delay:
 @ ---------------------------------------------------------------------
 @ -- Arithmetic ------------------------------------------------------
 
-    defcode "1+", INCR
+    defcode "1+", INCR, F_INLINE
     pincr
     mov pc, lr
 
-    defcode "CHAR+", CHARADD
+    defcode "CHAR+", CHARADD, F_INLINE
     pcharadd
     mov pc, lr
 
-    defcode "1-", DECR
+    defcode "1-", DECR, F_INLINE
     pdecr
     mov pc, lr
 
-    defcode "CHAR-", CHARSUB
+    defcode "CHAR-", CHARSUB, F_INLINE
     pcharsub
     mov pc, lr
 
-    defcode "4+", INCR4
+    defcode "4+", INCR4, F_INLINE
     pincr4
     mov pc, lr
 
-    defcode "CELL+", CELLADD
+    defcode "CELL+", CELLADD, F_INLINE
     pcelladd
     mov pc, lr
 
-    defcode "4-", DECR4
+    defcode "4-", DECR4, F_INLINE
     pdecr4
     mov pc, lr
 
-    defcode "CELL-", CELLSUB
+    defcode "CELL-", CELLSUB, F_INLINE
     pcellsub
     mov pc, lr
 
@@ -1016,19 +1017,19 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     ppush r1
     mov pc, lr
 
-    defcode "AND", AND
+    defcode "AND", AND, F_INLINE
     pand
     mov pc, lr
 
-    defcode "OR", OR
+    defcode "OR", OR, F_INLINE
     por
     mov pc, lr
 
-    defcode "XOR", XOR
+    defcode "XOR", XOR, F_INLINE
     pxor
     mov pc, lr
 
-    defcode "INVERT", INVERT
+    defcode "INVERT", INVERT, F_INLINE
     pinvert
     mov pc, lr
 
@@ -1719,11 +1720,11 @@ is_positive:
 1:  b .
     exit
 
-    defcode "WFI", WFI
+    defcode "WFI", WFI, F_INLINE
     wfi
     mov pc, lr
 
-    defcode "WFE", WFE
+    defcode "WFE", WFE, F_INLINE
     wfe
     mov pc, lr
 
@@ -2078,15 +2079,34 @@ noskip_delim:
     bl HERE
     exit
 
+    defword "(COMPILE)", XCOMPILE
+    pdup; bl TOFLAGS; pfetchbyte; movs r2, #F_INLINE; ands r0, r2; beq 1f
+    ldr r2, =0x46f7; pdrop
+    movs r3, r0
+4:  ldrh r1, [r3]
+    cmp r1, r2
+    beq 3f
+    push {r2, r3}
+    ppush r1
+    bl COMMAH
+    pop {r2, r3}
+    adds r3, #2
+    b 4b
+3:  pdrop; exit
+1:  pdrop; bl COMMAXT; exit
+    .ltorg
+2:  .hword 0
+    mov pc, lr
+
     defword "(INTERPRET)", XINTERPRET
 interpret_loop:
-    bl BL; bl WORD; pdup; bl FETCHBYTE; ppop r1; cmp r1, #0; beq interpret_eol
+    bl BL; bl WORD; pdup; pfetchbyte; ppop r1; cmp r1, #0; beq interpret_eol
     bl FIND; bl QDUP; ppop r1; cmp r1, #0; beq interpret_check_number
     bl STATE; bl FETCH; ppop r1; cmp r1, #0; beq interpret_execute
     pincr; ppop r1; cmp r1, #0; beq interpret_compile_word
     bl EXECUTE; b interpret_loop
 interpret_compile_word:
-    bl COMMAXT; b interpret_loop
+    bl XCOMPILE; b interpret_loop
 interpret_execute:
     pdrop; bl EXECUTE; b interpret_loop
 interpret_check_number:
