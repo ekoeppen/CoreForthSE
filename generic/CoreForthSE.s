@@ -63,6 +63,12 @@ PSP .req r6
     str r0, [PSP]
     .endm
 
+    .macro pswap
+    ldr r1, [PSP]
+    str r0, [PSP]
+    movs r0, r1
+    .endm
+
     .macro pnip
     adds PSP, #4
     .endm
@@ -408,9 +414,7 @@ delay:
     mov pc, lr
 
     defcode "SWAP", SWAP, F_INLINE
-    ldr r1, [PSP]
-    str r0, [PSP]
-    movs r0, r1
+    pswap
     mov pc, lr
 
     defcode "OVER", OVER, F_INLINE
@@ -606,11 +610,11 @@ delay:
     mov pc, lr
 
     defword "2!", TWOSTORE
-    bl SWAP; bl OVER; bl STORE; bl CELLADD; bl STORE
+    pswap; bl OVER; bl STORE; bl CELLADD; bl STORE
     exit
 
     defword "2@", TWOFETCH
-    pdup; bl CELLADD; bl FETCH; bl SWAP; bl FETCH
+    pdup; bl CELLADD; bl FETCH; pswap; bl FETCH
     exit
 
     defcode "+!", ADDSTORE
@@ -720,7 +724,7 @@ delay:
     exit
 
     defword "COUNT", COUNT
-    pdup; pincr; bl SWAP; pfetchbyte
+    pdup; pincr; pswap; pfetchbyte
     exit
 
     defword "(S\")", XSQUOTE
@@ -982,7 +986,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     mov pc, lr
 
     defword "ROTATE", ROTATE
-    pdup; bl ZGT; ppop r1; cmp r1, #0; beq 1f; lit8 32; bl SWAP; psub; bl ROR
+    pdup; bl ZGT; ppop r1; cmp r1, #0; beq 1f; lit8 32; pswap; psub; bl ROR
     exit
 1:  bl NEGATE; bl ROR
     exit
@@ -1011,7 +1015,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "BITE", BITE
-    pdup; lit8 0xff; pand; bl SWAP; lit8 8; bl ROR
+    pdup; lit8 0xff; pand; pswap; lit8 8; bl ROR
     exit
 
     defword "CHEW", CHEW
@@ -1082,11 +1086,11 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     mov pc, lr
 
     defword ">", GT
-    bl SWAP; bl LT
+    pswap; bl LT
     exit
 
     defword "U>", UGT
-    bl SWAP; bl ULT
+    pswap; bl ULT
     exit
 
     defword "<>", NEQU
@@ -1220,7 +1224,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "#", NUM
-    bl BASE; bl FETCH; bl UDIVMOD; bl SWAP; bl TODIGIT; bl HOLD
+    bl BASE; bl FETCH; bl UDIVMOD; pswap; bl TODIGIT; bl HOLD
     exit
 
     defword "#S", NUMS
@@ -1241,7 +1245,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword ".", DOT
-    bl LTNUM; pdup; bl ABS; bl NUMS; bl SWAP; bl SIGN; bl NUMGT; bl TYPE; bl SPACE
+    bl LTNUM; pdup; bl ABS; bl NUMS; pswap; bl SIGN; bl NUMGT; bl TYPE; bl SPACE
     exit
 
     defword "READ-KEY", READ_KEY
@@ -1322,13 +1326,13 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
 
     defword "DUMP", DUMP
     bl BASE; bl FETCH; bl TOR; bl HEX; bl QDUP; ppop r1; cmp r1, #0; beq dump_end
-    bl SWAP
+    pswap
 dump_start_line:
     bl XDUMP_ADDR
 dump_line:
     pdup; pfetchbyte; bl LTNUM; bl NUM; bl NUM; bl NUMGT; bl TYPE; bl SPACE; pincr
-    bl SWAP; pdecr; bl QDUP; ppop r1; cmp r1, #0; beq dump_end
-    bl SWAP; pdup; lit8 7; pand; ppop r1; cmp r1, #0; beq dump_start_line
+    pswap; pdecr; bl QDUP; ppop r1; cmp r1, #0; beq dump_end
+    pswap; pdup; lit8 7; pand; ppop r1; cmp r1, #0; beq dump_start_line
     b dump_line
 dump_end:
     pdrop; bl RFROM; bl BASE; bl STORE
@@ -1336,13 +1340,13 @@ dump_end:
 
     defword "DUMPW", DUMPW
     bl BASE; bl FETCH; bl TOR; bl HEX; bl QDUP; ppop r1; cmp r1, #0; beq dumpw_end_final
-    bl SWAP
+    pswap
 dumpw_start_line:
     bl XDUMP_ADDR
 dumpw_line:
     pdup; bl FETCH; bl LTNUM; bl FOURNUM; bl FOURNUM; bl NUMGT; bl TYPE; bl SPACE; pincr4
-    bl SWAP; pdecr4; pdup; bl ZGT; ppop r1; cmp r1, #0; beq dumpw_end
-    bl SWAP; pdup; lit8 0x1f; pand; ppop r1; cmp r1, #0; beq dumpw_start_line
+    pswap; pdecr4; pdup; bl ZGT; ppop r1; cmp r1, #0; beq dumpw_end
+    pswap; pdup; lit8 0x1f; pand; ppop r1; cmp r1, #0; beq dumpw_start_line
     b dumpw_line
 dumpw_end:
     pdrop
@@ -1587,11 +1591,11 @@ is_positive:
     defword "ELSE", ELSE, F_IMMED
     movs r1, #0xe0; lsls r1, #8; ppush r1; bl COMMAH
     bl HERE; pdecr; pdecr;
-    bl SWAP; bl THEN
+    pswap; bl THEN
     exit
 
     defword "THEN", THEN, F_IMMED
-    bl HERE; bl OVER; psub; pcellsub; ptwodiv; bl SWAP
+    bl HERE; bl OVER; psub; pcellsub; ptwodiv; pswap
     bl CSTORE
     exit
 
@@ -1600,7 +1604,7 @@ is_positive:
     exit
 
     defword "REPEAT", REPEAT, F_IMMED
-    bl SWAP; bl LIT_XT; .word BRANCH; bl COMMAXT; bl HERE; psub; bl COMMA
+    pswap; bl LIT_XT; .word BRANCH; bl COMMAXT; bl HERE; psub; bl COMMA
     bl THEN
     exit
 
@@ -1880,7 +1884,7 @@ is_positive:
     exit
 
     defword ">UPPER", GTUPPER
-    bl OVER; bl PLUS; bl SWAP
+    bl OVER; bl PLUS; pswap
 1:  bl LPARENDORPAREN; bl I; bl CFETCH; bl UPPERCASE; bl I; bl CSTORE; bl LPARENLOOPRPAREN; ppop r1; cmp r1, #0; beq 1b
     exit
 
@@ -1891,9 +1895,9 @@ is_positive:
     defword "SI=", SIEQU
     bl GTR
 1:  bl RFETCH; pdup; ppop r1; cmp r1, #0; beq 2f; pdrop; bl TWODUP; bl CFETCH; bl UPPERCASE
-    bl SWAP; bl CFETCH; bl UPPERCASE; bl EQU
+    pswap; bl CFETCH; bl UPPERCASE; bl EQU
 2:  ppop r1; cmp r1, #0; beq 3f
-    bl ONEPLUS; bl SWAP; bl ONEPLUS; bl RGT; bl ONEMINUS; bl GTR; b 1b
+    bl ONEPLUS; pswap; bl ONEPLUS; bl RGT; bl ONEMINUS; bl GTR; b 1b
 3:  bl TWODROP; bl RGT; bl ZEQU
     exit
 
@@ -2029,8 +2033,8 @@ DODATA:
     bl XCONSTANT
     bl ROM_ACTIVE; bl FETCH
     bl HERE; bl CELL; bl ALLOT
-    bl RAM; bl HERE; bl SWAP; bl STORE
-    bl SWAP; bl ALLOT
+    bl RAM; bl HERE; pswap; bl STORE
+    pswap; bl ALLOT
     bl ROM_ACTIVE; bl STORE
     exit
 
@@ -2055,7 +2059,7 @@ DODATA:
     exit
 
     defword "DECLARE", DECLARE
-    bl CREATE; bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; bl FETCH; lit8 F_NODISASM; por; bl SWAP; bl STORE
+    bl CREATE; bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; bl FETCH; lit8 F_NODISASM; por; pswap; bl STORE
     exit
     */
 
@@ -2064,7 +2068,7 @@ DODATA:
     pdrop; bl FETCH; pdup
 1:  bl ZEQU; ppop r1; cmp r1, #0; beq 2b
     pdup; ppop r1; cmp r1, #0; beq 3f
-    pnip; pdup; bl LINKGT; bl SWAP; bl LINKGTFLAGS; bl CFETCH; lit8 0x1; pand; bl ZEQU; lit8 0x1; por
+    pnip; pdup; bl LINKGT; pswap; bl LINKGTFLAGS; bl CFETCH; lit8 0x1; pand; bl ZEQU; lit8 0x1; por
 3:  exit
 
     defword "FIND", FIND
@@ -2092,7 +2096,7 @@ noskip_delim:
     bl RFROM; bl RFROM; bl ROT; psub; bl SOURCEINDEX; bl ADDSTORE
     bl TUCK; psub
     pdup; bl HERE; bl STOREBYTE
-    bl HERE; pincr; bl SWAP; bl CMOVE
+    bl HERE; pincr; pswap; bl CMOVE
     bl HERE
     exit
 
@@ -2163,19 +2167,19 @@ interpret_eol:
     exit
 
     defword "HIDE", HIDE
-    bl LATEST; bl FETCH; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; por; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; por; pswap; bl STOREBYTE
     exit
 
     defword "REVEAL", REVEAL
-    bl LATEST; bl FETCH; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; pswap; bl STOREBYTE
     exit
 
     defword "IMMEDIATE", IMMEDIATE
-    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_IMMED; por; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_IMMED; por; pswap; bl STOREBYTE
     exit
 
     defword "INLINE", INLINE
-    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_INLINE; por; bl SWAP; bl STOREBYTE
+    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_INLINE; por; pswap; bl STOREBYTE
     exit
 
     defword "[", LBRACKET, F_IMMED
