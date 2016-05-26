@@ -7,7 +7,7 @@
     .set ram_start, 0x20000000
     .set eval_words, 0x00010000
 
-    .include "stm32f030_definitions.s"
+    .include "stm32f072_definitions.s"
     .include "CoreForthSE.s"
 
     defcode "KEY?", KEYQ

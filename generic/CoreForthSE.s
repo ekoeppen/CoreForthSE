@@ -45,12 +45,8 @@ PSP .req r6
     adds PSP, #4
     .endm
 
-    .macro pfetch reg
+    .macro zpfetch reg
     movs \reg, r0
-    .endm
-
-    .macro pstore reg
-    movs r0, \reg
     .endm
 
     .macro pdrop
@@ -155,6 +151,10 @@ PSP .req r6
     ldr r1, [PSP]
     adds PSP, #4
     eors r0, r1
+    .endm
+
+    .macro pfetch
+    ldr r0, [r0]
     .endm
 
     .macro pfetchbyte
@@ -299,9 +299,9 @@ reset_handler:
     bl TASKZTOS; bl SZ; bl STORE
     lit8 16; bl BASE; bl STORE
     bl RAM
-    lit32 init_here; bl FETCH; bl ROM_DP; bl STORE
-    lit32 init_data_start; bl FETCH; bl RAM_DP; bl STORE
-    lit32 init_last_word; bl FETCH; bl LATEST; bl STORE
+    lit32 init_here; pfetch; bl ROM_DP; bl STORE
+    lit32 init_data_start; pfetch; bl RAM_DP; bl STORE
+    lit32 init_last_word; pfetch; bl LATEST; bl STORE
     bl SERIAL_CON
     bl COLD
     .ltorg
@@ -582,31 +582,46 @@ delay:
     adds PSP, #8
     mov pc, lr
 
-    defcode "@", FETCH
-    ppop r1
+    defcode "~@", MISALIGNEDFETCH
     .ifndef THUMB1
-    ldr r1, [r1]
+    ldr r0, [r0]
     .else
-    ldrh r2, [r1]
-    adds r1, #2
-    ldrh r1, [r1]
-    lsls r1, #16
-    orrs r1, r2
+    ldrh r1, [r0]
+    adds r0, #2
+    ldrh r0, [r0]
+    lsls r0, #16
+    orrs r0, r1
     .endif
-    ppush r1
     mov pc, lr
 
-    defcode "!", STORE
+    defcode "@", FETCH, F_INLINE
+    pfetch
+    mov pc, lr
+
+    defcode "~!", MISALIGNEDSTORE
     ppop r2
     ppop r1
     .ifndef THUMB1
     str r1, [r2]
+    mov pc, lr
     .else
-    strh r1, [r2]
+    movs r3, #3
+    ands r3, r2
+    bne 1f
+    str r1, [r2]
+    mov pc, lr
+1:  strh r1, [r2]
     adds r2, #2
     lsrs r1, #16
     strh r1, [r2]
+    mov pc, lr
     .endif
+
+    defcode "!", STORE
+    ldr r1, [PSP]
+    str r1, [r0]
+    ldr r0, [PSP, #4]
+    adds PSP, #8
     mov pc, lr
 
     defword "2!", TWOSTORE
@@ -614,7 +629,7 @@ delay:
     exit
 
     defword "2@", TWOFETCH
-    pdup; bl CELLADD; bl FETCH; pswap; bl FETCH
+    pdup; bl CELLADD; pfetch; pswap; pfetch
     exit
 
     defcode "+!", ADDSTORE
@@ -632,6 +647,34 @@ delay:
     subs r3, r1
     str r3, [r2]
     mov pc, lr
+
+    defcode "BIS!", BISSTORE
+    ldr r1, [PSP]
+    ldr r2, [r0]
+    orrs r1, r2
+    str r1, [r0]
+    ldr r0, [PSP, #4]
+    adds PSP, #8
+    mov pc, lr
+
+    defcode "BIC!", BICSTORE
+    ldr r1, [PSP]
+    ldr r2, [r0]
+    bics r1, r2
+    str r1, [r0]
+    ldr r0, [PSP, #4]
+    adds PSP, #8
+    mov pc, lr
+
+    defcode "BIT@", BITFETCH
+    ldr r1, [PSP]
+    adds PSP, #4
+    ldr r2, [r0]
+    movs r0, #0
+    ands r1, r2
+    beq 1f
+    mvns r0, r0
+1:  mov pc, lr
 
     defcode "FILL", FILL
     ppop r3
@@ -1006,6 +1049,14 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     movs r0, r1
     mov pc, lr
 
+    defcode "SHL", SHL, F_INLINE
+    lsls r0, #1
+    mov pc, lr
+
+    defcode "SHR", SHR, F_INLINE
+    lsrs r0, #1
+    mov pc, lr
+
     defword "NEGATE", NEGATE
     lit8 -1; pmul
     exit
@@ -1021,6 +1072,12 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     defword "CHEW", CHEW
     bl BITE; bl BITE; bl BITE; bl BITE; pdrop
     exit
+
+    defcode "BIT", BIT, F_INLINE
+    movs r1, #1
+    lsls r1, r0
+    movs r0, r1
+    mov pc, lr
 
 @ ---------------------------------------------------------------------
 @ -- Boolean operators -----------------------------------------------
@@ -1049,6 +1106,10 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     mov pc, lr
 
     defcode "INVERT", INVERT, F_INLINE
+    pinvert
+    mov pc, lr
+
+    defcode "NOT", NOT, F_INLINE
     pinvert
     mov pc, lr
 
@@ -1160,25 +1221,25 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     defconst "C/BLK", CSLASHBLK, 1024
 
     defword "SOURCE", SOURCE
-    bl XSOURCE; bl FETCH; bl SOURCECOUNT; bl FETCH
+    bl XSOURCE; pfetch; bl SOURCECOUNT; pfetch
     exit
 
     .ltorg
 
     defword "(.S)", XPRINTSTACK
-1:  bl TWODUP; bl LE; ppop r1; cmp r1, #0; beq 2f; pdup; bl FETCH; bl DOT; bl CELLSUB;
+1:  bl TWODUP; bl LE; ppop r1; cmp r1, #0; beq 2f; pdup; pfetch; bl DOT; bl CELLSUB;
     b 1b
 2:  bl TWODROP
     exit
 
     defword ".S", PRINTSTACK
     bl DEPTH; ppop r1; cmp r1, #0; beq 1f
-    bl SPFETCH; bl SZ; bl FETCH; pcellsub; pcellsub; bl XPRINTSTACK; pdup; bl DOT;
+    bl SPFETCH; bl SZ; pfetch; pcellsub; pcellsub; bl XPRINTSTACK; pdup; bl DOT;
     bl CR
 1:  exit
 
     defword ".R", PRINTRSTACK
-    bl RPFETCH; bl RZ; bl FETCH; pcellsub; bl XPRINTSTACK
+    bl RPFETCH; bl RZ; pfetch; pcellsub; bl XPRINTSTACK
     bl CR
     exit
 
@@ -1212,7 +1273,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "HOLD", HOLD
-    lit8 1; bl HP; bl SUBSTORE; bl HP; bl FETCH; bl CSTORE
+    lit8 1; bl HP; bl SUBSTORE; bl HP; pfetch; bl CSTORE
     exit
 
     defword "<#", LTNUM
@@ -1224,7 +1285,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "#", NUM
-    bl BASE; bl FETCH; bl UDIVMOD; pswap; bl TODIGIT; bl HOLD
+    bl BASE; pfetch; bl UDIVMOD; pswap; bl TODIGIT; bl HOLD
     exit
 
     defword "#S", NUMS
@@ -1232,7 +1293,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "#>", NUMGT
-    pdrop; bl HP; bl FETCH; bl PAD; bl OVER; psub
+    pdrop; bl HP; pfetch; bl PAD; bl OVER; psub
     exit
 
     defword "SIGN", SIGN
@@ -1269,11 +1330,11 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     .ltorg
 
     defword "WAIT-KEY", WAIT_KEY
-    bl TICKWAIT_KEY; bl FETCH; bl EXECUTE
+    bl TICKWAIT_KEY; pfetch; bl EXECUTE
     exit
 
     defword "FINISH-OUTPUT", FINISH_OUTPUT
-    bl TICKFINISH_OUTPUT; bl FETCH; bl EXECUTE
+    bl TICKFINISH_OUTPUT; pfetch; bl EXECUTE
     exit
 
     defword "(KEY)", XKEY
@@ -1281,7 +1342,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "KEY", KEY
-    bl TICKKEY; bl FETCH; bl EXECUTE
+    bl TICKKEY; pfetch; bl EXECUTE
     exit
 
     defword "(EMIT)", XEMIT
@@ -1297,15 +1358,15 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "ACCEPT", ACCEPT
-    bl TICKACCEPT; bl FETCH; bl EXECUTE
+    bl TICKACCEPT; pfetch; bl EXECUTE
     exit
 
     defword "EMIT", EMIT
-    bl TICKEMIT; bl FETCH; bl EXECUTE
+    bl TICKEMIT; pfetch; bl EXECUTE
     exit
 
     defword "TYPE", TYPE
-    bl TICKTYPE; bl FETCH; bl EXECUTE
+    bl TICKTYPE; pfetch; bl EXECUTE
     exit
 
     defword "4NUM", FOURNUM
@@ -1325,7 +1386,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "DUMP", DUMP
-    bl BASE; bl FETCH; bl TOR; bl HEX; bl QDUP; ppop r1; cmp r1, #0; beq dump_end
+    bl BASE; pfetch; bl TOR; bl HEX; bl QDUP; ppop r1; cmp r1, #0; beq dump_end
     pswap
 dump_start_line:
     bl XDUMP_ADDR
@@ -1339,12 +1400,12 @@ dump_end:
     exit
 
     defword "DUMPW", DUMPW
-    bl BASE; bl FETCH; bl TOR; bl HEX; bl QDUP; ppop r1; cmp r1, #0; beq dumpw_end_final
+    bl BASE; pfetch; bl TOR; bl HEX; bl QDUP; ppop r1; cmp r1, #0; beq dumpw_end_final
     pswap
 dumpw_start_line:
     bl XDUMP_ADDR
 dumpw_line:
-    pdup; bl FETCH; bl LTNUM; bl FOURNUM; bl FOURNUM; bl NUMGT; bl TYPE; bl SPACE; pincr4
+    pdup; pfetch; bl LTNUM; bl FOURNUM; bl FOURNUM; bl NUMGT; bl TYPE; bl SPACE; pincr4
     pswap; pdecr4; pdup; bl ZGT; ppop r1; cmp r1, #0; beq dumpw_end
     pswap; pdup; lit8 0x1f; pand; ppop r1; cmp r1, #0; beq dumpw_start_line
     b dumpw_line
@@ -1379,7 +1440,7 @@ dumpw_end_final:
     defword "DIGIT?", ISDIGIT
     pdup; lit8 '9'; bl GT; lit32 0x100; pand; padd
     pdup; lit32 0x140; bl GT; lit32 0x107; pand; psub; lit8 0x30; psub
-    pdup; bl BASE; bl FETCH; bl ULT
+    pdup; bl BASE; pfetch; bl ULT
     exit
 
     defword "SETBASE", SETBASE
@@ -1393,14 +1454,14 @@ dumpw_end_final:
     exit
 
     defword ">NUMBER", TONUMBER
-    bl BASE; bl FETCH; bl TOR; bl SETBASE
+    bl BASE; pfetch; bl TOR; bl SETBASE
 tonumber_loop:
     pdup; ppop r1; cmp r1, #0; beq tonumber_done
     bl OVER; pfetchbyte; bl ISDIGIT
     bl ZEQU; ppop r1; cmp r1, #0; beq tonumber_cont
     pdrop; b tonumber_done
 tonumber_cont:
-    bl TOR; bl ROT; bl BASE; bl FETCH; pmul
+    bl TOR; bl ROT; bl BASE; pfetch; pmul
     bl RFROM; padd; bl ROT; bl ROT
     lit8 1; bl TRIMSTRING
     b tonumber_loop
@@ -1692,13 +1753,13 @@ is_positive:
     bl LIT_XT; .word XLOOP; bl COMMAXT; bl LIT_XT; .word QBRANCH; bl COMMAXT; bl HERE; psub; bl COMMA
     exit
 
-    defcode "DELAY", DELAY
-    ppop r1
+    defword "DELAY", DELAY
     bl delay
-    mov pc, lr
+    pdrop
+    exit
 
     defword "RECURSE", RECURSE, F_IMMED
-    bl LATEST; bl FETCH; bl FROMLINK; bl COMMAXT
+    bl LATEST; pfetch; bl FROMLINK; bl COMMAXT
     exit
 
     end_target_conditional
@@ -1725,8 +1786,11 @@ is_positive:
     target_conditional ENABLE_COMPILER
 
     defword "ROM-DUMP", ROM_DUMP
+    bl HERE; lit32 init_here; bl STORE
+    bl RAM_DP; pfetch; lit32 init_data_start; bl STORE
+    bl LATEST; pfetch; lit32 init_last_word; bl STORE
     ldr r1, =_start; push {r1}
-    bl ROM_DP; bl FETCH; ppop r1; push {r1}
+    bl ROM_DP; pfetch; ppop r1; push {r1}
     movs r1, #0x80; push {r1}; bkpt 0xab
     exit
 
@@ -1801,7 +1865,7 @@ is_positive:
     exit
 
     defword "ROM?", ROMQ
-    bl ROM_ACTIVE; bl FETCH
+    bl ROM_ACTIVE; pfetch
     exit
 
     defword "DP", DP
@@ -1812,7 +1876,7 @@ is_positive:
     exit
 
     defword "HERE", HERE
-    bl DP; bl FETCH
+    bl DP; pfetch
     exit
 
     defword "ORG", ORG
@@ -1828,7 +1892,7 @@ is_positive:
     exit
 
     defword ",", COMMA
-    bl HERE; bl STORE; bl CELL; bl ALLOT
+    bl HERE; bl MISALIGNEDSTORE; bl CELL; bl ALLOT
     exit
 
     defword ",H", COMMAH
@@ -1936,7 +2000,7 @@ is_positive:
 
     defword "ANY>LINK", ANYTOLINK
     bl LATEST
-1:  bl FETCH; bl TWODUP; bl GT; ppop r1; cmp r1, #0; beq 1b
+1:  pfetch; bl TWODUP; bl GT; ppop r1; cmp r1, #0; beq 1b
     pnip
     exit
 
@@ -1954,9 +2018,9 @@ is_positive:
 
     defword "MARKER", MARKER, 0X0
     /*
-    bl CREATE; bl LATEST; bl FETCH; bl FETCH; bl COMMA; bl LPARENDOESGTRPAREN
+    bl CREATE; bl LATEST; pfetch; pfetch; bl COMMA; bl LPARENDOESGTRPAREN
     .set marker_XT, .
-    bl 0x47884900; bl DODOES + 1; bl FETCH; bl LATEST; bl STORE
+    bl 0x47884900; bl DODOES + 1; pfetch; bl LATEST; bl STORE
     */
     exit
 
@@ -1971,7 +2035,7 @@ is_positive:
     defword "(DOES>)", XDOES
     bl HERE
     pop {r1}; subs r1, #1; ppush r1
-    bl LATEST; bl FETCH; bl FROMLINK; lit8 10; padd; bl ORG
+    bl LATEST; pfetch; bl FROMLINK; lit8 10; padd; bl ORG
     lit32 0xb500; bl COMMAH
     bl COMMAXT;
     bl ORG
@@ -1987,7 +2051,7 @@ is_positive:
 
     defword "<BUILDS", BUILDS
     bl ALIGN
-    bl LATEST; bl FETCH
+    bl LATEST; pfetch
     bl HERE; bl LATEST; bl STORE
     bl COMMALINK
     lit8 F_MARKER; bl CCOMMA
@@ -2031,7 +2095,7 @@ DODATA:
 
     defword "BUFFER", BUFFER
     bl XCONSTANT
-    bl ROM_ACTIVE; bl FETCH
+    bl ROM_ACTIVE; pfetch
     bl HERE; bl CELL; bl ALLOT
     bl RAM; bl HERE; pswap; bl STORE
     pswap; bl ALLOT
@@ -2049,7 +2113,7 @@ DODATA:
     .set DEFER_XT, .
     ldr r1, [pc]
     blx r1
-    bl DODOES + 1; bl FETCH; bl EXECUTE;
+    bl DODOES + 1; pfetch; bl EXECUTE;
     */
     exit
 
@@ -2059,20 +2123,20 @@ DODATA:
     exit
 
     defword "DECLARE", DECLARE
-    bl CREATE; bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; bl FETCH; lit8 F_NODISASM; por; pswap; bl STORE
+    bl CREATE; bl LATEST; pfetch; bl LINKTOFLAGS; pdup; pfetch; lit8 F_NODISASM; por; pswap; bl STORE
     exit
     */
 
     defword "(FIND)", XFIND
 2:  bl TWODUP; bl LINKGTNAME; bl OVER; bl CFETCH; bl ONEPLUS; bl SIEQU; bl ZEQU; pdup; ppop r1; cmp r1, #0; beq 1f
-    pdrop; bl FETCH; pdup
+    pdrop; pfetch; pdup
 1:  bl ZEQU; ppop r1; cmp r1, #0; beq 2b
     pdup; ppop r1; cmp r1, #0; beq 3f
     pnip; pdup; bl LINKGT; pswap; bl LINKGTFLAGS; bl CFETCH; lit8 0x1; pand; bl ZEQU; lit8 0x1; por
 3:  exit
 
     defword "FIND", FIND
-    bl LATEST; bl FETCH; bl XFIND; bl QDUP; ppop r1; cmp r1, #0; beq 1f
+    bl LATEST; pfetch; bl XFIND; bl QDUP; ppop r1; cmp r1, #0; beq 1f
     exit
 1:  lit32 last_host; bl QDUP; ppop r1; cmp r1, #0; beq 2f; bl XFIND
     exit
@@ -2080,7 +2144,7 @@ DODATA:
     exit
 
     defword "\\", BACKSLASH, F_IMMED
-    bl SOURCECOUNT; bl FETCH; bl SOURCEINDEX; bl STORE
+    bl SOURCECOUNT; pfetch; bl SOURCEINDEX; bl STORE
     exit
 
     defword "(", LPAREN, F_IMMED
@@ -2088,7 +2152,7 @@ DODATA:
     exit
 
     defword "WORD", WORD
-    pdup; bl SOURCE; bl SOURCEINDEX; bl FETCH; bl TRIMSTRING
+    pdup; bl SOURCE; bl SOURCEINDEX; pfetch; bl TRIMSTRING
     pdup; bl TOR; bl ROT; bl SKIP
     bl OVER; bl TOR; bl ROT; bl SCAN
     pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq noskip_delim; pdecr
@@ -2123,7 +2187,7 @@ noskip_delim:
 interpret_loop:
     bl BL; bl WORD; pdup; pfetchbyte; ppop r1; cmp r1, #0; beq interpret_eol
     bl FIND; bl QDUP; ppop r1; cmp r1, #0; beq interpret_check_number
-    bl STATE; bl FETCH; ppop r1; cmp r1, #0; beq interpret_execute
+    bl STATE; pfetch; ppop r1; cmp r1, #0; beq interpret_execute
     pincr; ppop r1; cmp r1, #0; beq interpret_compile_word
     bl EXECUTE; b interpret_loop
 interpret_compile_word:
@@ -2132,7 +2196,7 @@ interpret_execute:
     pdrop; bl EXECUTE; b interpret_loop
 interpret_check_number:
     bl ISNUMBER; ppop r1; cmp r1, #0; beq interpret_not_found
-    bl STATE; bl FETCH; ppop r1; cmp r1, #0; beq interpret_loop
+    bl STATE; pfetch; ppop r1; cmp r1, #0; beq interpret_loop
     bl LITERAL; b interpret_loop
 interpret_not_found:
     lit8 0
@@ -2146,40 +2210,40 @@ interpret_eol:
     defword "EVALUATE", EVALUATE
     bl XSOURCE; bl STORE
     lit8 0; bl STATE; bl STORE
-1:  bl XSOURCE; bl FETCH;
+1:  bl XSOURCE; pfetch;
 5:  pdup; pfetchbyte; pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq 2f; lit8 10; bl EQU; ppop r1; cmp r1, #0; beq 7f
     pincr; b 5b
 7:  pdup
 6:  pdup; pfetchbyte; lit8 10; bl NEQU; ppop r1; cmp r1, #0; beq 4f
     pincr; b 6b
 4:  bl OVER; psub
-    @ bl TWODUP; bl TYPE; bl CR
+    bl TWODUP; bl TYPE; bl CR
     bl SOURCECOUNT; bl STORE; bl XSOURCE; bl STORE; lit8 0; bl SOURCEINDEX; bl STORE
     bl XINTERPRET; ppop r1; cmp r1, #0; beq 3f; pdrop
-    bl SOURCECOUNT; bl FETCH; bl XSOURCE; bl ADDSTORE; b 1b
+    bl SOURCECOUNT; pfetch; bl XSOURCE; bl ADDSTORE; b 1b
 2:  bl TWODROP
     exit
 3:  pdrop; pdup; bl DOT; bl SPACE; bl COUNT; bl TYPE; lit8 '?'; bl EMIT; bl CR
     exit
 
     defword "FORGET", FORGET
-    bl BL; bl WORD; bl FIND; pdrop; bl TOLINK; bl FETCH; bl LATEST; bl STORE
+    bl BL; bl WORD; bl FIND; pdrop; bl TOLINK; pfetch; bl LATEST; bl STORE
     exit
 
     defword "HIDE", HIDE
-    bl LATEST; bl FETCH; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; por; pswap; bl STOREBYTE
+    bl LATEST; pfetch; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; por; pswap; bl STOREBYTE
     exit
 
     defword "REVEAL", REVEAL
-    bl LATEST; bl FETCH; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; pswap; bl STOREBYTE
+    bl LATEST; pfetch; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; pswap; bl STOREBYTE
     exit
 
     defword "IMMEDIATE", IMMEDIATE
-    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_IMMED; por; pswap; bl STOREBYTE
+    bl LATEST; pfetch; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_IMMED; por; pswap; bl STOREBYTE
     exit
 
     defword "INLINE", INLINE
-    bl LATEST; bl FETCH; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_INLINE; por; pswap; bl STOREBYTE
+    bl LATEST; pfetch; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_INLINE; por; pswap; bl STOREBYTE
     exit
 
     defword "[", LBRACKET, F_IMMED
@@ -2204,10 +2268,17 @@ interpret_eol:
     end_target_conditional
 
     defword "WORDS", WORDS
-    bl LATEST; bl FETCH
+    bl LATEST; pfetch
 1:
     pdup; bl CELLADD; pcharadd; bl COUNT; bl TYPE; bl SPACE
-    bl FETCH; bl QDUP; bl ZEQU; ppop r1; cmp r1, #0; beq 1b
+    pfetch; bl QDUP; bl ZEQU; ppop r1; cmp r1, #0; beq 1b
+    exit
+
+    defword "LIST", LIST
+    bl LATEST; pfetch
+1:
+    pdup; bl FROMLINK; bl UDOT; pdup; bl CELLADD; pcharadd; bl COUNT; bl TYPE; bl CR
+    pfetch; bl QDUP; bl ZEQU; ppop r1; cmp r1, #0; beq 1b
     exit
 
     defword "DEFINED?", DEFINEDQ
@@ -2217,12 +2288,9 @@ interpret_eol:
     defword "COLD", COLD
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
     bl ROM; lit32 eval_words; bl EVALUATE
-    bl HERE; lit32 init_here; bl STORE
-    bl RAM_DP; bl FETCH; lit32 init_data_start; bl STORE
-    bl LATEST; bl FETCH; lit32 init_last_word; bl STORE
 1:  bl COPY_FARCALL;
-    bl ABORT
-@ 1:  bl LATEST; bl FETCH; bl FROMLINK; bl EXECUTE
+@    bl ABORT
+    bl LATEST; pfetch; bl FROMLINK; bl EXECUTE
 
     defword "INTERPRET", INTERPRET
     lit8 0; bl STATE; bl STORE;
@@ -2256,11 +2324,11 @@ interpret_eol:
     .set USER_XT, .
     ldr r1, [pc]
     blx r1
-    @ bl DODOES + 1; bl FETCH; bl UPFETCH; padd;
+    @ bl DODOES + 1; pfetch; bl UPFETCH; padd;
     exit
 
     defword "UP@", UPFETCH
-    bl UP; bl FETCH
+    bl UP; pfetch
     exit
 
     defword "UP!", UPSTORE

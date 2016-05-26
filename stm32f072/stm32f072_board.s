@@ -3,7 +3,7 @@
 @ ---------------------------------------------------------------------
 @ -- Definitions ------------------------------------------------------
 
-    .include "stm32f030_definitions.s"
+    .include "stm32f072_definitions.s"
 
 @ ---------------------------------------------------------------------
 @ -- Interrupt vectors ------------------------------------------------
@@ -62,6 +62,9 @@ _start:
     .long generic_forth_handler + 1
     .long generic_forth_handler + 1
     .long generic_forth_handler + 1
+    .long generic_forth_handler + 1
+    .long generic_forth_handler + 1
+    .long generic_forth_handler + 1
 
     .org 0xc0
     .set end_of_irq, .
@@ -77,6 +80,33 @@ init_board:
     bne 1f
     bx lr
 1:  push {lr}
+
+    @ switch to 48MHz PLL from HSI
+    ldr r0, =FPEC
+    movs r1, #0x11
+    str r1, [r0, #FLASH_ACR]
+
+    ldr r0, =RCC
+
+    ldr r1, =0x00280000
+    ldr r2, [r0, #RCC_CFGR]
+    orrs r1, r2
+    str r1, [r0, #RCC_CFGR]
+
+    ldr r1, =0x01000000
+    ldr r2, [r0, #RCC_CR]
+    orrs r1, r2
+    str r1, [r0, #RCC_CR]
+
+    ldr r2, =0x02000000
+1:  ldr r1, [r0, #RCC_CR]
+    ands r1, r2
+    beq 1b
+
+    ldr r1, =0x00000002
+    ldr r2, [r0, #RCC_CFGR]
+    orrs r1, r2
+    str r1, [r0, #RCC_CFGR]
 
     @ reset the interrupt vector table
     ldr r0, =addr_IVT
@@ -107,12 +137,14 @@ init_board:
 
     @ enable UART
     ldr r0, =UART1
-    ldr r1, =(8000000 / 115200)
+    ldr r1, =(48000000 / 115200)
     str r1, [r0, #UART_BRR]
     ldr r1, =0x0000000d
     str r1, [r0, #UART_CR1]
 
     pop {pc}
+
+    .ltorg
 
 readkey:
     ldr r0, =CPUID
@@ -167,10 +199,27 @@ generic_forth_handler:
     ldr r2, [r0]
     cmp r2, #0
     beq 1f
+
     push {r4 - r7, lr}
+    mov r4, r8
+    push {r4}
+    mov r4, r9
+    push {r4}
+    mov r4, r10
+    push {r4}
+    mov r4, r11
+    push {r4}
     movs r1, #1
     orrs r2, r1
     blx r2
+    pop {r4}
+    mov r11, r4
+    pop {r4}
+    mov r10, r4
+    pop {r4}
+    mov r9, r4
+    pop {r4}
+    mov r8, r4
     pop {r4 - r7, pc}
 1:  bx lr
 
