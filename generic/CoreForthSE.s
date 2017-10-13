@@ -611,7 +611,13 @@ delay:
     mov pc, lr
 
     defcode "@", FETCH, F_INLINE
-    pfetch
+    .ifdef THUMB1
+    movs r2, #3
+    ands r2, r0
+    beq 1f
+    b .
+    .endif
+1:  pfetch
     mov pc, lr
 
     defcode "~!", MISALIGNEDSTORE
@@ -654,7 +660,13 @@ delay:
     exit
 
     defcode "!", STORE
-    ldr r1, [PSP]
+    .ifdef THUMB1
+    movs r2, #3
+    ands r2, r0
+    beq 1f
+    b .
+    .endif
+1:  ldr r1, [PSP]
     str r1, [r0]
     ldr r0, [PSP, #4]
     adds PSP, #8
