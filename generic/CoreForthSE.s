@@ -2341,7 +2341,6 @@ interpret_eol:
     bl LATEST; pfetch; bl FROMLINK; bl EXECUTE
 
     defword "INTERPRET", INTERPRET
-    lit8 0; bl STATE; bl STORE;
     bl TIB; bl XSOURCE; bl STORE;
     lit8 0; bl SOURCEINDEX; bl STORE;
     bl ACCEPT; bl SOURCECOUNT; bl STORE; bl SPACE;
@@ -2353,6 +2352,7 @@ interpret_eol:
 3:  .ascii " ok "
 
     defword "QUIT", QUIT
+    lit8 0; bl STATE; bl STORE;
 1:  bl INTERPRET
     b 1b
 
