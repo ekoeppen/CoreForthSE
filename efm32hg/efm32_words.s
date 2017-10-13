@@ -86,6 +86,9 @@ con_store:
     b 2b
 1:  bl CR; exit
 
+    defword "TURNKEY", TURNKEY
+    b ABORT
+
     .ltorg
 
     .set last_word, link
