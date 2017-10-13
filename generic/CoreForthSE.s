@@ -571,6 +571,14 @@ delay:
     adds PSP, #8
     mov pc, lr
 
+    defword "CDICT!", CDICTSTORE
+    bl TWODUP; bl UDOT; bl UDOT; bl CR
+    ldr r1, [PSP]
+    strb r1, [r0]
+    ldr r0, [PSP, #4]
+    adds PSP, #8
+    exit
+
     defcode "H@", HFETCH, F_INLINE
     phfetch
     mov pc, lr
@@ -581,6 +589,14 @@ delay:
     ldr r0, [PSP, #4]
     adds PSP, #8
     mov pc, lr
+
+    defword "HDICT!", HDICTSTORE
+    bl TWODUP; bl UDOT; bl UDOT; bl CR
+    ldr r1, [PSP]
+    strh r1, [r0]
+    ldr r0, [PSP, #4]
+    adds PSP, #8
+    exit
 
     defcode "~@", MISALIGNEDFETCH
     .ifndef THUMB1
@@ -616,6 +632,26 @@ delay:
     strh r1, [r2]
     mov pc, lr
     .endif
+
+    defword "~DICT!", MISALIGNEDDICTSTORE
+    bl TWODUP; bl UDOT; bl UDOT; bl CR
+    ppop r2
+    ppop r1
+    .ifndef THUMB1
+    str r1, [r2]
+    mov pc, lr
+    .else
+    movs r3, #3
+    ands r3, r2
+    bne 1f
+    str r1, [r2]
+    mov pc, lr
+1:  strh r1, [r2]
+    adds r2, #2
+    lsrs r1, #16
+    strh r1, [r2]
+    .endif
+    exit
 
     defcode "!", STORE
     ldr r1, [PSP]
@@ -1657,7 +1693,7 @@ is_positive:
 
     defword "THEN", THEN, F_IMMED
     bl HERE; bl OVER; psub; pcellsub; ptwodiv; pswap
-    bl CSTORE
+    bl CDICTSTORE
     exit
 
     defword "WHILE", WHILE, F_IMMED
@@ -1892,11 +1928,11 @@ is_positive:
     exit
 
     defword ",", COMMA
-    bl HERE; bl MISALIGNEDSTORE; bl CELL; bl ALLOT
+    bl HERE; bl MISALIGNEDDICTSTORE; bl CELL; bl ALLOT
     exit
 
     defword ",H", COMMAH
-    bl HERE; bl HSTORE; lit8 2; bl ALLOT
+    bl HERE; bl HDICTSTORE; lit8 2; bl ALLOT
     exit
 
     defword ",XT-FAR", COMMAXT_FAR
@@ -1944,7 +1980,7 @@ is_positive:
     exit
 
     defword "C,", CCOMMA
-    bl HERE; bl STOREBYTE; lit8 1; bl ALLOT
+    bl HERE; bl CDICTSTORE; lit8 1; bl ALLOT
     exit
 
     defword ">UPPER", GTUPPER
