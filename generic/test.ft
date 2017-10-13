@@ -1,3 +1,0 @@
-: t2   if 1 else 0 then ;
-: a create , does> @ ;
-
