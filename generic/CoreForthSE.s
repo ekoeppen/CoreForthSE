@@ -2436,7 +2436,7 @@ interpret_eol:
     defvar "\047TYPE", TICKTYPE
     defvar "\047WAIT-KEY", TICKWAIT_KEY
     defvar "\047FINISH-OUTPUT", TICKFINISH_OUTPUT
-    defvar "FARCALL", FARCALL, 16
+    defvar "FARCALL", FARCALL, 32
     defvar "WORDBUF", WORDBUF, WORDBUF_SIZE
 
 @ ---------------------------------------------------------------------
