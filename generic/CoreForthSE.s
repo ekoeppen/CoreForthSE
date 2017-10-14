@@ -572,13 +572,12 @@ delay:
     adds PSP, #8
     mov pc, lr
 
-    defword "CDICT!", CDICTSTORE
-    bl TWODUP; bl UDOT; bl UDOT; bl CR
+    defcode "CDICT!", CDICTSTORE
     ldr r1, [PSP]
     strb r1, [r0]
     ldr r0, [PSP, #4]
     adds PSP, #8
-    exit
+    mov pc, lr
 
     defcode "H@", HFETCH, F_INLINE
     phfetch
@@ -591,13 +590,12 @@ delay:
     adds PSP, #8
     mov pc, lr
 
-    defword "HDICT!", HDICTSTORE
-    bl TWODUP; bl UDOT; bl UDOT; bl CR
+    defcode "HDICT!", HDICTSTORE
     ldr r1, [PSP]
     strh r1, [r0]
     ldr r0, [PSP, #4]
     adds PSP, #8
-    exit
+    mov pc, lr
 
     defcode "~@", MISALIGNEDFETCH
     .ifndef THUMB1
@@ -640,8 +638,7 @@ delay:
     mov pc, lr
     .endif
 
-    defword "~DICT!", MISALIGNEDDICTSTORE
-    bl TWODUP; bl UDOT; bl UDOT; bl CR
+    defcode "~DICT!", MISALIGNEDDICTSTORE
     ppop r2
     ppop r1
     .ifndef THUMB1
@@ -657,8 +654,8 @@ delay:
     adds r2, #2
     lsrs r1, #16
     strh r1, [r2]
+    mov pc, lr
     .endif
-    exit
 
     defcode "!", STORE
     .ifdef THUMB1
