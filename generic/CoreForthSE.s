@@ -18,6 +18,7 @@
     .set ram_here, ram_start
 
     .set ENABLE_COMPILER,      1
+    .set WORDBUF_SIZE,        32
 
 RSP .req sp
 PSP .req r6
@@ -753,6 +754,20 @@ delay:
 1:  mov pc, lr
 
     defcode "CMOVE", CMOVE
+    ppop r1
+    ppop r2
+    ppop r3
+3:  subs r1, #1
+    cmp r1, #0
+    blt 4f
+    ldrb r4, [r3]
+    strb r4, [r2]
+    adds r2, #1
+    adds r3, #1
+    b 3b
+4:  mov pc, lr
+
+    defcode "CDICTMOVE", CDICTMOVE
     ppop r1
     ppop r2
     ppop r3
@@ -2103,7 +2118,9 @@ is_positive:
     bl HERE; bl LATEST; bl STORE
     bl COMMALINK
     lit8 F_MARKER; bl CCOMMA
-    bl BL; bl WORD; pfetchbyte; pincr; pincr; bl ALIGNED; pdecr; bl ALLOT
+    bl BL; bl WORD; pdup;
+    pdup; pfetchbyte; pincr; bl HERE; pswap; bl CDICTMOVE
+    pfetchbyte; pincr; pincr; bl ALIGNED; pdecr; bl ALLOT
     exit
 
     defword "(CONSTANT)", XCONSTANT
@@ -2207,9 +2224,9 @@ DODATA:
 noskip_delim:
     bl RFROM; bl RFROM; bl ROT; psub; bl SOURCEINDEX; bl ADDSTORE
     bl TUCK; psub
-    pdup; bl HERE; bl STOREBYTE
-    bl HERE; pincr; pswap; bl CMOVE
-    bl HERE
+    pdup; bl WORDBUF; bl STOREBYTE
+    bl WORDBUF; pincr; pswap; bl CMOVE
+    bl WORDBUF
     exit
 
     defword "(COMPILE)", XCOMPILE
@@ -2423,6 +2440,7 @@ interpret_eol:
     defvar "\047WAIT-KEY", TICKWAIT_KEY
     defvar "\047FINISH-OUTPUT", TICKFINISH_OUTPUT
     defvar "FARCALL", FARCALL, 16
+    defvar "WORDBUF", WORDBUF, WORDBUF_SIZE
 
 @ ---------------------------------------------------------------------
 @ -- Main task user variables -----------------------------------------
