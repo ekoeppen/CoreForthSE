@@ -204,6 +204,7 @@ PSP .req r6
 99:
     .align  2, 0
     .global \label
+    .type \label, %function
     .set \label , .
     enter
     @ code field follows
@@ -223,6 +224,7 @@ PSP .req r6
 99:
     .align 2, 0
     .global \label
+    .type \label, %function
     checkdef \label
     .set \label , .
     @ code field follows
@@ -287,6 +289,7 @@ PSP .req r6
 @ ---------------------------------------------------------------------
 @ -- Entry point ------------------------------------------------------
 
+    .type reset_handler, %function
 reset_handler:
     bl init_board
     ldr r0, =addr_TASKZRTOS
@@ -305,6 +308,7 @@ reset_handler:
     lit32 init_last_word; pfetch; bl LATEST; bl STORE
     bl SERIAL_CON
     bl COLD
+    .size reset_handler, . - reset_handler
     .ltorg
 
 init_here:
