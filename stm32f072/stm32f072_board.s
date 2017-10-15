@@ -227,7 +227,6 @@ nmi_handler:
     b .
 
 hardfault_handler:
-    mrs r0, psp
     b .
 
 memmanage_handler:
