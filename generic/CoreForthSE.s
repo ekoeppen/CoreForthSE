@@ -2355,6 +2355,12 @@ interpret_eol:
 
     defword "COLD", COLD
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
+    ldr r0, =eval_words
+    ldrb r0, [r0]
+    cmp r0, #0xff
+    bne 1f
+    cmp r0, #0
+    bne 1f
     bl ROM; lit32 eval_words; bl EVALUATE
 1:  bl COPY_FARCALL;
 @    bl ABORT
