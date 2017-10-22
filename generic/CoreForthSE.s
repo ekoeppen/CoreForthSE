@@ -234,6 +234,7 @@ PSP .req r6
     .align 2, 0
     .global name_\label
     checkdef \label
+    .type \label, %function
     .set name_\label , .
     .int link
     .set link, name_\label
@@ -257,6 +258,7 @@ PSP .req r6
     defconst \name,\label,ram_here
     .set addr_\label, ram_here
     .global addr_\label
+    .type \label, %function
     .set ram_here, ram_here + \size
     .endm
 
@@ -707,7 +709,7 @@ delay:
     adds PSP, #8
     mov pc, lr
 
-    defcode "BIC!", BICSTORE
+    defcode "BIC!", BISTOREBYTE
     ldr r1, [PSP]
     ldr r2, [r0]
     bics r1, r2
@@ -866,7 +868,7 @@ delay:
     exit
 
     defword "CHAR", CHAR, F_IMMED
-    bl BL; bl WORD; pcharadd; bl CFETCH
+    bl BL; bl WORD; pcharadd; bl FETCHBYTE
     exit
 
     end_target_conditional
@@ -1337,7 +1339,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "HOLD", HOLD
-    lit8 1; bl HP; bl SUBSTORE; bl HP; pfetch; bl CSTORE
+    lit8 1; bl HP; bl SUBSTORE; bl HP; pfetch; bl STOREBYTE
     exit
 
     defword "<#", LTNUM
@@ -1345,7 +1347,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword ">DIGIT", TODIGIT
-    pdup; lit8 9; bl GT; lit8 7; pand; bl PLUS; lit8 48; bl PLUS
+    pdup; lit8 9; bl GT; lit8 7; pand; bl ADD; lit8 48; bl ADD
     exit
 
     defword "#", NUM
@@ -2012,8 +2014,8 @@ is_positive:
     exit
 
     defword ">UPPER", GTUPPER
-    bl OVER; bl PLUS; pswap
-1:  bl LPARENDORPAREN; bl I; bl CFETCH; bl UPPERCASE; bl I; bl CSTORE; bl LPARENLOOPRPAREN; ppop r1; cmp r1, #0; beq 1b
+    bl OVER; bl ADD; pswap
+1:  bl XDO; bl INDEX; bl FETCHBYTE; bl UPPERCASE; bl INDEX; bl STOREBYTE; bl XLOOP; ppop r1; cmp r1, #0; beq 1b
     exit
 
     defword "UPPERCASE", UPPERCASE
@@ -2021,12 +2023,12 @@ is_positive:
     exit
 
     defword "SI=", SIEQU
-    bl GTR
-1:  bl RFETCH; pdup; ppop r1; cmp r1, #0; beq 2f; pdrop; bl TWODUP; bl CFETCH; bl UPPERCASE
-    pswap; bl CFETCH; bl UPPERCASE; bl EQU
+    bl TOR
+1:  bl RFETCH; pdup; ppop r1; cmp r1, #0; beq 2f; pdrop; bl TWODUP; bl FETCHBYTE; bl UPPERCASE
+    pswap; bl FETCHBYTE; bl UPPERCASE; bl EQU
 2:  ppop r1; cmp r1, #0; beq 3f
-    bl ONEPLUS; pswap; bl ONEPLUS; bl RGT; bl ONEMINUS; bl GTR; b 1b
-3:  bl TWODROP; bl RGT; bl ZEQU
+    bl INCR; pswap; bl INCR; bl RFROM; bl DECR; bl TOR; b 1b
+3:  bl TWODROP; bl RFROM; bl ZEQU
     exit
 
     defword "LINK>", FROMLINK
@@ -2082,7 +2084,7 @@ is_positive:
 
     defword "MARKER", MARKER, 0X0
     /*
-    bl CREATE; bl LATEST; pfetch; pfetch; bl COMMA; bl LPARENDOESGTRPAREN
+    bl CREATE; bl LATEST; pfetch; pfetch; bl COMMA; bl XDOES
     .set marker_XT, .
     bl 0x47884900; bl DODOES + 1; pfetch; bl LATEST; bl STORE
     */
@@ -2194,11 +2196,11 @@ DODATA:
     */
 
     defword "(FIND)", XFIND
-2:  bl TWODUP; bl LINKGTNAME; bl OVER; bl CFETCH; bl ONEPLUS; bl SIEQU; bl ZEQU; pdup; ppop r1; cmp r1, #0; beq 1f
+2:  bl TWODUP; bl LINKTONAME; bl OVER; bl FETCHBYTE; bl INCR; bl SIEQU; bl ZEQU; pdup; ppop r1; cmp r1, #0; beq 1f
     pdrop; pfetch; pdup
 1:  bl ZEQU; ppop r1; cmp r1, #0; beq 2b
     pdup; ppop r1; cmp r1, #0; beq 3f
-    pnip; pdup; bl LINKGT; pswap; bl LINKGTFLAGS; bl CFETCH; lit8 0x1; pand; bl ZEQU; lit8 0x1; por
+    pnip; pdup; bl FROMLINK; pswap; bl LINKTOFLAGS; bl FETCHBYTE; lit8 0x1; pand; bl ZEQU; lit8 0x1; por
 3:  exit
 
     defword "FIND", FIND
@@ -2459,51 +2461,6 @@ interpret_eol:
     defvar "TASK0RTOS", TASKZRTOS, 0
 
     .ltorg
-
-@ ---------------------------------------------------------------------
-@ -- Symbol aliases ---------------------------------------------------
-
-    .set PLUS, ADD
-    .set MINUS, SUB
-    .set LPARENSOURCERPAREN, XSOURCE
-    .set SOURCENUM, SOURCECOUNT
-    .set GTSOURCE, SOURCEINDEX
-    .set GTR, TOR
-    .set RGT, RFROM
-    .set LPARENSQUOTRPAREN, XSQUOTE
-    .set GTTIB, TIBINDEX
-    .set CMOVEGT, CMOVEUP
-    .set CSTORE, STOREBYTE
-    .set CFETCH, FETCHBYTE
-    .set PLUSSTORE, ADDSTORE
-    .set MINUSSTORE, SUBSTORE
-    .set ONEPLUS, INCR
-    .set ONEMINUS, DECR
-    .set FOURPLUS, INCR4
-    .set FOURMINUS, DECR4
-    .set MINUSROT, ROTROT
-    .set NUMTIB, TIBSIZE
-    .set TIBNUM, TIBCOUNT
-    .set LPARENINTERPRETRPAREN, XINTERPRET
-    .set LPARENDORPAREN, XDO
-    .set LPARENLOOPRPAREN, XLOOP
-    .set LPARENDOESGTRPAREN, XDOES
-    .set I, INDEX
-    .set TWOSLASH, TWODIV
-    .set LTGT, NEQU
-    .set SLASHMOD, DIVMOD
-    .set DOTS, PRINTSTACK
-    .set LBRAC, LBRACKET
-    .set RBRAC, RBRACKET
-    .set LINKGT, FROMLINK
-    .set ANYGTLINK, ANYTOLINK
-    .set LINKGTNAME, LINKTONAME
-    .set LINKGTFLAGS, LINKTOFLAGS
-    .set SEMI, SEMICOLON
-    .set SLASH, DIV
-    .set LTEQU, LE
-    .set ZLTGT, ZNEQU
-    .set QNUMBER, ISNUMBER
 
 @ ---------------------------------------------------------------------
 
