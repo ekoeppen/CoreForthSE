@@ -1855,7 +1855,7 @@ is_positive:
     bl HERE; lit32 init_here; bl STORE
     bl RAM_DP; pfetch; lit32 init_data_start; bl STORE
     bl LATEST; pfetch; lit32 init_last_word; bl STORE
-    ldr r1, =_start; push {r1}
+    ldr r1, =rom_start; push {r1}
     bl ROM_DP; pfetch; ppop r1; push {r1}
     movs r1, #0x80; push {r1}; bkpt 0xab
     exit
@@ -2387,6 +2387,10 @@ interpret_eol:
     b QUIT
 1:
     .ascii "CoreForth revision NNNNNNNN ready."
+
+    defconst "COMPILED-HERE", COMPILED_HERE, compiled_here
+    defconst "RAM-TOP", RAM_TOP, ram_top
+    defconst "ROM-TOP", ROM_TOP, rom_top
 
     .ltorg
 
