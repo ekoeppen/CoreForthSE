@@ -3,7 +3,7 @@ CPU ?= cortex-m3
 REVISION := $(shell git log -1 --abbrev=8 --pretty=format:%h)
 
 %.bin: %.elf
-	LC_CTYPE=C && LANG=C && sed -e "s/revision NNNNNNNN/revision $(REVISION)/" < $< > $<.bak && mv $<.bak $<
+	perl -pe "s/revision NNNNNNNN/revision $(REVISION)/" < $< > $<.bak && mv $<.bak $<
 	arm-none-eabi-objcopy -Obinary $< $@
 
 %.lst: %.elf
