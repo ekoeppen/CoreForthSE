@@ -2353,6 +2353,18 @@ interpret_eol:
     bl BL; bl WORD; bl FIND; pnip
     exit
 
+    defword "FLASH-DP", FLASH_DP
+    ppush r0
+    ldr r0, =rom_top
+    movs r2, #0
+    subs r2, #1
+1:  subs r0, #4
+    ldr r1, [r0]
+    cmp r1, r2
+    beq 1b
+    adds r0, #4
+    exit
+
     defword "COLD", COLD
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
     ldr r0, =eval_words
@@ -2388,7 +2400,7 @@ interpret_eol:
 1:
     .ascii "CoreForth revision NNNNNNNN ready."
 
-    defconst "COMPILED-HERE", COMPILED_HERE, compiled_here
+    defconst "COMPILED-DP", COMPILED_DP, compiled_dp
     defconst "RAM-TOP", RAM_TOP, ram_top
     defconst "ROM-TOP", ROM_TOP, rom_top
 

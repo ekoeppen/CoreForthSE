@@ -14,7 +14,8 @@ SECTIONS
     .target : {
         *(.text)
         *(.rodata)
-        compiled_here = .;
+        compiled_dp = .;
+        . = 0x00010000;
     } > FLASH =0xff
 
     _start = reset_handler;
