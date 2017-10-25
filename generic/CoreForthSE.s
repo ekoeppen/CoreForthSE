@@ -709,7 +709,7 @@ delay:
     adds PSP, #8
     mov pc, lr
 
-    defcode "BIC!", BISTOREBYTE
+    defcode "BIC!", BITCLEARSTORE
     ldr r1, [PSP]
     ldr r2, [r0]
     bics r1, r2
