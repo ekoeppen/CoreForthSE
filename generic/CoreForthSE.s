@@ -2365,6 +2365,21 @@ interpret_eol:
     adds r0, #4
     exit
 
+    defword "SEEK-LATEST", SEEK_LATEST
+    ppop r3
+    ldr r0, =name_DROP
+3:  movs r4, r0
+2:  adds r4, #4
+    cmp r4, r3
+    bgt 1f
+    ldr r2, [r4]
+    cmp r2, r0
+    bne 2b
+    movs r0, r4
+    b 3b
+1:  ppush r0
+    exit
+
     defword "COLD", COLD
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
     ldr r0, =eval_words
