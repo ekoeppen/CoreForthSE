@@ -2367,7 +2367,7 @@ interpret_eol:
 
     defword "SEEK-LATEST", SEEK_LATEST
     ppop r3
-    ldr r0, =name_DROP
+    ldr r0, =last_core_word
 3:  movs r4, r0
 2:  adds r4, #4
     cmp r4, r3
