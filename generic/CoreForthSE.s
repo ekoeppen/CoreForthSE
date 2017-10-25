@@ -2390,8 +2390,8 @@ interpret_eol:
     bne 1f
     bl ROM; lit32 eval_words; bl EVALUATE
 1:  bl COPY_FARCALL;
-@    bl ABORT
-    bl LATEST; pfetch; bl FROMLINK; bl EXECUTE
+    bl FLASH_DP; bl SEEK_LATEST; pdup; bl LATEST; bl STORE;
+    bl FROMLINK; bl EXECUTE
 
     defword "INTERPRET", INTERPRET
     bl TIB; bl XSOURCE; bl STORE;
