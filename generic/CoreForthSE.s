@@ -2049,20 +2049,20 @@ is_positive:
     .ltorg
 
     defword ">LINK", TOLINK
-    bl TONAME; lit8 5; psub
+    bl TONAME; subs r0, #5
     exit
 
     defcode ">BODY", TOBODY
     adds r0, #16
     mov pc, lr
 
-    defword "LINK>NAME", LINKTONAME
-    lit8 5; padd
-    exit
+    defcode "LINK>NAME", LINKTONAME
+    adds r0, #5
+    mov pc, lr
 
-    defword "LINK>FLAGS", LINKTOFLAGS
-    bl CELL; padd
-    exit
+    defcode "LINK>FLAGS", LINKTOFLAGS
+    adds r0, #4
+    mov pc, lr
 
     defword "ANY>LINK", ANYTOLINK
     bl LATEST
@@ -2337,8 +2337,7 @@ interpret_eol:
 
     defword "WORDS", WORDS
     bl LATEST; pfetch
-1:
-    pdup; bl CELLADD; pcharadd; bl COUNT; bl TYPE; bl SPACE
+1:  pdup; bl LINKTONAME; bl COUNT; bl TYPE; bl SPACE
     pfetch; bl QDUP; bl ZEQU; ppop r1; cmp r1, #0; beq 1b
     exit
 
