@@ -848,6 +848,7 @@ delay:
 
     defword "S\"", SQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD
+    pdup; pdup; pfetchbyte; pincr; bl HERE; pswap; bl CDICTMOVE
     pfetchbyte; pincr; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
@@ -861,8 +862,9 @@ delay:
     exit
 
     defword "SZ\"", SZQUOT, F_IMMED
-    bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD
+    bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD; pdup
     lit8 1; bl OVER; bl ADDSTORE; lit8 0; bl OVER; pdup; pfetchbyte; padd; bl STOREBYTE
+    pdup; pfetchbyte; pincr; bl HERE; pswap; bl CDICTMOVE
     pfetchbyte; pincr; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
@@ -2101,7 +2103,7 @@ is_positive:
     defword "(DOES>)", XDOES
     bl HERE
     pop {r1}; subs r1, #1; ppush r1
-    bl LATEST; pfetch; bl FROMLINK; lit8 10; padd; bl ORG
+    bl LATEST; pfetch; bl FROMLINK; adds r0, #10; bl ORG
     lit32 0xb500; bl COMMAH
     bl COMMAXT;
     bl ORG
