@@ -2442,11 +2442,11 @@ interpret_eol:
     exit
 
     defword "R0", RZ
-    bl UPFETCH; lit8 0x04; padd
+    bl UPFETCH; adds r0, #4
     exit
 
     defword "S0", SZ
-    bl UPFETCH; lit8 0x08; padd
+    bl UPFETCH; adds r0, #8
     exit
 
     defcode "DEPTH", DEPTH
