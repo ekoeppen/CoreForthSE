@@ -10,6 +10,26 @@
     .include "stm32f072_definitions.s"
     .include "CoreForthSE.s"
 
+    defcode "UNLOCK-FLASH", UNLOCK_FLASH
+    push {r0, r1, lr}
+    ldr r0, =FPEC
+    ldr r1, =0x45670123
+    str r1, [r0, #FLASH_KEYR]
+    ldr r1, =0xCDEF89AB
+    str r1, [r0, #FLASH_KEYR]
+    movs r1, #1
+    str r1, [r0, #FLASH_CR]
+    pop {r0, r1, pc}
+
+    defcode "LOCK-FLASH", LOCK_FLASH
+    push {r0, r1, r2, lr}
+    ldr r0, =FPEC
+    ldr r1, [r0]
+    movs r2, #128
+    orrs r1, r2
+    str r1, [r0]
+    pop {r0, r1, r2, pc}
+
     defcode "KEY?", KEYQ
     movs r2, #0
     ldr r0, =(UART1 + UART_ISR)
