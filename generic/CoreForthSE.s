@@ -19,6 +19,8 @@
 
     .set ENABLE_COMPILER,      1
     .set WORDBUF_SIZE,        32
+    .set TIB_SIZE,           132
+    .set PAD_OFFSET,         128
 
 RSP .req sp
 PSP .req r6
@@ -304,6 +306,7 @@ reset_handler:
     bl TASKZRTOS; bl RZ; bl STORE
     bl TASKZTOS; bl SZ; bl STORE
     lit8 16; bl BASE; bl STORE
+    lit8 0; bl DICT_OFFSET; bl STORE
     bl RAM
     lit32 init_here; pfetch; bl ROM_DP; bl STORE
     lit32 init_data_start; pfetch; bl RAM_DP; bl STORE
@@ -580,6 +583,9 @@ delay:
 
     defcode "CDICT!", CDICTSTORE
     ldr r1, [PSP]
+    ldr r2, =addr_DICT_OFFSET
+    ldr r2, [r2]
+    adds r0, r2
     strb r1, [r0]
     ldr r0, [PSP, #4]
     adds PSP, #8
@@ -598,6 +604,9 @@ delay:
 
     defcode "HDICT!", HDICTSTORE
     ldr r1, [PSP]
+    ldr r2, =addr_DICT_OFFSET
+    ldr r2, [r2]
+    adds r0, r2
     strh r1, [r0]
     ldr r0, [PSP, #4]
     adds PSP, #8
@@ -647,6 +656,9 @@ delay:
     defcode "~DICT!", MISALIGNEDDICTSTORE
     ppop r2
     ppop r1
+    ldr r4, =addr_DICT_OFFSET
+    ldr r4, [r4]
+    adds r2, r4
     .ifndef THUMB1
     str r1, [r2]
     mov pc, lr
@@ -774,6 +786,9 @@ delay:
     ppop r1
     ppop r2
     ppop r3
+    ldr r4, =addr_DICT_OFFSET
+    ldr r4, [r4]
+    adds r2, r4
 3:  subs r1, #1
     cmp r1, #0
     blt 4f
@@ -880,7 +895,7 @@ delay:
     exit
 
     defword "PAD", PAD
-    bl HERE; lit8 128; padd
+    bl HERE; lit8 PAD_OFFSET; padd
     exit
 
 @ ---------------------------------------------------------------------
@@ -2325,6 +2340,10 @@ interpret_eol:
     exit
 
     defword ":", COLON
+    bl HERE
+    bl ROMQ; cmp r0, #0; beq 1f
+    pdrop; lit8 PAD_OFFSET;
+1:  bl DICT_OFFSET; bl STORE
     bl BUILDS;
     movs r1, #0xb5; lsls r1, #8; ppush r1; bl COMMAH;
     bl HIDE; bl RBRACKET;
@@ -2333,7 +2352,14 @@ interpret_eol:
     defword ";", SEMICOLON, F_IMMED
     movs r1, #0xbd; lsls r1, #8; ppush r1; bl COMMAH;
     bl REVEAL; bl LBRACKET
-    exit
+    bl DICT_OFFSET; pfetch; cmp r0, #0; beq 1f
+    bl OVER; padd; pswap
+    bl HERE; bl OVER; psub;
+    bl CMOVE
+    lit8 0; bl DICT_OFFSET; bl STORE
+    b 2f
+1:  bl TWODROP
+2:  exit
 
     end_target_conditional
 
@@ -2457,6 +2483,8 @@ interpret_eol:
     ppush r2
     mov pc, lr
 
+    .ltorg
+
 @ ---------------------------------------------------------------------
 @ -- System variables -------------------------------------------------
 
@@ -2464,11 +2492,13 @@ interpret_eol:
     defvar "RAM-DP", RAM_DP
     defvar "ROM-DP", ROM_DP
     defvar "ROM-ACTIVE", ROM_ACTIVE
+    defvar "DICT-OFFSET", DICT_OFFSET
     defvar "LATEST", LATEST
     defvar "BASE", BASE
-    defvar "TIB", TIB, 132
+    defvar "TIB", TIB, TIB_SIZE
     defvar ">TIB", TIBINDEX
     defvar "TIB#", TIBCOUNT
+    defvar "WORDBUF", WORDBUF, WORDBUF_SIZE
     defvar "(SOURCE)", XSOURCE
     defvar "SOURCE#", SOURCECOUNT
     defvar ">IN", SOURCEINDEX
@@ -2481,7 +2511,6 @@ interpret_eol:
     defvar "\047WAIT-KEY", TICKWAIT_KEY
     defvar "\047FINISH-OUTPUT", TICKFINISH_OUTPUT
     defvar "FARCALL", FARCALL, 32
-    defvar "WORDBUF", WORDBUF, WORDBUF_SIZE
 
 @ ---------------------------------------------------------------------
 @ -- Main task user variables -----------------------------------------
