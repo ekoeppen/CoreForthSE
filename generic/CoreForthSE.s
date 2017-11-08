@@ -7,11 +7,11 @@
 
     .set F_IMMED,           0x01
     .set F_INLINE,          0x02
+    .set F_VAR,             0x04
+    .set F_BUFFER,          0x08
     .set F_HIDDEN,          0x20
-    .set F_NODISASM,        0x40
     .set F_LENMASK,         0x1f
     .set F_MARKER,          0x80
-    .set F_FLAGSMASK,       0x7f
 
     .set link,                 0
     .set link_host,            0
@@ -230,7 +230,7 @@ PSP .req r6
     @ code field follows
     .endm
 
-    .macro defconst name, label, value
+    .macro defconst name, label, value, flags=0
     .align 2, 0
     .global name_\label
     checkdef \label
@@ -238,7 +238,7 @@ PSP .req r6
     .set name_\label , .
     .int link
     .set link, name_\label
-    .byte F_MARKER
+    .byte \flags | F_MARKER
     .byte (99f - 98f)
 98:
     .ascii "\name"
@@ -255,7 +255,12 @@ PSP .req r6
     .endm
 
     .macro defvar name, label, size=4
-    defconst \name,\label,ram_here
+    .if \size==4
+    defconst \name,\label,ram_here, F_VAR
+    .else
+    defconst \name,\label,ram_here, F_BUFFER
+    .word \size
+    .endif
     .set addr_\label, ram_here
     .global addr_\label
     .type \label, %function
@@ -2456,6 +2461,8 @@ interpret_eol:
     lsrs r2, #2
     ppush r2
     mov pc, lr
+
+    .ltorg
 
 @ ---------------------------------------------------------------------
 @ -- System variables -------------------------------------------------
