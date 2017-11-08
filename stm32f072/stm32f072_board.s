@@ -11,12 +11,12 @@
     .text
     .syntax unified
 
-    .global _start
+    .global rom_start
     .global reset_handler
     .global putchar
     .global init_board
     .global readkey
-_start:
+rom_start:
     .long addr_TASKZTOS               /* Top of Stack                 */
     .long reset_handler + 1           /* Reset Handler                */
     .long nmi_handler + 1             /* NMI Handler                  */
