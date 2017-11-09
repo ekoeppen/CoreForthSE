@@ -255,12 +255,8 @@ PSP .req r6
     .endm
 
     .macro defvar name, label, size=4
-    .if \size==4
-    defconst \name,\label,ram_here, F_VAR
-    .else
     defconst \name,\label,ram_here, F_BUFFER
-    .word \size
-    .endif
+    .short \size
     .set addr_\label, ram_here
     .global addr_\label
     .type \label, %function
@@ -2133,6 +2129,10 @@ is_positive:
     pfetchbyte; pincr; pincr; bl ALIGNED; pdecr; bl ALLOT
     exit
 
+    defword "SET-FLAGS", SET_FLAGS
+    bl LATEST; bl FETCH; bl LINKTOFLAGS; bl TUCK; bl FETCHBYTE; por; pswap; bl CDICTSTORE
+    exit
+
     defword "(CONSTANT)", XCONSTANT
     bl BUILDS;
     ldr r4, =DOCON;
@@ -2170,10 +2170,11 @@ DODATA:
 
     defword "BUFFER", BUFFER
     bl XCONSTANT
+    lit8 F_BUFFER; bl SET_FLAGS;
+    bl RAM_DP; bl FETCH; bl COMMA
+    pdup; bl COMMAH
     bl ROM_ACTIVE; pfetch
-    bl HERE; bl CELL; bl ALLOT
-    bl RAM; bl HERE; pswap; bl STORE
-    pswap; bl ALLOT
+    bl RAM; pswap; bl ALLOT
     bl ROM_ACTIVE; bl STORE
     exit
 
