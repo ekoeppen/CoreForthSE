@@ -2240,7 +2240,7 @@ noskip_delim:
     bl WORDBUF
     exit
 
-    defword "(COMPILE)", XCOMPILE
+    defword "(COMPILE)", XCOMPILE @ TODO: Faulty
     pdup; bl TOFLAGS; pfetchbyte; movs r2, #F_INLINE; ands r0, r2; beq 1f
     ldr r2, =0x46f7; pdrop
     movs r3, r0
@@ -2267,7 +2267,7 @@ interpret_loop:
     pincr; ppop r1; cmp r1, #0; beq interpret_compile_word
     bl EXECUTE; b interpret_loop
 interpret_compile_word:
-    bl XCOMPILE; b interpret_loop
+    bl COMMAXT; b interpret_loop
 interpret_execute:
     pdrop; bl EXECUTE; b interpret_loop
 interpret_check_number:
