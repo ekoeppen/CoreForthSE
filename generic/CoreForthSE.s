@@ -2392,9 +2392,9 @@ interpret_eol:
     ldr r0, =eval_words
     ldrb r0, [r0]
     cmp r0, #0xff
-    bne 1f
+    beq 1f
     cmp r0, #0
-    bne 1f
+    beq 1f
     bl ROM; lit32 eval_words; bl EVALUATE
 1:  bl COPY_FARCALL;
     bl FLASH_DP; bl SEEK_LATEST; pdup; bl LATEST; bl STORE;
