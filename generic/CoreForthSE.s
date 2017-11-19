@@ -2236,7 +2236,7 @@ noskip_delim:
     bl RFROM; bl RFROM; bl ROT; psub; bl SOURCEINDEX; bl ADDSTORE
     bl TUCK; psub
     pdup; bl WORDBUF; bl STOREBYTE
-    bl WORDBUF; pincr; pswap; bl CMOVE
+    bl WORDBUF; pincr; pswap; bl CDICTMOVE
     bl WORDBUF
     exit
 

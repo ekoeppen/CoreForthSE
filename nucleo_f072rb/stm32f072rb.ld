@@ -4,7 +4,7 @@ ENTRY(reset_handler)
 
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 64K
+    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 128K
     HOST  (rx) : ORIGIN = 0x08010000, LENGTH = 0x007F0000
     SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
 }
@@ -31,5 +31,5 @@ SECTIONS
     } >SRAM AT> FLASH
 
     ram_top = 0x20000000 + 16K;
-    rom_top = 0x08000000 + 64K;
+    rom_top = 0x08000000 + 128K;
 }
