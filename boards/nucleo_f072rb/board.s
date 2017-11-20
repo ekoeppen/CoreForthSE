@@ -119,7 +119,7 @@ init_board:
     subs r2, r2, #1
     bgt 2b
 
-    @ enable clocks on UART1 and GPIOA
+    @ enable clocks on UART2 and GPIOA
     ldr r0, =RCC
     ldr r1, =(1 << 17)
     str r1, [r0, #RCC_AHBENR]
@@ -139,6 +139,9 @@ init_board:
     str r1, [r0, #UART_BRR]
     ldr r1, =0x0000000d
     str r1, [r0, #UART_CR1]
+    movs r1, #0
+    subs r1, #1
+    str r1, [r0, #UART_ICR]
 
     pop {pc}
 

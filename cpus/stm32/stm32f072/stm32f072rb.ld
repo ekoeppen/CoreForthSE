@@ -15,7 +15,7 @@ SECTIONS
         *(.text)
         *(.rodata)
         compiled_dp = .;
-        . = 0x00010000;
+        . = 0x00020000;
     } > FLASH =0xff
 
     _start = reset_handler;
