@@ -1378,6 +1378,10 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     bl LTNUM; pdup; bl ABS; bl NUMS; pswap; bl SIGN; bl NUMGT; bl TYPE; bl SPACE
     exit
 
+    defword "HEX.", HEXDOT
+    bl puthexnumber
+    exit
+
     defword "READ-KEY", READ_KEY
     subs PSP, #4
     str r0, [PSP]

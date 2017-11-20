@@ -16,8 +16,6 @@ all: coreforth.bin coreforth.lst
 
 listing: coreforth.lst
 
-coreforth.elf: Makefile ../generic/Makefile
-
 coreforth.bin: coreforth.elf
 
 clean:
