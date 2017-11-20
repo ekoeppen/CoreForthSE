@@ -1,10 +1,8 @@
 Overview
 ========
 
-This is a simple Forth for the ARM Cortex M0/M3. It can currently run on the
-the Olimex STM32-P103 and the Olimexino STM32/LeafLabs Maple and supports
-generic STM32F103 and STM32F030 boards. Other targets boards should be easy to
-add. CoreForth consists of a small core written in ARM assembler, and
+This is a simple subroutine threaded Forth for the ARM Cortex M0/M3.
+CoreForth consists of a small core written in ARM assembler, and
 additional Forth words which are compiled on the host for the target using a
 slightly modified version of
 [thumbulator](https://github.com/ekoeppen/thumbulator).
@@ -24,7 +22,7 @@ preventing CoreForth to be taken into that direction.
 Forth Implementation
 ====================
 
-CoreForth is an indirect threaded Forth. Register r7 is holding the instruction
+CoreForth SE is a subroutine threaded Forth. Register r7 is holding the instruction
 pointer, register r6 is the return stack pointer, and the parameter stack is
 handled via register sp (r13).
 
@@ -43,7 +41,7 @@ Board Dependent Code
 
 The CoreForth source is split into two parts. The actual Forth implementation
 under generic in CoreForth.s and a number of Forth source files, and the board
-dependent code under e.g. olimexino-stm32. The board dependent code uses
+dependent code under e.g. boards/nucleo_f072. The board dependent code uses
 .include to bring in the Forth kernel, this is neccessary in order to be able
 to add new words to the board code due to the way the words are defined using
 macros.
@@ -74,9 +72,3 @@ This target compilation step is automated, adding new Forth sources for target
 compilation is as simple as adding them as parameters to the thumbulator
 invocation in the Makefile.
 
-Previous Versions
-=================
-
-The branch "1.0" contains the previous, qemu based version of CoreForth. That
-branch is not actively maintained anymore, but can serve as an example for an
-alternative cross compilation approach.
