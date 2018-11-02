@@ -2089,12 +2089,9 @@ is_positive:
 
     target_conditional ENABLE_COMPILER
 
-    defword "MARKER", MARKER, 0X0
-    /*
+    defword "MARKER", MARKER
     bl CREATE; bl LATEST; pfetch; pfetch; bl COMMA; bl XDOES
-    .set marker_XT, .
-    bl 0x47884900; bl DODOES + 1; pfetch; bl LATEST; bl STORE
-    */
+    pfetch; bl LATEST; bl STORE
     exit
 
     defword "\'", TICK
@@ -2437,10 +2434,7 @@ interpret_eol:
 
     defword "USER", USER
     bl CREATE; bl COMMA; bl XDOES
-    .set USER_XT, .
-    ldr r1, [pc]
-    blx r1
-    @ bl DODOES + 1; pfetch; bl UPFETCH; padd;
+    pfetch; bl UPFETCH; padd;
     exit
 
     defword "UP@", UPFETCH
