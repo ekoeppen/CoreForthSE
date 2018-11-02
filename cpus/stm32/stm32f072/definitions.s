@@ -25,8 +25,8 @@
     .set RCC_CSR,             0x24
     .set RCC_AHBRSTR,         0x28
     .set RCC_CFGR2,           0x2c
-    .set RCC_CFGR3,           0x2c
-    .set RCC_CR2,             0x30
+    .set RCC_CFGR3,           0x30
+    .set RCC_CR2,             0x34
 
     .set NVIC,          0xe000e000
     .set NVIC_SETENA_BASE,   0x100
