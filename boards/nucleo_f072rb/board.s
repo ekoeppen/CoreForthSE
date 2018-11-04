@@ -18,6 +18,7 @@
     .global putchar
     .global init_board
     .global readkey
+    .global generic_forth_handler
 rom_start:
     .long addr_TASKZTOS               /* Top of Stack                 */
     .long reset_handler + 1           /* Reset Handler                */

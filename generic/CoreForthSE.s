@@ -1,6 +1,7 @@
 @ -- vim:syntax=armasm:foldmethod=marker:foldmarker=@\ --\ ,@\ ---:
 
     .global reset_handler
+    .global _main
 
 @ ---------------------------------------------------------------------
 @ -- Variable definitions ---------------------------------------------
@@ -293,6 +294,7 @@ PSP .req r6
 @ -- Entry point ------------------------------------------------------
 
     .type reset_handler, %function
+_main:
 reset_handler:
     bl init_board
     ldr r0, =addr_TASKZRTOS
@@ -324,6 +326,7 @@ init_last_word:
 @ ---------------------------------------------------------------------
 @ -- Helper code ------------------------------------------------------
 
+    .type putstring, %function
 putstring:
     cmp r1, #0
     bgt 1f
@@ -339,6 +342,7 @@ putstring_loop:
     bgt putstring_loop
     pop {r4, r5, pc}
 
+    .type reset_handler, %function
 readline:
     push {r3, r4, r5, lr}
     mov r4, r0
@@ -379,6 +383,7 @@ readline_end:
     subs r0, r5, r4
     pop {r3, r4, r5, pc}
 
+    .type puthexnumber, %function
 puthexnumber:
     push {r3, r4, r5, r6, r7, lr}
     movs r3, #0
@@ -409,6 +414,7 @@ puthexnumber_loop:
 4:  pop {r3, r4, r5, r6, r7, pc}
 
     @ Busy delay with three ticks per count
+    .type delay, %function
 delay:
     subs r0, #1
     bne delay
