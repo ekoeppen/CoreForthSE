@@ -2185,8 +2185,18 @@ DODATA:
     bl ROM_ACTIVE; bl STORE
     exit
 
+    defcode "DOVAR", DOVAR
+    mov r1, lr
+    adds r1, #1
+    ppush r1
+    mov pc, lr
+
     defword "VARIABLE", VARIABLE
-    bl CELL; bl BUFFER
+    bl BUILDS
+    movs r1, #0xb5; lsls r1, #8; ppush r1; bl COMMAH;
+    bl LIT_XT; .word DOVAR; bl COMMAXT
+    movs r1, #0xbd; lsls r1, #8; ppush r1; bl COMMAH;
+    bl ALIGN; bl CELL; bl ALLOT
     exit
 
     defword "DEFER", DEFER
