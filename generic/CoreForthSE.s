@@ -2318,7 +2318,12 @@ interpret_eol:
     exit
 
     defword "FORGET", FORGET
-    bl BL; bl WORD; bl FIND; pdrop; bl TOLINK; pfetch; bl LATEST; bl STORE
+    bl BL; bl WORD; bl FIND
+    cmp r0, #0; beq 1f
+    pdrop
+    bl TOLINK; pfetch; bl LATEST; bl STORE
+    exit
+1:  pdrop
     exit
 
     defword "HIDE", HIDE
