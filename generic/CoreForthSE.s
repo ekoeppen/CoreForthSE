@@ -1,7 +1,7 @@
 @ -- vim:syntax=armasm:foldmethod=marker:foldmarker=@\ --\ ,@\ ---:
 
     .global reset_handler
-    .global _main
+    .global main
 
 @ ---------------------------------------------------------------------
 @ -- Variable definitions ---------------------------------------------
