@@ -510,15 +510,13 @@ delay:
 1:  mov pc, lr
 
     defcode ">R", TOR, F_INLINE
-    push {r0}
-    ldr r0, [PSP]
-    adds PSP, #4
+    ppop r1
+    push {r1}
     mov pc, lr
 
     defcode "R>", RFROM, F_INLINE
-    subs PSP, #4
-    str r0, [PSP]
-    pop {r0}
+    pop {r1}
+    ppush r1
     mov pc, lr
 
     defcode "R@", RFETCH, F_INLINE
@@ -541,8 +539,8 @@ delay:
     mov pc, lr
 
     defcode "SP!", SPSTORE
-    ppop r1
-    mov PSP, r1
+    mov PSP, r0
+    ldr r0, [PSP]
     mov pc, lr
 
     defcode "RP!", RPSTORE
