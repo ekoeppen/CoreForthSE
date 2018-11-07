@@ -294,18 +294,18 @@ PSP .req r6
 @ -- Entry point ------------------------------------------------------
 
     .type reset_handler, %function
-_main:
+main:
 reset_handler:
     bl init_board
-    ldr r0, =addr_TASKZRTOS
+    ldr r0, =addr_TASK0RTOS
     mov RSP, r0
-    ldr r0, =addr_TASKZTOS
+    ldr r0, =addr_TASK0TOS
     mov PSP, r0
     movs r0, #0
     subs r0, #1
-    bl TASKZ; bl UPSTORE
-    bl TASKZRTOS; bl RZ; bl STORE
-    bl TASKZTOS; bl SZ; bl STORE
+    bl TASK0; bl UPSTORE
+    bl TASK0RTOS; bl R0; bl STORE
+    bl TASK0TOS; bl S0; bl STORE
     lit8 16; bl BASE; bl STORE
     bl RAM
     lit32 init_here; pfetch; bl ROM_DP; bl STORE
@@ -1309,12 +1309,12 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
 
     defword ".S", PRINTSTACK
     bl DEPTH; ppop r1; cmp r1, #0; beq 1f
-    bl SPFETCH; bl SZ; pfetch; pcellsub; pcellsub; bl XPRINTSTACK; pdup; bl DOT;
+    bl SPFETCH; bl S0; pfetch; pcellsub; pcellsub; bl XPRINTSTACK; pdup; bl DOT;
     bl CR
 1:  exit
 
     defword ".R", PRINTRSTACK
-    bl RPFETCH; bl RZ; pfetch; pcellsub; bl XPRINTSTACK
+    bl RPFETCH; bl R0; pfetch; pcellsub; bl XPRINTSTACK
     bl CR
     exit
 
@@ -2405,6 +2405,8 @@ interpret_eol:
     exit
 
     defword "COLD", COLD
+    bl TASK0TOS; bl DUP; bl TASK0UTOS; bl STORE; bl TASK0S0; bl STORE
+    bl TASK0RTOS; bl TASK0R0; bl STORE
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
     ldr r0, =eval_words
     ldrb r0, [r0]
@@ -2461,16 +2463,16 @@ interpret_eol:
     bl UP; bl STORE
     exit
 
-    defword "R0", RZ
+    defword "R0", R0
     bl UPFETCH; adds r0, #4
     exit
 
-    defword "S0", SZ
+    defword "S0", S0
     bl UPFETCH; adds r0, #8
     exit
 
     defcode "DEPTH", DEPTH
-    ldr r2, =addr_TASKZTOS
+    ldr r2, =addr_TASK0TOS
     mov r1, PSP
     subs r2, r1
     lsrs r2, #2
@@ -2508,17 +2510,16 @@ interpret_eol:
 @ ---------------------------------------------------------------------
 @ -- Main task user variables -----------------------------------------
 
-    defvar "TASK0WAKE-AT", TASKZWAKE_AT
-    defvar "TASK0UTOS", TASKZUTOS
-    defvar "TASK0STATUS", TASKZSTATUS
-    defvar "TASK0", TASKZ, 0
-    defvar "TASK0FOLLOWER", TASKZFOLLOWER
-    defvar "TASK0RZ", TASKZRZ
-    defvar "TASK0SZ", TASKZSZ
-    defvar "TASK0STACK", TASKZSTACK, 512
-    defvar "TASK0TOS", TASKZTOS, 0
-    defvar "TASK0RSTACK", TASKZRSTACK, 512
-    defvar "TASK0RTOS", TASKZRTOS, 0
+    defvar "TASK0UTOS", TASK0UTOS
+    defvar "TASK0STATUS", TASK0STATUS
+    defvar "TASK0", TASK0, 0
+    defvar "TASK0FOLLOWER", TASK0FOLLOWER
+    defvar "TASK0R0", TASK0R0
+    defvar "TASK0S0", TASK0S0
+    defvar "TASK0RSTACK", TASK0RSTACK, 256
+    defvar "TASK0RTOS", TASK0RTOS, 0
+    defvar "TASK0STACK", TASK0STACK, 256
+    defvar "TASK0TOS", TASK0TOS, 0
 
     .ltorg
 

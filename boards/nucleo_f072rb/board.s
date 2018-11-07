@@ -20,7 +20,7 @@
     .global readkey
     .global generic_forth_handler
 rom_start:
-    .long addr_TASKZTOS               /* Top of Stack                 */
+    .long addr_TASK0TOS               /* Top of Stack                 */
     .long reset_handler + 1           /* Reset Handler                */
     .long nmi_handler + 1             /* NMI Handler                  */
     .long hardfault_handler + 1       /* Hard Fault Handler           */
