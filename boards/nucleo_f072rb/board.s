@@ -136,7 +136,7 @@ init_board:
 
     @ enable UART
     ldr r0, =UART2
-    ldr r1, =(48000000 / 115200)
+    ldr r1, =(48000000 / 230400)
     str r1, [r0, #UART_BRR]
     ldr r1, =0x0000000d
     str r1, [r0, #UART_CR1]
