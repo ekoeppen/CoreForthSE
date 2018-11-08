@@ -1,0 +1,2991 @@
+\ TEMPLATE FILE for STM32F303xE
+\ created by svdcutter for Mecrisp-Stellaris Forth by Matthias Koch
+\ sdvcutter  takes a CMSIS-SVD file plus a hand edited config.xml file as input 
+\ By Terry Porter "terry@tjporter.com.au", released under the GPL V2
+
+
+
+\ pretty printing words
+
+rom
+
+: b32loop. ( u -- ) <# #32 0 DO # BL HOLD LOOP #> TYPE ; 
+
+: 1b. ( u -- ) cr 
+."  3|3|2|2|2|2|2|2|2|2|2|2|1|1|1|1|1|1|1|1|1|1" cr
+."  1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0 " cr
+@ binary b32loop. decimal cr ;
+
+
+: b8loop. ( u -- ) <# #8 0 DO # # # # BL HOLD LOOP #> TYPE ;
+
+: 4b. ( u -- ) cr \ Print 4 bit groups
+."   07   06   05   04   03   02   01   00  " cr
+@ binary b8loop. cr ;
+
+
+: b16loop. ( u -- ) <# #16 0 DO # # BL HOLD LOOP #> TYPE ;
+
+: 2b. ( u -- ) cr \ Print 2 bit groups
+."  15|14|13|12|11|10|09|08|07|06|05|04|03|02|01|00 " cr
+@ binary b16loop. cr
+;
+
+
+
+\ available forth template words as selected by config.xml
+
+$48000000 constant GPIOA
+GPIOA $0 +  constant  GPIOA_MODER
+GPIOA $4 +  constant  GPIOA_OTYPER
+GPIOA $8 +  constant  GPIOA_OSPEEDR
+GPIOA $C +  constant  GPIOA_PUPDR
+GPIOA $10 +  constant  GPIOA_IDR
+GPIOA $14 +  constant  GPIOA_ODR
+GPIOA $18 +  constant  GPIOA_BSRR
+GPIOA $1C +  constant  GPIOA_LCKR
+GPIOA $20 +  constant  GPIOA_AFRL
+GPIOA $24 +  constant  GPIOA_AFRH
+GPIOA $28 +  constant  GPIOA_BRR
+: GPIOA_MODER. ." GPIOA_MODER (read-write) $" GPIOA_MODER @ hex. GPIOA_MODER GPIOA_MODER 1b. ;
+: GPIOA_OTYPER. ." GPIOA_OTYPER (read-write) $" GPIOA_OTYPER @ hex. GPIOA_OTYPER GPIOA_OTYPER 1b. ;
+: GPIOA_OSPEEDR. ." GPIOA_OSPEEDR (read-write) $" GPIOA_OSPEEDR @ hex. GPIOA_OSPEEDR GPIOA_OSPEEDR 1b. ;
+: GPIOA_PUPDR. ." GPIOA_PUPDR (read-write) $" GPIOA_PUPDR @ hex. GPIOA_PUPDR GPIOA_PUPDR 1b. ;
+: GPIOA_IDR. ." GPIOA_IDR (read-only) $" GPIOA_IDR @ hex. GPIOA_IDR GPIOA_IDR 1b. ;
+: GPIOA_ODR. ." GPIOA_ODR (read-write) $" GPIOA_ODR @ hex. GPIOA_ODR GPIOA_ODR 1b. ;
+: GPIOA_BSRR. ." GPIOA_BSRR (write-only) $" GPIOA_BSRR @ hex. GPIOA_BSRR GPIOA_BSRR 1b. ;
+: GPIOA_LCKR. ." GPIOA_LCKR (read-write) $" GPIOA_LCKR @ hex. GPIOA_LCKR GPIOA_LCKR 1b. ;
+: GPIOA_AFRL. ." GPIOA_AFRL (read-write) $" GPIOA_AFRL @ hex. GPIOA_AFRL GPIOA_AFRL 1b. ;
+: GPIOA_AFRH. ." GPIOA_AFRH (read-write) $" GPIOA_AFRH @ hex. GPIOA_AFRH GPIOA_AFRH 1b. ;
+: GPIOA_BRR. ." GPIOA_BRR (write-only) $" GPIOA_BRR @ hex. GPIOA_BRR GPIOA_BRR 1b. ;
+: GPIOA.
+GPIOA_MODER.
+GPIOA_OTYPER.
+GPIOA_OSPEEDR.
+GPIOA_PUPDR.
+GPIOA_IDR.
+GPIOA_ODR.
+GPIOA_BSRR.
+GPIOA_LCKR.
+GPIOA_AFRL.
+GPIOA_AFRH.
+GPIOA_BRR.
+;
+
+$48000400 constant GPIOB
+GPIOB $0 +  constant  GPIOB_MODER
+GPIOB $4 +  constant  GPIOB_OTYPER
+GPIOB $8 +  constant  GPIOB_OSPEEDR
+GPIOB $C +  constant  GPIOB_PUPDR
+GPIOB $10 +  constant  GPIOB_IDR
+GPIOB $14 +  constant  GPIOB_ODR
+GPIOB $18 +  constant  GPIOB_BSRR
+GPIOB $1C +  constant  GPIOB_LCKR
+GPIOB $20 +  constant  GPIOB_AFRL
+GPIOB $24 +  constant  GPIOB_AFRH
+GPIOB $28 +  constant  GPIOB_BRR
+: GPIOB_MODER. ." GPIOB_MODER (read-write) $" GPIOB_MODER @ hex. GPIOB_MODER GPIOB_MODER 1b. ;
+: GPIOB_OTYPER. ." GPIOB_OTYPER (read-write) $" GPIOB_OTYPER @ hex. GPIOB_OTYPER GPIOB_OTYPER 1b. ;
+: GPIOB_OSPEEDR. ." GPIOB_OSPEEDR (read-write) $" GPIOB_OSPEEDR @ hex. GPIOB_OSPEEDR GPIOB_OSPEEDR 1b. ;
+: GPIOB_PUPDR. ." GPIOB_PUPDR (read-write) $" GPIOB_PUPDR @ hex. GPIOB_PUPDR GPIOB_PUPDR 1b. ;
+: GPIOB_IDR. ." GPIOB_IDR (read-only) $" GPIOB_IDR @ hex. GPIOB_IDR GPIOB_IDR 1b. ;
+: GPIOB_ODR. ." GPIOB_ODR (read-write) $" GPIOB_ODR @ hex. GPIOB_ODR GPIOB_ODR 1b. ;
+: GPIOB_BSRR. ." GPIOB_BSRR (write-only) $" GPIOB_BSRR @ hex. GPIOB_BSRR GPIOB_BSRR 1b. ;
+: GPIOB_LCKR. ." GPIOB_LCKR (read-write) $" GPIOB_LCKR @ hex. GPIOB_LCKR GPIOB_LCKR 1b. ;
+: GPIOB_AFRL. ." GPIOB_AFRL (read-write) $" GPIOB_AFRL @ hex. GPIOB_AFRL GPIOB_AFRL 1b. ;
+: GPIOB_AFRH. ." GPIOB_AFRH (read-write) $" GPIOB_AFRH @ hex. GPIOB_AFRH GPIOB_AFRH 1b. ;
+: GPIOB_BRR. ." GPIOB_BRR (write-only) $" GPIOB_BRR @ hex. GPIOB_BRR GPIOB_BRR 1b. ;
+: GPIOB.
+GPIOB_MODER.
+GPIOB_OTYPER.
+GPIOB_OSPEEDR.
+GPIOB_PUPDR.
+GPIOB_IDR.
+GPIOB_ODR.
+GPIOB_BSRR.
+GPIOB_LCKR.
+GPIOB_AFRL.
+GPIOB_AFRH.
+GPIOB_BRR.
+;
+
+$48000800 constant GPIOC
+GPIOC $0 +  constant  GPIOC_MODER
+GPIOC $4 +  constant  GPIOC_OTYPER
+GPIOC $8 +  constant  GPIOC_OSPEEDR
+GPIOC $C +  constant  GPIOC_PUPDR
+GPIOC $10 +  constant  GPIOC_IDR
+GPIOC $14 +  constant  GPIOC_ODR
+GPIOC $18 +  constant  GPIOC_BSRR
+GPIOC $1C +  constant  GPIOC_LCKR
+GPIOC $20 +  constant  GPIOC_AFRL
+GPIOC $24 +  constant  GPIOC_AFRH
+GPIOC $28 +  constant  GPIOC_BRR
+: GPIOC_MODER. ." GPIOC_MODER (read-write) $" GPIOC_MODER @ hex. GPIOC_MODER GPIOC_MODER 1b. ;
+: GPIOC_OTYPER. ." GPIOC_OTYPER (read-write) $" GPIOC_OTYPER @ hex. GPIOC_OTYPER GPIOC_OTYPER 1b. ;
+: GPIOC_OSPEEDR. ." GPIOC_OSPEEDR (read-write) $" GPIOC_OSPEEDR @ hex. GPIOC_OSPEEDR GPIOC_OSPEEDR 1b. ;
+: GPIOC_PUPDR. ." GPIOC_PUPDR (read-write) $" GPIOC_PUPDR @ hex. GPIOC_PUPDR GPIOC_PUPDR 1b. ;
+: GPIOC_IDR. ." GPIOC_IDR (read-only) $" GPIOC_IDR @ hex. GPIOC_IDR GPIOC_IDR 1b. ;
+: GPIOC_ODR. ." GPIOC_ODR (read-write) $" GPIOC_ODR @ hex. GPIOC_ODR GPIOC_ODR 1b. ;
+: GPIOC_BSRR. ." GPIOC_BSRR (write-only) $" GPIOC_BSRR @ hex. GPIOC_BSRR GPIOC_BSRR 1b. ;
+: GPIOC_LCKR. ." GPIOC_LCKR (read-write) $" GPIOC_LCKR @ hex. GPIOC_LCKR GPIOC_LCKR 1b. ;
+: GPIOC_AFRL. ." GPIOC_AFRL (read-write) $" GPIOC_AFRL @ hex. GPIOC_AFRL GPIOC_AFRL 1b. ;
+: GPIOC_AFRH. ." GPIOC_AFRH (read-write) $" GPIOC_AFRH @ hex. GPIOC_AFRH GPIOC_AFRH 1b. ;
+: GPIOC_BRR. ." GPIOC_BRR (write-only) $" GPIOC_BRR @ hex. GPIOC_BRR GPIOC_BRR 1b. ;
+: GPIOC.
+GPIOC_MODER.
+GPIOC_OTYPER.
+GPIOC_OSPEEDR.
+GPIOC_PUPDR.
+GPIOC_IDR.
+GPIOC_ODR.
+GPIOC_BSRR.
+GPIOC_LCKR.
+GPIOC_AFRL.
+GPIOC_AFRH.
+GPIOC_BRR.
+;
+
+$48000C00 constant GPIOD
+GPIOD $0 +  constant  GPIOD_MODER
+GPIOD $4 +  constant  GPIOD_OTYPER
+GPIOD $8 +  constant  GPIOD_OSPEEDR
+GPIOD $C +  constant  GPIOD_PUPDR
+GPIOD $10 +  constant  GPIOD_IDR
+GPIOD $14 +  constant  GPIOD_ODR
+GPIOD $18 +  constant  GPIOD_BSRR
+GPIOD $1C +  constant  GPIOD_LCKR
+GPIOD $20 +  constant  GPIOD_AFRL
+GPIOD $24 +  constant  GPIOD_AFRH
+GPIOD $28 +  constant  GPIOD_BRR
+: GPIOD_MODER. ." GPIOD_MODER (read-write) $" GPIOD_MODER @ hex. GPIOD_MODER GPIOD_MODER 1b. ;
+: GPIOD_OTYPER. ." GPIOD_OTYPER (read-write) $" GPIOD_OTYPER @ hex. GPIOD_OTYPER GPIOD_OTYPER 1b. ;
+: GPIOD_OSPEEDR. ." GPIOD_OSPEEDR (read-write) $" GPIOD_OSPEEDR @ hex. GPIOD_OSPEEDR GPIOD_OSPEEDR 1b. ;
+: GPIOD_PUPDR. ." GPIOD_PUPDR (read-write) $" GPIOD_PUPDR @ hex. GPIOD_PUPDR GPIOD_PUPDR 1b. ;
+: GPIOD_IDR. ." GPIOD_IDR (read-only) $" GPIOD_IDR @ hex. GPIOD_IDR GPIOD_IDR 1b. ;
+: GPIOD_ODR. ." GPIOD_ODR (read-write) $" GPIOD_ODR @ hex. GPIOD_ODR GPIOD_ODR 1b. ;
+: GPIOD_BSRR. ." GPIOD_BSRR (write-only) $" GPIOD_BSRR @ hex. GPIOD_BSRR GPIOD_BSRR 1b. ;
+: GPIOD_LCKR. ." GPIOD_LCKR (read-write) $" GPIOD_LCKR @ hex. GPIOD_LCKR GPIOD_LCKR 1b. ;
+: GPIOD_AFRL. ." GPIOD_AFRL (read-write) $" GPIOD_AFRL @ hex. GPIOD_AFRL GPIOD_AFRL 1b. ;
+: GPIOD_AFRH. ." GPIOD_AFRH (read-write) $" GPIOD_AFRH @ hex. GPIOD_AFRH GPIOD_AFRH 1b. ;
+: GPIOD_BRR. ." GPIOD_BRR (write-only) $" GPIOD_BRR @ hex. GPIOD_BRR GPIOD_BRR 1b. ;
+: GPIOD.
+GPIOD_MODER.
+GPIOD_OTYPER.
+GPIOD_OSPEEDR.
+GPIOD_PUPDR.
+GPIOD_IDR.
+GPIOD_ODR.
+GPIOD_BSRR.
+GPIOD_LCKR.
+GPIOD_AFRL.
+GPIOD_AFRH.
+GPIOD_BRR.
+;
+
+$48001000 constant GPIOE
+GPIOE $0 +  constant  GPIOE_MODER
+GPIOE $4 +  constant  GPIOE_OTYPER
+GPIOE $8 +  constant  GPIOE_OSPEEDR
+GPIOE $C +  constant  GPIOE_PUPDR
+GPIOE $10 +  constant  GPIOE_IDR
+GPIOE $14 +  constant  GPIOE_ODR
+GPIOE $18 +  constant  GPIOE_BSRR
+GPIOE $1C +  constant  GPIOE_LCKR
+GPIOE $20 +  constant  GPIOE_AFRL
+GPIOE $24 +  constant  GPIOE_AFRH
+GPIOE $28 +  constant  GPIOE_BRR
+: GPIOE_MODER. ." GPIOE_MODER (read-write) $" GPIOE_MODER @ hex. GPIOE_MODER GPIOE_MODER 1b. ;
+: GPIOE_OTYPER. ." GPIOE_OTYPER (read-write) $" GPIOE_OTYPER @ hex. GPIOE_OTYPER GPIOE_OTYPER 1b. ;
+: GPIOE_OSPEEDR. ." GPIOE_OSPEEDR (read-write) $" GPIOE_OSPEEDR @ hex. GPIOE_OSPEEDR GPIOE_OSPEEDR 1b. ;
+: GPIOE_PUPDR. ." GPIOE_PUPDR (read-write) $" GPIOE_PUPDR @ hex. GPIOE_PUPDR GPIOE_PUPDR 1b. ;
+: GPIOE_IDR. ." GPIOE_IDR (read-only) $" GPIOE_IDR @ hex. GPIOE_IDR GPIOE_IDR 1b. ;
+: GPIOE_ODR. ." GPIOE_ODR (read-write) $" GPIOE_ODR @ hex. GPIOE_ODR GPIOE_ODR 1b. ;
+: GPIOE_BSRR. ." GPIOE_BSRR (write-only) $" GPIOE_BSRR @ hex. GPIOE_BSRR GPIOE_BSRR 1b. ;
+: GPIOE_LCKR. ." GPIOE_LCKR (read-write) $" GPIOE_LCKR @ hex. GPIOE_LCKR GPIOE_LCKR 1b. ;
+: GPIOE_AFRL. ." GPIOE_AFRL (read-write) $" GPIOE_AFRL @ hex. GPIOE_AFRL GPIOE_AFRL 1b. ;
+: GPIOE_AFRH. ." GPIOE_AFRH (read-write) $" GPIOE_AFRH @ hex. GPIOE_AFRH GPIOE_AFRH 1b. ;
+: GPIOE_BRR. ." GPIOE_BRR (write-only) $" GPIOE_BRR @ hex. GPIOE_BRR GPIOE_BRR 1b. ;
+: GPIOE.
+GPIOE_MODER.
+GPIOE_OTYPER.
+GPIOE_OSPEEDR.
+GPIOE_PUPDR.
+GPIOE_IDR.
+GPIOE_ODR.
+GPIOE_BSRR.
+GPIOE_LCKR.
+GPIOE_AFRL.
+GPIOE_AFRH.
+GPIOE_BRR.
+;
+
+$48001400 constant GPIOF
+GPIOF $0 +  constant  GPIOF_MODER
+GPIOF $4 +  constant  GPIOF_OTYPER
+GPIOF $8 +  constant  GPIOF_OSPEEDR
+GPIOF $C +  constant  GPIOF_PUPDR
+GPIOF $10 +  constant  GPIOF_IDR
+GPIOF $14 +  constant  GPIOF_ODR
+GPIOF $18 +  constant  GPIOF_BSRR
+GPIOF $1C +  constant  GPIOF_LCKR
+GPIOF $20 +  constant  GPIOF_AFRL
+GPIOF $24 +  constant  GPIOF_AFRH
+GPIOF $28 +  constant  GPIOF_BRR
+: GPIOF_MODER. ." GPIOF_MODER (read-write) $" GPIOF_MODER @ hex. GPIOF_MODER GPIOF_MODER 1b. ;
+: GPIOF_OTYPER. ." GPIOF_OTYPER (read-write) $" GPIOF_OTYPER @ hex. GPIOF_OTYPER GPIOF_OTYPER 1b. ;
+: GPIOF_OSPEEDR. ." GPIOF_OSPEEDR (read-write) $" GPIOF_OSPEEDR @ hex. GPIOF_OSPEEDR GPIOF_OSPEEDR 1b. ;
+: GPIOF_PUPDR. ." GPIOF_PUPDR (read-write) $" GPIOF_PUPDR @ hex. GPIOF_PUPDR GPIOF_PUPDR 1b. ;
+: GPIOF_IDR. ." GPIOF_IDR (read-only) $" GPIOF_IDR @ hex. GPIOF_IDR GPIOF_IDR 1b. ;
+: GPIOF_ODR. ." GPIOF_ODR (read-write) $" GPIOF_ODR @ hex. GPIOF_ODR GPIOF_ODR 1b. ;
+: GPIOF_BSRR. ." GPIOF_BSRR (write-only) $" GPIOF_BSRR @ hex. GPIOF_BSRR GPIOF_BSRR 1b. ;
+: GPIOF_LCKR. ." GPIOF_LCKR (read-write) $" GPIOF_LCKR @ hex. GPIOF_LCKR GPIOF_LCKR 1b. ;
+: GPIOF_AFRL. ." GPIOF_AFRL (read-write) $" GPIOF_AFRL @ hex. GPIOF_AFRL GPIOF_AFRL 1b. ;
+: GPIOF_AFRH. ." GPIOF_AFRH (read-write) $" GPIOF_AFRH @ hex. GPIOF_AFRH GPIOF_AFRH 1b. ;
+: GPIOF_BRR. ." GPIOF_BRR (write-only) $" GPIOF_BRR @ hex. GPIOF_BRR GPIOF_BRR 1b. ;
+: GPIOF.
+GPIOF_MODER.
+GPIOF_OTYPER.
+GPIOF_OSPEEDR.
+GPIOF_PUPDR.
+GPIOF_IDR.
+GPIOF_ODR.
+GPIOF_BSRR.
+GPIOF_LCKR.
+GPIOF_AFRL.
+GPIOF_AFRH.
+GPIOF_BRR.
+;
+
+$48001800 constant GPIOG
+GPIOG $0 +  constant  GPIOG_MODER
+GPIOG $4 +  constant  GPIOG_OTYPER
+GPIOG $8 +  constant  GPIOG_OSPEEDR
+GPIOG $C +  constant  GPIOG_PUPDR
+GPIOG $10 +  constant  GPIOG_IDR
+GPIOG $14 +  constant  GPIOG_ODR
+GPIOG $18 +  constant  GPIOG_BSRR
+GPIOG $1C +  constant  GPIOG_LCKR
+GPIOG $20 +  constant  GPIOG_AFRL
+GPIOG $24 +  constant  GPIOG_AFRH
+GPIOG $28 +  constant  GPIOG_BRR
+: GPIOG_MODER. ." GPIOG_MODER (read-write) $" GPIOG_MODER @ hex. GPIOG_MODER GPIOG_MODER 1b. ;
+: GPIOG_OTYPER. ." GPIOG_OTYPER (read-write) $" GPIOG_OTYPER @ hex. GPIOG_OTYPER GPIOG_OTYPER 1b. ;
+: GPIOG_OSPEEDR. ." GPIOG_OSPEEDR (read-write) $" GPIOG_OSPEEDR @ hex. GPIOG_OSPEEDR GPIOG_OSPEEDR 1b. ;
+: GPIOG_PUPDR. ." GPIOG_PUPDR (read-write) $" GPIOG_PUPDR @ hex. GPIOG_PUPDR GPIOG_PUPDR 1b. ;
+: GPIOG_IDR. ." GPIOG_IDR (read-only) $" GPIOG_IDR @ hex. GPIOG_IDR GPIOG_IDR 1b. ;
+: GPIOG_ODR. ." GPIOG_ODR (read-write) $" GPIOG_ODR @ hex. GPIOG_ODR GPIOG_ODR 1b. ;
+: GPIOG_BSRR. ." GPIOG_BSRR (write-only) $" GPIOG_BSRR @ hex. GPIOG_BSRR GPIOG_BSRR 1b. ;
+: GPIOG_LCKR. ." GPIOG_LCKR (read-write) $" GPIOG_LCKR @ hex. GPIOG_LCKR GPIOG_LCKR 1b. ;
+: GPIOG_AFRL. ." GPIOG_AFRL (read-write) $" GPIOG_AFRL @ hex. GPIOG_AFRL GPIOG_AFRL 1b. ;
+: GPIOG_AFRH. ." GPIOG_AFRH (read-write) $" GPIOG_AFRH @ hex. GPIOG_AFRH GPIOG_AFRH 1b. ;
+: GPIOG_BRR. ." GPIOG_BRR (write-only) $" GPIOG_BRR @ hex. GPIOG_BRR GPIOG_BRR 1b. ;
+: GPIOG.
+GPIOG_MODER.
+GPIOG_OTYPER.
+GPIOG_OSPEEDR.
+GPIOG_PUPDR.
+GPIOG_IDR.
+GPIOG_ODR.
+GPIOG_BSRR.
+GPIOG_LCKR.
+GPIOG_AFRL.
+GPIOG_AFRH.
+GPIOG_BRR.
+;
+
+$48001C00 constant GPIOH
+GPIOH $0 +  constant  GPIOH_MODER
+GPIOH $4 +  constant  GPIOH_OTYPER
+GPIOH $8 +  constant  GPIOH_OSPEEDR
+GPIOH $C +  constant  GPIOH_PUPDR
+GPIOH $10 +  constant  GPIOH_IDR
+GPIOH $14 +  constant  GPIOH_ODR
+GPIOH $18 +  constant  GPIOH_BSRR
+GPIOH $1C +  constant  GPIOH_LCKR
+GPIOH $20 +  constant  GPIOH_AFRL
+GPIOH $24 +  constant  GPIOH_AFRH
+GPIOH $28 +  constant  GPIOH_BRR
+: GPIOH_MODER. ." GPIOH_MODER (read-write) $" GPIOH_MODER @ hex. GPIOH_MODER GPIOH_MODER 1b. ;
+: GPIOH_OTYPER. ." GPIOH_OTYPER (read-write) $" GPIOH_OTYPER @ hex. GPIOH_OTYPER GPIOH_OTYPER 1b. ;
+: GPIOH_OSPEEDR. ." GPIOH_OSPEEDR (read-write) $" GPIOH_OSPEEDR @ hex. GPIOH_OSPEEDR GPIOH_OSPEEDR 1b. ;
+: GPIOH_PUPDR. ." GPIOH_PUPDR (read-write) $" GPIOH_PUPDR @ hex. GPIOH_PUPDR GPIOH_PUPDR 1b. ;
+: GPIOH_IDR. ." GPIOH_IDR (read-only) $" GPIOH_IDR @ hex. GPIOH_IDR GPIOH_IDR 1b. ;
+: GPIOH_ODR. ." GPIOH_ODR (read-write) $" GPIOH_ODR @ hex. GPIOH_ODR GPIOH_ODR 1b. ;
+: GPIOH_BSRR. ." GPIOH_BSRR (write-only) $" GPIOH_BSRR @ hex. GPIOH_BSRR GPIOH_BSRR 1b. ;
+: GPIOH_LCKR. ." GPIOH_LCKR (read-write) $" GPIOH_LCKR @ hex. GPIOH_LCKR GPIOH_LCKR 1b. ;
+: GPIOH_AFRL. ." GPIOH_AFRL (read-write) $" GPIOH_AFRL @ hex. GPIOH_AFRL GPIOH_AFRL 1b. ;
+: GPIOH_AFRH. ." GPIOH_AFRH (read-write) $" GPIOH_AFRH @ hex. GPIOH_AFRH GPIOH_AFRH 1b. ;
+: GPIOH_BRR. ." GPIOH_BRR (write-only) $" GPIOH_BRR @ hex. GPIOH_BRR GPIOH_BRR 1b. ;
+: GPIOH.
+GPIOH_MODER.
+GPIOH_OTYPER.
+GPIOH_OSPEEDR.
+GPIOH_PUPDR.
+GPIOH_IDR.
+GPIOH_ODR.
+GPIOH_BSRR.
+GPIOH_LCKR.
+GPIOH_AFRL.
+GPIOH_AFRH.
+GPIOH_BRR.
+;
+
+$40024000 constant TSC
+TSC $0 +  constant  TSC_CR
+TSC $4 +  constant  TSC_IER
+TSC $8 +  constant  TSC_ICR
+TSC $C +  constant  TSC_ISR
+TSC $10 +  constant  TSC_IOHCR
+TSC $18 +  constant  TSC_IOASCR
+TSC $20 +  constant  TSC_IOSCR
+TSC $28 +  constant  TSC_IOCCR
+TSC $30 +  constant  TSC_IOGCSR
+TSC $34 +  constant  TSC_IOG1CR
+TSC $38 +  constant  TSC_IOG2CR
+TSC $3C +  constant  TSC_IOG3CR
+TSC $40 +  constant  TSC_IOG4CR
+TSC $44 +  constant  TSC_IOG5CR
+TSC $48 +  constant  TSC_IOG6CR
+TSC $4C +  constant  TSC_IOG7CR
+TSC $50 +  constant  TSC_IOG8CR
+: TSC_CR. ." TSC_CR (read-write) $" TSC_CR @ hex. TSC_CR TSC_CR 1b. ;
+: TSC_IER. ." TSC_IER (read-write) $" TSC_IER @ hex. TSC_IER TSC_IER 1b. ;
+: TSC_ICR. ." TSC_ICR (read-write) $" TSC_ICR @ hex. TSC_ICR TSC_ICR 1b. ;
+: TSC_ISR. ." TSC_ISR (read-write) $" TSC_ISR @ hex. TSC_ISR TSC_ISR 1b. ;
+: TSC_IOHCR. ." TSC_IOHCR (read-write) $" TSC_IOHCR @ hex. TSC_IOHCR TSC_IOHCR 1b. ;
+: TSC_IOASCR. ." TSC_IOASCR (read-write) $" TSC_IOASCR @ hex. TSC_IOASCR TSC_IOASCR 1b. ;
+: TSC_IOSCR. ." TSC_IOSCR (read-write) $" TSC_IOSCR @ hex. TSC_IOSCR TSC_IOSCR 1b. ;
+: TSC_IOCCR. ." TSC_IOCCR (read-write) $" TSC_IOCCR @ hex. TSC_IOCCR TSC_IOCCR 1b. ;
+: TSC_IOGCSR. ." TSC_IOGCSR () $" TSC_IOGCSR @ hex. TSC_IOGCSR TSC_IOGCSR 1b. ;
+: TSC_IOG1CR. ." TSC_IOG1CR (read-only) $" TSC_IOG1CR @ hex. TSC_IOG1CR TSC_IOG1CR 1b. ;
+: TSC_IOG2CR. ." TSC_IOG2CR (read-only) $" TSC_IOG2CR @ hex. TSC_IOG2CR TSC_IOG2CR 1b. ;
+: TSC_IOG3CR. ." TSC_IOG3CR (read-only) $" TSC_IOG3CR @ hex. TSC_IOG3CR TSC_IOG3CR 1b. ;
+: TSC_IOG4CR. ." TSC_IOG4CR (read-only) $" TSC_IOG4CR @ hex. TSC_IOG4CR TSC_IOG4CR 1b. ;
+: TSC_IOG5CR. ." TSC_IOG5CR (read-only) $" TSC_IOG5CR @ hex. TSC_IOG5CR TSC_IOG5CR 1b. ;
+: TSC_IOG6CR. ." TSC_IOG6CR (read-only) $" TSC_IOG6CR @ hex. TSC_IOG6CR TSC_IOG6CR 1b. ;
+: TSC_IOG7CR. ." TSC_IOG7CR (read-only) $" TSC_IOG7CR @ hex. TSC_IOG7CR TSC_IOG7CR 1b. ;
+: TSC_IOG8CR. ." TSC_IOG8CR (read-only) $" TSC_IOG8CR @ hex. TSC_IOG8CR TSC_IOG8CR 1b. ;
+: TSC.
+TSC_CR.
+TSC_IER.
+TSC_ICR.
+TSC_ISR.
+TSC_IOHCR.
+TSC_IOASCR.
+TSC_IOSCR.
+TSC_IOCCR.
+TSC_IOGCSR.
+TSC_IOG1CR.
+TSC_IOG2CR.
+TSC_IOG3CR.
+TSC_IOG4CR.
+TSC_IOG5CR.
+TSC_IOG6CR.
+TSC_IOG7CR.
+TSC_IOG8CR.
+;
+
+$40023000 constant CRC
+CRC $0 +  constant  CRC_DR
+CRC $4 +  constant  CRC_IDR
+CRC $8 +  constant  CRC_CR
+CRC $10 +  constant  CRC_INIT
+CRC $14 +  constant  CRC_POL
+: CRC_DR. ." CRC_DR (read-write) $" CRC_DR @ hex. CRC_DR CRC_DR 1b. ;
+: CRC_IDR. ." CRC_IDR (read-write) $" CRC_IDR @ hex. CRC_IDR CRC_IDR 1b. ;
+: CRC_CR. ." CRC_CR (read-write) $" CRC_CR @ hex. CRC_CR CRC_CR 1b. ;
+: CRC_INIT. ." CRC_INIT (read-write) $" CRC_INIT @ hex. CRC_INIT CRC_INIT 1b. ;
+: CRC_POL. ." CRC_POL (read-write) $" CRC_POL @ hex. CRC_POL CRC_POL 1b. ;
+: CRC.
+CRC_DR.
+CRC_IDR.
+CRC_CR.
+CRC_INIT.
+CRC_POL.
+;
+
+$40022000 constant Flash
+Flash $0 +  constant  Flash_ACR
+Flash $4 +  constant  Flash_KEYR
+Flash $8 +  constant  Flash_OPTKEYR
+Flash $C +  constant  Flash_SR
+Flash $10 +  constant  Flash_CR
+Flash $14 +  constant  Flash_AR
+Flash $1C +  constant  Flash_OBR
+Flash $20 +  constant  Flash_WRPR
+: Flash_ACR. ." Flash_ACR () $" Flash_ACR @ hex. Flash_ACR Flash_ACR 1b. ;
+: Flash_KEYR. ." Flash_KEYR (write-only) $" Flash_KEYR @ hex. Flash_KEYR Flash_KEYR 1b. ;
+: Flash_OPTKEYR. ." Flash_OPTKEYR (write-only) $" Flash_OPTKEYR @ hex. Flash_OPTKEYR Flash_OPTKEYR 1b. ;
+: Flash_SR. ." Flash_SR () $" Flash_SR @ hex. Flash_SR Flash_SR 1b. ;
+: Flash_CR. ." Flash_CR (read-write) $" Flash_CR @ hex. Flash_CR Flash_CR 1b. ;
+: Flash_AR. ." Flash_AR (write-only) $" Flash_AR @ hex. Flash_AR Flash_AR 1b. ;
+: Flash_OBR. ." Flash_OBR (read-only) $" Flash_OBR @ hex. Flash_OBR Flash_OBR 1b. ;
+: Flash_WRPR. ." Flash_WRPR (read-only) $" Flash_WRPR @ hex. Flash_WRPR Flash_WRPR 1b. ;
+: Flash.
+Flash_ACR.
+Flash_KEYR.
+Flash_OPTKEYR.
+Flash_SR.
+Flash_CR.
+Flash_AR.
+Flash_OBR.
+Flash_WRPR.
+;
+
+$40021000 constant RCC
+RCC $0 +  constant  RCC_CR
+RCC $4 +  constant  RCC_CFGR
+RCC $8 +  constant  RCC_CIR
+RCC $C +  constant  RCC_APB2RSTR
+RCC $10 +  constant  RCC_APB1RSTR
+RCC $14 +  constant  RCC_AHBENR
+RCC $18 +  constant  RCC_APB2ENR
+RCC $1C +  constant  RCC_APB1ENR
+RCC $20 +  constant  RCC_BDCR
+RCC $24 +  constant  RCC_CSR
+RCC $28 +  constant  RCC_AHBRSTR
+RCC $2C +  constant  RCC_CFGR2
+RCC $30 +  constant  RCC_CFGR3
+: RCC_CR. ." RCC_CR () $" RCC_CR @ hex. RCC_CR RCC_CR 1b. ;
+: RCC_CFGR. ." RCC_CFGR () $" RCC_CFGR @ hex. RCC_CFGR RCC_CFGR 1b. ;
+: RCC_CIR. ." RCC_CIR () $" RCC_CIR @ hex. RCC_CIR RCC_CIR 1b. ;
+: RCC_APB2RSTR. ." RCC_APB2RSTR (read-write) $" RCC_APB2RSTR @ hex. RCC_APB2RSTR RCC_APB2RSTR 1b. ;
+: RCC_APB1RSTR. ." RCC_APB1RSTR (read-write) $" RCC_APB1RSTR @ hex. RCC_APB1RSTR RCC_APB1RSTR 1b. ;
+: RCC_AHBENR. ." RCC_AHBENR (read-write) $" RCC_AHBENR @ hex. RCC_AHBENR RCC_AHBENR 1b. ;
+: RCC_APB2ENR. ." RCC_APB2ENR (read-write) $" RCC_APB2ENR @ hex. RCC_APB2ENR RCC_APB2ENR 1b. ;
+: RCC_APB1ENR. ." RCC_APB1ENR (read-write) $" RCC_APB1ENR @ hex. RCC_APB1ENR RCC_APB1ENR 1b. ;
+: RCC_BDCR. ." RCC_BDCR () $" RCC_BDCR @ hex. RCC_BDCR RCC_BDCR 1b. ;
+: RCC_CSR. ." RCC_CSR () $" RCC_CSR @ hex. RCC_CSR RCC_CSR 1b. ;
+: RCC_AHBRSTR. ." RCC_AHBRSTR (read-write) $" RCC_AHBRSTR @ hex. RCC_AHBRSTR RCC_AHBRSTR 1b. ;
+: RCC_CFGR2. ." RCC_CFGR2 (read-write) $" RCC_CFGR2 @ hex. RCC_CFGR2 RCC_CFGR2 1b. ;
+: RCC_CFGR3. ." RCC_CFGR3 (read-write) $" RCC_CFGR3 @ hex. RCC_CFGR3 RCC_CFGR3 1b. ;
+: RCC.
+RCC_CR.
+RCC_CFGR.
+RCC_CIR.
+RCC_APB2RSTR.
+RCC_APB1RSTR.
+RCC_AHBENR.
+RCC_APB2ENR.
+RCC_APB1ENR.
+RCC_BDCR.
+RCC_CSR.
+RCC_AHBRSTR.
+RCC_CFGR2.
+RCC_CFGR3.
+;
+
+$40020000 constant DMA1
+DMA1 $0 +  constant  DMA1_ISR
+DMA1 $4 +  constant  DMA1_IFCR
+DMA1 $8 +  constant  DMA1_CCR1
+DMA1 $C +  constant  DMA1_CNDTR1
+DMA1 $10 +  constant  DMA1_CPAR1
+DMA1 $14 +  constant  DMA1_CMAR1
+DMA1 $1C +  constant  DMA1_CCR2
+DMA1 $20 +  constant  DMA1_CNDTR2
+DMA1 $24 +  constant  DMA1_CPAR2
+DMA1 $28 +  constant  DMA1_CMAR2
+DMA1 $30 +  constant  DMA1_CCR3
+DMA1 $34 +  constant  DMA1_CNDTR3
+DMA1 $38 +  constant  DMA1_CPAR3
+DMA1 $3C +  constant  DMA1_CMAR3
+DMA1 $44 +  constant  DMA1_CCR4
+DMA1 $48 +  constant  DMA1_CNDTR4
+DMA1 $4C +  constant  DMA1_CPAR4
+DMA1 $50 +  constant  DMA1_CMAR4
+DMA1 $58 +  constant  DMA1_CCR5
+DMA1 $5C +  constant  DMA1_CNDTR5
+DMA1 $60 +  constant  DMA1_CPAR5
+DMA1 $64 +  constant  DMA1_CMAR5
+DMA1 $6C +  constant  DMA1_CCR6
+DMA1 $70 +  constant  DMA1_CNDTR6
+DMA1 $74 +  constant  DMA1_CPAR6
+DMA1 $78 +  constant  DMA1_CMAR6
+DMA1 $80 +  constant  DMA1_CCR7
+DMA1 $84 +  constant  DMA1_CNDTR7
+DMA1 $88 +  constant  DMA1_CPAR7
+DMA1 $8C +  constant  DMA1_CMAR7
+: DMA1_ISR. ." DMA1_ISR (read-only) $" DMA1_ISR @ hex. DMA1_ISR DMA1_ISR 1b. ;
+: DMA1_IFCR. ." DMA1_IFCR (write-only) $" DMA1_IFCR @ hex. DMA1_IFCR DMA1_IFCR 1b. ;
+: DMA1_CCR1. ." DMA1_CCR1 (read-write) $" DMA1_CCR1 @ hex. DMA1_CCR1 DMA1_CCR1 1b. ;
+: DMA1_CNDTR1. ." DMA1_CNDTR1 (read-write) $" DMA1_CNDTR1 @ hex. DMA1_CNDTR1 DMA1_CNDTR1 1b. ;
+: DMA1_CPAR1. ." DMA1_CPAR1 (read-write) $" DMA1_CPAR1 @ hex. DMA1_CPAR1 DMA1_CPAR1 1b. ;
+: DMA1_CMAR1. ." DMA1_CMAR1 (read-write) $" DMA1_CMAR1 @ hex. DMA1_CMAR1 DMA1_CMAR1 1b. ;
+: DMA1_CCR2. ." DMA1_CCR2 (read-write) $" DMA1_CCR2 @ hex. DMA1_CCR2 DMA1_CCR2 1b. ;
+: DMA1_CNDTR2. ." DMA1_CNDTR2 (read-write) $" DMA1_CNDTR2 @ hex. DMA1_CNDTR2 DMA1_CNDTR2 1b. ;
+: DMA1_CPAR2. ." DMA1_CPAR2 (read-write) $" DMA1_CPAR2 @ hex. DMA1_CPAR2 DMA1_CPAR2 1b. ;
+: DMA1_CMAR2. ." DMA1_CMAR2 (read-write) $" DMA1_CMAR2 @ hex. DMA1_CMAR2 DMA1_CMAR2 1b. ;
+: DMA1_CCR3. ." DMA1_CCR3 (read-write) $" DMA1_CCR3 @ hex. DMA1_CCR3 DMA1_CCR3 1b. ;
+: DMA1_CNDTR3. ." DMA1_CNDTR3 (read-write) $" DMA1_CNDTR3 @ hex. DMA1_CNDTR3 DMA1_CNDTR3 1b. ;
+: DMA1_CPAR3. ." DMA1_CPAR3 (read-write) $" DMA1_CPAR3 @ hex. DMA1_CPAR3 DMA1_CPAR3 1b. ;
+: DMA1_CMAR3. ." DMA1_CMAR3 (read-write) $" DMA1_CMAR3 @ hex. DMA1_CMAR3 DMA1_CMAR3 1b. ;
+: DMA1_CCR4. ." DMA1_CCR4 (read-write) $" DMA1_CCR4 @ hex. DMA1_CCR4 DMA1_CCR4 1b. ;
+: DMA1_CNDTR4. ." DMA1_CNDTR4 (read-write) $" DMA1_CNDTR4 @ hex. DMA1_CNDTR4 DMA1_CNDTR4 1b. ;
+: DMA1_CPAR4. ." DMA1_CPAR4 (read-write) $" DMA1_CPAR4 @ hex. DMA1_CPAR4 DMA1_CPAR4 1b. ;
+: DMA1_CMAR4. ." DMA1_CMAR4 (read-write) $" DMA1_CMAR4 @ hex. DMA1_CMAR4 DMA1_CMAR4 1b. ;
+: DMA1_CCR5. ." DMA1_CCR5 (read-write) $" DMA1_CCR5 @ hex. DMA1_CCR5 DMA1_CCR5 1b. ;
+: DMA1_CNDTR5. ." DMA1_CNDTR5 (read-write) $" DMA1_CNDTR5 @ hex. DMA1_CNDTR5 DMA1_CNDTR5 1b. ;
+: DMA1_CPAR5. ." DMA1_CPAR5 (read-write) $" DMA1_CPAR5 @ hex. DMA1_CPAR5 DMA1_CPAR5 1b. ;
+: DMA1_CMAR5. ." DMA1_CMAR5 (read-write) $" DMA1_CMAR5 @ hex. DMA1_CMAR5 DMA1_CMAR5 1b. ;
+: DMA1_CCR6. ." DMA1_CCR6 (read-write) $" DMA1_CCR6 @ hex. DMA1_CCR6 DMA1_CCR6 1b. ;
+: DMA1_CNDTR6. ." DMA1_CNDTR6 (read-write) $" DMA1_CNDTR6 @ hex. DMA1_CNDTR6 DMA1_CNDTR6 1b. ;
+: DMA1_CPAR6. ." DMA1_CPAR6 (read-write) $" DMA1_CPAR6 @ hex. DMA1_CPAR6 DMA1_CPAR6 1b. ;
+: DMA1_CMAR6. ." DMA1_CMAR6 (read-write) $" DMA1_CMAR6 @ hex. DMA1_CMAR6 DMA1_CMAR6 1b. ;
+: DMA1_CCR7. ." DMA1_CCR7 (read-write) $" DMA1_CCR7 @ hex. DMA1_CCR7 DMA1_CCR7 1b. ;
+: DMA1_CNDTR7. ." DMA1_CNDTR7 (read-write) $" DMA1_CNDTR7 @ hex. DMA1_CNDTR7 DMA1_CNDTR7 1b. ;
+: DMA1_CPAR7. ." DMA1_CPAR7 (read-write) $" DMA1_CPAR7 @ hex. DMA1_CPAR7 DMA1_CPAR7 1b. ;
+: DMA1_CMAR7. ." DMA1_CMAR7 (read-write) $" DMA1_CMAR7 @ hex. DMA1_CMAR7 DMA1_CMAR7 1b. ;
+: DMA1.
+DMA1_ISR.
+DMA1_IFCR.
+DMA1_CCR1.
+DMA1_CNDTR1.
+DMA1_CPAR1.
+DMA1_CMAR1.
+DMA1_CCR2.
+DMA1_CNDTR2.
+DMA1_CPAR2.
+DMA1_CMAR2.
+DMA1_CCR3.
+DMA1_CNDTR3.
+DMA1_CPAR3.
+DMA1_CMAR3.
+DMA1_CCR4.
+DMA1_CNDTR4.
+DMA1_CPAR4.
+DMA1_CMAR4.
+DMA1_CCR5.
+DMA1_CNDTR5.
+DMA1_CPAR5.
+DMA1_CMAR5.
+DMA1_CCR6.
+DMA1_CNDTR6.
+DMA1_CPAR6.
+DMA1_CMAR6.
+DMA1_CCR7.
+DMA1_CNDTR7.
+DMA1_CPAR7.
+DMA1_CMAR7.
+;
+
+$40020400 constant DMA2
+DMA2 $0 +  constant  DMA2_ISR
+DMA2 $4 +  constant  DMA2_IFCR
+DMA2 $8 +  constant  DMA2_CCR1
+DMA2 $C +  constant  DMA2_CNDTR1
+DMA2 $10 +  constant  DMA2_CPAR1
+DMA2 $14 +  constant  DMA2_CMAR1
+DMA2 $1C +  constant  DMA2_CCR2
+DMA2 $20 +  constant  DMA2_CNDTR2
+DMA2 $24 +  constant  DMA2_CPAR2
+DMA2 $28 +  constant  DMA2_CMAR2
+DMA2 $30 +  constant  DMA2_CCR3
+DMA2 $34 +  constant  DMA2_CNDTR3
+DMA2 $38 +  constant  DMA2_CPAR3
+DMA2 $3C +  constant  DMA2_CMAR3
+DMA2 $44 +  constant  DMA2_CCR4
+DMA2 $48 +  constant  DMA2_CNDTR4
+DMA2 $4C +  constant  DMA2_CPAR4
+DMA2 $50 +  constant  DMA2_CMAR4
+DMA2 $58 +  constant  DMA2_CCR5
+DMA2 $5C +  constant  DMA2_CNDTR5
+DMA2 $60 +  constant  DMA2_CPAR5
+DMA2 $64 +  constant  DMA2_CMAR5
+DMA2 $6C +  constant  DMA2_CCR6
+DMA2 $70 +  constant  DMA2_CNDTR6
+DMA2 $74 +  constant  DMA2_CPAR6
+DMA2 $78 +  constant  DMA2_CMAR6
+DMA2 $80 +  constant  DMA2_CCR7
+DMA2 $84 +  constant  DMA2_CNDTR7
+DMA2 $88 +  constant  DMA2_CPAR7
+DMA2 $8C +  constant  DMA2_CMAR7
+: DMA2_ISR. ." DMA2_ISR (read-only) $" DMA2_ISR @ hex. DMA2_ISR DMA2_ISR 1b. ;
+: DMA2_IFCR. ." DMA2_IFCR (write-only) $" DMA2_IFCR @ hex. DMA2_IFCR DMA2_IFCR 1b. ;
+: DMA2_CCR1. ." DMA2_CCR1 (read-write) $" DMA2_CCR1 @ hex. DMA2_CCR1 DMA2_CCR1 1b. ;
+: DMA2_CNDTR1. ." DMA2_CNDTR1 (read-write) $" DMA2_CNDTR1 @ hex. DMA2_CNDTR1 DMA2_CNDTR1 1b. ;
+: DMA2_CPAR1. ." DMA2_CPAR1 (read-write) $" DMA2_CPAR1 @ hex. DMA2_CPAR1 DMA2_CPAR1 1b. ;
+: DMA2_CMAR1. ." DMA2_CMAR1 (read-write) $" DMA2_CMAR1 @ hex. DMA2_CMAR1 DMA2_CMAR1 1b. ;
+: DMA2_CCR2. ." DMA2_CCR2 (read-write) $" DMA2_CCR2 @ hex. DMA2_CCR2 DMA2_CCR2 1b. ;
+: DMA2_CNDTR2. ." DMA2_CNDTR2 (read-write) $" DMA2_CNDTR2 @ hex. DMA2_CNDTR2 DMA2_CNDTR2 1b. ;
+: DMA2_CPAR2. ." DMA2_CPAR2 (read-write) $" DMA2_CPAR2 @ hex. DMA2_CPAR2 DMA2_CPAR2 1b. ;
+: DMA2_CMAR2. ." DMA2_CMAR2 (read-write) $" DMA2_CMAR2 @ hex. DMA2_CMAR2 DMA2_CMAR2 1b. ;
+: DMA2_CCR3. ." DMA2_CCR3 (read-write) $" DMA2_CCR3 @ hex. DMA2_CCR3 DMA2_CCR3 1b. ;
+: DMA2_CNDTR3. ." DMA2_CNDTR3 (read-write) $" DMA2_CNDTR3 @ hex. DMA2_CNDTR3 DMA2_CNDTR3 1b. ;
+: DMA2_CPAR3. ." DMA2_CPAR3 (read-write) $" DMA2_CPAR3 @ hex. DMA2_CPAR3 DMA2_CPAR3 1b. ;
+: DMA2_CMAR3. ." DMA2_CMAR3 (read-write) $" DMA2_CMAR3 @ hex. DMA2_CMAR3 DMA2_CMAR3 1b. ;
+: DMA2_CCR4. ." DMA2_CCR4 (read-write) $" DMA2_CCR4 @ hex. DMA2_CCR4 DMA2_CCR4 1b. ;
+: DMA2_CNDTR4. ." DMA2_CNDTR4 (read-write) $" DMA2_CNDTR4 @ hex. DMA2_CNDTR4 DMA2_CNDTR4 1b. ;
+: DMA2_CPAR4. ." DMA2_CPAR4 (read-write) $" DMA2_CPAR4 @ hex. DMA2_CPAR4 DMA2_CPAR4 1b. ;
+: DMA2_CMAR4. ." DMA2_CMAR4 (read-write) $" DMA2_CMAR4 @ hex. DMA2_CMAR4 DMA2_CMAR4 1b. ;
+: DMA2_CCR5. ." DMA2_CCR5 (read-write) $" DMA2_CCR5 @ hex. DMA2_CCR5 DMA2_CCR5 1b. ;
+: DMA2_CNDTR5. ." DMA2_CNDTR5 (read-write) $" DMA2_CNDTR5 @ hex. DMA2_CNDTR5 DMA2_CNDTR5 1b. ;
+: DMA2_CPAR5. ." DMA2_CPAR5 (read-write) $" DMA2_CPAR5 @ hex. DMA2_CPAR5 DMA2_CPAR5 1b. ;
+: DMA2_CMAR5. ." DMA2_CMAR5 (read-write) $" DMA2_CMAR5 @ hex. DMA2_CMAR5 DMA2_CMAR5 1b. ;
+: DMA2_CCR6. ." DMA2_CCR6 (read-write) $" DMA2_CCR6 @ hex. DMA2_CCR6 DMA2_CCR6 1b. ;
+: DMA2_CNDTR6. ." DMA2_CNDTR6 (read-write) $" DMA2_CNDTR6 @ hex. DMA2_CNDTR6 DMA2_CNDTR6 1b. ;
+: DMA2_CPAR6. ." DMA2_CPAR6 (read-write) $" DMA2_CPAR6 @ hex. DMA2_CPAR6 DMA2_CPAR6 1b. ;
+: DMA2_CMAR6. ." DMA2_CMAR6 (read-write) $" DMA2_CMAR6 @ hex. DMA2_CMAR6 DMA2_CMAR6 1b. ;
+: DMA2_CCR7. ." DMA2_CCR7 (read-write) $" DMA2_CCR7 @ hex. DMA2_CCR7 DMA2_CCR7 1b. ;
+: DMA2_CNDTR7. ." DMA2_CNDTR7 (read-write) $" DMA2_CNDTR7 @ hex. DMA2_CNDTR7 DMA2_CNDTR7 1b. ;
+: DMA2_CPAR7. ." DMA2_CPAR7 (read-write) $" DMA2_CPAR7 @ hex. DMA2_CPAR7 DMA2_CPAR7 1b. ;
+: DMA2_CMAR7. ." DMA2_CMAR7 (read-write) $" DMA2_CMAR7 @ hex. DMA2_CMAR7 DMA2_CMAR7 1b. ;
+: DMA2.
+DMA2_ISR.
+DMA2_IFCR.
+DMA2_CCR1.
+DMA2_CNDTR1.
+DMA2_CPAR1.
+DMA2_CMAR1.
+DMA2_CCR2.
+DMA2_CNDTR2.
+DMA2_CPAR2.
+DMA2_CMAR2.
+DMA2_CCR3.
+DMA2_CNDTR3.
+DMA2_CPAR3.
+DMA2_CMAR3.
+DMA2_CCR4.
+DMA2_CNDTR4.
+DMA2_CPAR4.
+DMA2_CMAR4.
+DMA2_CCR5.
+DMA2_CNDTR5.
+DMA2_CPAR5.
+DMA2_CMAR5.
+DMA2_CCR6.
+DMA2_CNDTR6.
+DMA2_CPAR6.
+DMA2_CMAR6.
+DMA2_CCR7.
+DMA2_CNDTR7.
+DMA2_CPAR7.
+DMA2_CMAR7.
+;
+
+$40000000 constant TIM2
+TIM2 $0 +  constant  TIM2_CR1
+TIM2 $4 +  constant  TIM2_CR2
+TIM2 $8 +  constant  TIM2_SMCR
+TIM2 $C +  constant  TIM2_DIER
+TIM2 $10 +  constant  TIM2_SR
+TIM2 $14 +  constant  TIM2_EGR
+TIM2 $18 +  constant  TIM2_CCMR1_Output
+TIM2 $18 +  constant  TIM2_CCMR1_Input
+TIM2 $1C +  constant  TIM2_CCMR2_Output
+TIM2 $1C +  constant  TIM2_CCMR2_Input
+TIM2 $20 +  constant  TIM2_CCER
+TIM2 $24 +  constant  TIM2_CNT
+TIM2 $28 +  constant  TIM2_PSC
+TIM2 $2C +  constant  TIM2_ARR
+TIM2 $34 +  constant  TIM2_CCR1
+TIM2 $38 +  constant  TIM2_CCR2
+TIM2 $3C +  constant  TIM2_CCR3
+TIM2 $40 +  constant  TIM2_CCR4
+TIM2 $48 +  constant  TIM2_DCR
+TIM2 $4C +  constant  TIM2_DMAR
+: TIM2_CR1. ." TIM2_CR1 (read-write) $" TIM2_CR1 @ hex. TIM2_CR1 TIM2_CR1 1b. ;
+: TIM2_CR2. ." TIM2_CR2 (read-write) $" TIM2_CR2 @ hex. TIM2_CR2 TIM2_CR2 1b. ;
+: TIM2_SMCR. ." TIM2_SMCR (read-write) $" TIM2_SMCR @ hex. TIM2_SMCR TIM2_SMCR 1b. ;
+: TIM2_DIER. ." TIM2_DIER (read-write) $" TIM2_DIER @ hex. TIM2_DIER TIM2_DIER 1b. ;
+: TIM2_SR. ." TIM2_SR (read-write) $" TIM2_SR @ hex. TIM2_SR TIM2_SR 1b. ;
+: TIM2_EGR. ." TIM2_EGR (write-only) $" TIM2_EGR @ hex. TIM2_EGR TIM2_EGR 1b. ;
+: TIM2_CCMR1_Output. ." TIM2_CCMR1_Output (read-write) $" TIM2_CCMR1_Output @ hex. TIM2_CCMR1_Output TIM2_CCMR1_Output 1b. ;
+: TIM2_CCMR1_Input. ." TIM2_CCMR1_Input (read-write) $" TIM2_CCMR1_Input @ hex. TIM2_CCMR1_Input TIM2_CCMR1_Input 1b. ;
+: TIM2_CCMR2_Output. ." TIM2_CCMR2_Output (read-write) $" TIM2_CCMR2_Output @ hex. TIM2_CCMR2_Output TIM2_CCMR2_Output 1b. ;
+: TIM2_CCMR2_Input. ." TIM2_CCMR2_Input (read-write) $" TIM2_CCMR2_Input @ hex. TIM2_CCMR2_Input TIM2_CCMR2_Input 1b. ;
+: TIM2_CCER. ." TIM2_CCER (read-write) $" TIM2_CCER @ hex. TIM2_CCER TIM2_CCER 1b. ;
+: TIM2_CNT. ." TIM2_CNT (read-write) $" TIM2_CNT @ hex. TIM2_CNT TIM2_CNT 1b. ;
+: TIM2_PSC. ." TIM2_PSC (read-write) $" TIM2_PSC @ hex. TIM2_PSC TIM2_PSC 1b. ;
+: TIM2_ARR. ." TIM2_ARR (read-write) $" TIM2_ARR @ hex. TIM2_ARR TIM2_ARR 1b. ;
+: TIM2_CCR1. ." TIM2_CCR1 (read-write) $" TIM2_CCR1 @ hex. TIM2_CCR1 TIM2_CCR1 1b. ;
+: TIM2_CCR2. ." TIM2_CCR2 (read-write) $" TIM2_CCR2 @ hex. TIM2_CCR2 TIM2_CCR2 1b. ;
+: TIM2_CCR3. ." TIM2_CCR3 (read-write) $" TIM2_CCR3 @ hex. TIM2_CCR3 TIM2_CCR3 1b. ;
+: TIM2_CCR4. ." TIM2_CCR4 (read-write) $" TIM2_CCR4 @ hex. TIM2_CCR4 TIM2_CCR4 1b. ;
+: TIM2_DCR. ." TIM2_DCR (read-write) $" TIM2_DCR @ hex. TIM2_DCR TIM2_DCR 1b. ;
+: TIM2_DMAR. ." TIM2_DMAR (read-write) $" TIM2_DMAR @ hex. TIM2_DMAR TIM2_DMAR 1b. ;
+: TIM2.
+TIM2_CR1.
+TIM2_CR2.
+TIM2_SMCR.
+TIM2_DIER.
+TIM2_SR.
+TIM2_EGR.
+TIM2_CCMR1_Output.
+TIM2_CCMR1_Input.
+TIM2_CCMR2_Output.
+TIM2_CCMR2_Input.
+TIM2_CCER.
+TIM2_CNT.
+TIM2_PSC.
+TIM2_ARR.
+TIM2_CCR1.
+TIM2_CCR2.
+TIM2_CCR3.
+TIM2_CCR4.
+TIM2_DCR.
+TIM2_DMAR.
+;
+
+$40000400 constant TIM3
+TIM3 $0 +  constant  TIM3_CR1
+TIM3 $4 +  constant  TIM3_CR2
+TIM3 $8 +  constant  TIM3_SMCR
+TIM3 $C +  constant  TIM3_DIER
+TIM3 $10 +  constant  TIM3_SR
+TIM3 $14 +  constant  TIM3_EGR
+TIM3 $18 +  constant  TIM3_CCMR1_Output
+TIM3 $18 +  constant  TIM3_CCMR1_Input
+TIM3 $1C +  constant  TIM3_CCMR2_Output
+TIM3 $1C +  constant  TIM3_CCMR2_Input
+TIM3 $20 +  constant  TIM3_CCER
+TIM3 $24 +  constant  TIM3_CNT
+TIM3 $28 +  constant  TIM3_PSC
+TIM3 $2C +  constant  TIM3_ARR
+TIM3 $34 +  constant  TIM3_CCR1
+TIM3 $38 +  constant  TIM3_CCR2
+TIM3 $3C +  constant  TIM3_CCR3
+TIM3 $40 +  constant  TIM3_CCR4
+TIM3 $48 +  constant  TIM3_DCR
+TIM3 $4C +  constant  TIM3_DMAR
+: TIM3_CR1. ." TIM3_CR1 (read-write) $" TIM3_CR1 @ hex. TIM3_CR1 TIM3_CR1 1b. ;
+: TIM3_CR2. ." TIM3_CR2 (read-write) $" TIM3_CR2 @ hex. TIM3_CR2 TIM3_CR2 1b. ;
+: TIM3_SMCR. ." TIM3_SMCR (read-write) $" TIM3_SMCR @ hex. TIM3_SMCR TIM3_SMCR 1b. ;
+: TIM3_DIER. ." TIM3_DIER (read-write) $" TIM3_DIER @ hex. TIM3_DIER TIM3_DIER 1b. ;
+: TIM3_SR. ." TIM3_SR (read-write) $" TIM3_SR @ hex. TIM3_SR TIM3_SR 1b. ;
+: TIM3_EGR. ." TIM3_EGR (write-only) $" TIM3_EGR @ hex. TIM3_EGR TIM3_EGR 1b. ;
+: TIM3_CCMR1_Output. ." TIM3_CCMR1_Output (read-write) $" TIM3_CCMR1_Output @ hex. TIM3_CCMR1_Output TIM3_CCMR1_Output 1b. ;
+: TIM3_CCMR1_Input. ." TIM3_CCMR1_Input (read-write) $" TIM3_CCMR1_Input @ hex. TIM3_CCMR1_Input TIM3_CCMR1_Input 1b. ;
+: TIM3_CCMR2_Output. ." TIM3_CCMR2_Output (read-write) $" TIM3_CCMR2_Output @ hex. TIM3_CCMR2_Output TIM3_CCMR2_Output 1b. ;
+: TIM3_CCMR2_Input. ." TIM3_CCMR2_Input (read-write) $" TIM3_CCMR2_Input @ hex. TIM3_CCMR2_Input TIM3_CCMR2_Input 1b. ;
+: TIM3_CCER. ." TIM3_CCER (read-write) $" TIM3_CCER @ hex. TIM3_CCER TIM3_CCER 1b. ;
+: TIM3_CNT. ." TIM3_CNT (read-write) $" TIM3_CNT @ hex. TIM3_CNT TIM3_CNT 1b. ;
+: TIM3_PSC. ." TIM3_PSC (read-write) $" TIM3_PSC @ hex. TIM3_PSC TIM3_PSC 1b. ;
+: TIM3_ARR. ." TIM3_ARR (read-write) $" TIM3_ARR @ hex. TIM3_ARR TIM3_ARR 1b. ;
+: TIM3_CCR1. ." TIM3_CCR1 (read-write) $" TIM3_CCR1 @ hex. TIM3_CCR1 TIM3_CCR1 1b. ;
+: TIM3_CCR2. ." TIM3_CCR2 (read-write) $" TIM3_CCR2 @ hex. TIM3_CCR2 TIM3_CCR2 1b. ;
+: TIM3_CCR3. ." TIM3_CCR3 (read-write) $" TIM3_CCR3 @ hex. TIM3_CCR3 TIM3_CCR3 1b. ;
+: TIM3_CCR4. ." TIM3_CCR4 (read-write) $" TIM3_CCR4 @ hex. TIM3_CCR4 TIM3_CCR4 1b. ;
+: TIM3_DCR. ." TIM3_DCR (read-write) $" TIM3_DCR @ hex. TIM3_DCR TIM3_DCR 1b. ;
+: TIM3_DMAR. ." TIM3_DMAR (read-write) $" TIM3_DMAR @ hex. TIM3_DMAR TIM3_DMAR 1b. ;
+: TIM3.
+TIM3_CR1.
+TIM3_CR2.
+TIM3_SMCR.
+TIM3_DIER.
+TIM3_SR.
+TIM3_EGR.
+TIM3_CCMR1_Output.
+TIM3_CCMR1_Input.
+TIM3_CCMR2_Output.
+TIM3_CCMR2_Input.
+TIM3_CCER.
+TIM3_CNT.
+TIM3_PSC.
+TIM3_ARR.
+TIM3_CCR1.
+TIM3_CCR2.
+TIM3_CCR3.
+TIM3_CCR4.
+TIM3_DCR.
+TIM3_DMAR.
+;
+
+$40000800 constant TIM4
+TIM4 $0 +  constant  TIM4_CR1
+TIM4 $4 +  constant  TIM4_CR2
+TIM4 $8 +  constant  TIM4_SMCR
+TIM4 $C +  constant  TIM4_DIER
+TIM4 $10 +  constant  TIM4_SR
+TIM4 $14 +  constant  TIM4_EGR
+TIM4 $18 +  constant  TIM4_CCMR1_Output
+TIM4 $18 +  constant  TIM4_CCMR1_Input
+TIM4 $1C +  constant  TIM4_CCMR2_Output
+TIM4 $1C +  constant  TIM4_CCMR2_Input
+TIM4 $20 +  constant  TIM4_CCER
+TIM4 $24 +  constant  TIM4_CNT
+TIM4 $28 +  constant  TIM4_PSC
+TIM4 $2C +  constant  TIM4_ARR
+TIM4 $34 +  constant  TIM4_CCR1
+TIM4 $38 +  constant  TIM4_CCR2
+TIM4 $3C +  constant  TIM4_CCR3
+TIM4 $40 +  constant  TIM4_CCR4
+TIM4 $48 +  constant  TIM4_DCR
+TIM4 $4C +  constant  TIM4_DMAR
+: TIM4_CR1. ." TIM4_CR1 (read-write) $" TIM4_CR1 @ hex. TIM4_CR1 TIM4_CR1 1b. ;
+: TIM4_CR2. ." TIM4_CR2 (read-write) $" TIM4_CR2 @ hex. TIM4_CR2 TIM4_CR2 1b. ;
+: TIM4_SMCR. ." TIM4_SMCR (read-write) $" TIM4_SMCR @ hex. TIM4_SMCR TIM4_SMCR 1b. ;
+: TIM4_DIER. ." TIM4_DIER (read-write) $" TIM4_DIER @ hex. TIM4_DIER TIM4_DIER 1b. ;
+: TIM4_SR. ." TIM4_SR (read-write) $" TIM4_SR @ hex. TIM4_SR TIM4_SR 1b. ;
+: TIM4_EGR. ." TIM4_EGR (write-only) $" TIM4_EGR @ hex. TIM4_EGR TIM4_EGR 1b. ;
+: TIM4_CCMR1_Output. ." TIM4_CCMR1_Output (read-write) $" TIM4_CCMR1_Output @ hex. TIM4_CCMR1_Output TIM4_CCMR1_Output 1b. ;
+: TIM4_CCMR1_Input. ." TIM4_CCMR1_Input (read-write) $" TIM4_CCMR1_Input @ hex. TIM4_CCMR1_Input TIM4_CCMR1_Input 1b. ;
+: TIM4_CCMR2_Output. ." TIM4_CCMR2_Output (read-write) $" TIM4_CCMR2_Output @ hex. TIM4_CCMR2_Output TIM4_CCMR2_Output 1b. ;
+: TIM4_CCMR2_Input. ." TIM4_CCMR2_Input (read-write) $" TIM4_CCMR2_Input @ hex. TIM4_CCMR2_Input TIM4_CCMR2_Input 1b. ;
+: TIM4_CCER. ." TIM4_CCER (read-write) $" TIM4_CCER @ hex. TIM4_CCER TIM4_CCER 1b. ;
+: TIM4_CNT. ." TIM4_CNT (read-write) $" TIM4_CNT @ hex. TIM4_CNT TIM4_CNT 1b. ;
+: TIM4_PSC. ." TIM4_PSC (read-write) $" TIM4_PSC @ hex. TIM4_PSC TIM4_PSC 1b. ;
+: TIM4_ARR. ." TIM4_ARR (read-write) $" TIM4_ARR @ hex. TIM4_ARR TIM4_ARR 1b. ;
+: TIM4_CCR1. ." TIM4_CCR1 (read-write) $" TIM4_CCR1 @ hex. TIM4_CCR1 TIM4_CCR1 1b. ;
+: TIM4_CCR2. ." TIM4_CCR2 (read-write) $" TIM4_CCR2 @ hex. TIM4_CCR2 TIM4_CCR2 1b. ;
+: TIM4_CCR3. ." TIM4_CCR3 (read-write) $" TIM4_CCR3 @ hex. TIM4_CCR3 TIM4_CCR3 1b. ;
+: TIM4_CCR4. ." TIM4_CCR4 (read-write) $" TIM4_CCR4 @ hex. TIM4_CCR4 TIM4_CCR4 1b. ;
+: TIM4_DCR. ." TIM4_DCR (read-write) $" TIM4_DCR @ hex. TIM4_DCR TIM4_DCR 1b. ;
+: TIM4_DMAR. ." TIM4_DMAR (read-write) $" TIM4_DMAR @ hex. TIM4_DMAR TIM4_DMAR 1b. ;
+: TIM4.
+TIM4_CR1.
+TIM4_CR2.
+TIM4_SMCR.
+TIM4_DIER.
+TIM4_SR.
+TIM4_EGR.
+TIM4_CCMR1_Output.
+TIM4_CCMR1_Input.
+TIM4_CCMR2_Output.
+TIM4_CCMR2_Input.
+TIM4_CCER.
+TIM4_CNT.
+TIM4_PSC.
+TIM4_ARR.
+TIM4_CCR1.
+TIM4_CCR2.
+TIM4_CCR3.
+TIM4_CCR4.
+TIM4_DCR.
+TIM4_DMAR.
+;
+
+$40014000 constant TIM15
+TIM15 $0 +  constant  TIM15_CR1
+TIM15 $4 +  constant  TIM15_CR2
+TIM15 $8 +  constant  TIM15_SMCR
+TIM15 $C +  constant  TIM15_DIER
+TIM15 $10 +  constant  TIM15_SR
+TIM15 $14 +  constant  TIM15_EGR
+TIM15 $18 +  constant  TIM15_CCMR1_Output
+TIM15 $18 +  constant  TIM15_CCMR1_Input
+TIM15 $20 +  constant  TIM15_CCER
+TIM15 $24 +  constant  TIM15_CNT
+TIM15 $28 +  constant  TIM15_PSC
+TIM15 $2C +  constant  TIM15_ARR
+TIM15 $30 +  constant  TIM15_RCR
+TIM15 $34 +  constant  TIM15_CCR1
+TIM15 $38 +  constant  TIM15_CCR2
+TIM15 $44 +  constant  TIM15_BDTR
+TIM15 $48 +  constant  TIM15_DCR
+TIM15 $4C +  constant  TIM15_DMAR
+: TIM15_CR1. ." TIM15_CR1 (read-write) $" TIM15_CR1 @ hex. TIM15_CR1 TIM15_CR1 1b. ;
+: TIM15_CR2. ." TIM15_CR2 (read-write) $" TIM15_CR2 @ hex. TIM15_CR2 TIM15_CR2 1b. ;
+: TIM15_SMCR. ." TIM15_SMCR (read-write) $" TIM15_SMCR @ hex. TIM15_SMCR TIM15_SMCR 1b. ;
+: TIM15_DIER. ." TIM15_DIER (read-write) $" TIM15_DIER @ hex. TIM15_DIER TIM15_DIER 1b. ;
+: TIM15_SR. ." TIM15_SR (read-write) $" TIM15_SR @ hex. TIM15_SR TIM15_SR 1b. ;
+: TIM15_EGR. ." TIM15_EGR (write-only) $" TIM15_EGR @ hex. TIM15_EGR TIM15_EGR 1b. ;
+: TIM15_CCMR1_Output. ." TIM15_CCMR1_Output (read-write) $" TIM15_CCMR1_Output @ hex. TIM15_CCMR1_Output TIM15_CCMR1_Output 1b. ;
+: TIM15_CCMR1_Input. ." TIM15_CCMR1_Input (read-write) $" TIM15_CCMR1_Input @ hex. TIM15_CCMR1_Input TIM15_CCMR1_Input 1b. ;
+: TIM15_CCER. ." TIM15_CCER (read-write) $" TIM15_CCER @ hex. TIM15_CCER TIM15_CCER 1b. ;
+: TIM15_CNT. ." TIM15_CNT () $" TIM15_CNT @ hex. TIM15_CNT TIM15_CNT 1b. ;
+: TIM15_PSC. ." TIM15_PSC (read-write) $" TIM15_PSC @ hex. TIM15_PSC TIM15_PSC 1b. ;
+: TIM15_ARR. ." TIM15_ARR (read-write) $" TIM15_ARR @ hex. TIM15_ARR TIM15_ARR 1b. ;
+: TIM15_RCR. ." TIM15_RCR (read-write) $" TIM15_RCR @ hex. TIM15_RCR TIM15_RCR 1b. ;
+: TIM15_CCR1. ." TIM15_CCR1 (read-write) $" TIM15_CCR1 @ hex. TIM15_CCR1 TIM15_CCR1 1b. ;
+: TIM15_CCR2. ." TIM15_CCR2 (read-write) $" TIM15_CCR2 @ hex. TIM15_CCR2 TIM15_CCR2 1b. ;
+: TIM15_BDTR. ." TIM15_BDTR (read-write) $" TIM15_BDTR @ hex. TIM15_BDTR TIM15_BDTR 1b. ;
+: TIM15_DCR. ." TIM15_DCR (read-write) $" TIM15_DCR @ hex. TIM15_DCR TIM15_DCR 1b. ;
+: TIM15_DMAR. ." TIM15_DMAR (read-write) $" TIM15_DMAR @ hex. TIM15_DMAR TIM15_DMAR 1b. ;
+: TIM15.
+TIM15_CR1.
+TIM15_CR2.
+TIM15_SMCR.
+TIM15_DIER.
+TIM15_SR.
+TIM15_EGR.
+TIM15_CCMR1_Output.
+TIM15_CCMR1_Input.
+TIM15_CCER.
+TIM15_CNT.
+TIM15_PSC.
+TIM15_ARR.
+TIM15_RCR.
+TIM15_CCR1.
+TIM15_CCR2.
+TIM15_BDTR.
+TIM15_DCR.
+TIM15_DMAR.
+;
+
+$40014400 constant TIM16
+TIM16 $0 +  constant  TIM16_CR1
+TIM16 $4 +  constant  TIM16_CR2
+TIM16 $C +  constant  TIM16_DIER
+TIM16 $10 +  constant  TIM16_SR
+TIM16 $14 +  constant  TIM16_EGR
+TIM16 $18 +  constant  TIM16_CCMR1_Output
+TIM16 $18 +  constant  TIM16_CCMR1_Input
+TIM16 $20 +  constant  TIM16_CCER
+TIM16 $24 +  constant  TIM16_CNT
+TIM16 $28 +  constant  TIM16_PSC
+TIM16 $2C +  constant  TIM16_ARR
+TIM16 $30 +  constant  TIM16_RCR
+TIM16 $34 +  constant  TIM16_CCR1
+TIM16 $44 +  constant  TIM16_BDTR
+TIM16 $48 +  constant  TIM16_DCR
+TIM16 $4C +  constant  TIM16_DMAR
+TIM16 $50 +  constant  TIM16_OR
+: TIM16_CR1. ." TIM16_CR1 (read-write) $" TIM16_CR1 @ hex. TIM16_CR1 TIM16_CR1 1b. ;
+: TIM16_CR2. ." TIM16_CR2 (read-write) $" TIM16_CR2 @ hex. TIM16_CR2 TIM16_CR2 1b. ;
+: TIM16_DIER. ." TIM16_DIER (read-write) $" TIM16_DIER @ hex. TIM16_DIER TIM16_DIER 1b. ;
+: TIM16_SR. ." TIM16_SR (read-write) $" TIM16_SR @ hex. TIM16_SR TIM16_SR 1b. ;
+: TIM16_EGR. ." TIM16_EGR (write-only) $" TIM16_EGR @ hex. TIM16_EGR TIM16_EGR 1b. ;
+: TIM16_CCMR1_Output. ." TIM16_CCMR1_Output (read-write) $" TIM16_CCMR1_Output @ hex. TIM16_CCMR1_Output TIM16_CCMR1_Output 1b. ;
+: TIM16_CCMR1_Input. ." TIM16_CCMR1_Input (read-write) $" TIM16_CCMR1_Input @ hex. TIM16_CCMR1_Input TIM16_CCMR1_Input 1b. ;
+: TIM16_CCER. ." TIM16_CCER (read-write) $" TIM16_CCER @ hex. TIM16_CCER TIM16_CCER 1b. ;
+: TIM16_CNT. ." TIM16_CNT () $" TIM16_CNT @ hex. TIM16_CNT TIM16_CNT 1b. ;
+: TIM16_PSC. ." TIM16_PSC (read-write) $" TIM16_PSC @ hex. TIM16_PSC TIM16_PSC 1b. ;
+: TIM16_ARR. ." TIM16_ARR (read-write) $" TIM16_ARR @ hex. TIM16_ARR TIM16_ARR 1b. ;
+: TIM16_RCR. ." TIM16_RCR (read-write) $" TIM16_RCR @ hex. TIM16_RCR TIM16_RCR 1b. ;
+: TIM16_CCR1. ." TIM16_CCR1 (read-write) $" TIM16_CCR1 @ hex. TIM16_CCR1 TIM16_CCR1 1b. ;
+: TIM16_BDTR. ." TIM16_BDTR (read-write) $" TIM16_BDTR @ hex. TIM16_BDTR TIM16_BDTR 1b. ;
+: TIM16_DCR. ." TIM16_DCR (read-write) $" TIM16_DCR @ hex. TIM16_DCR TIM16_DCR 1b. ;
+: TIM16_DMAR. ." TIM16_DMAR (read-write) $" TIM16_DMAR @ hex. TIM16_DMAR TIM16_DMAR 1b. ;
+: TIM16_OR. ." TIM16_OR (read-write) $" TIM16_OR @ hex. TIM16_OR TIM16_OR 1b. ;
+: TIM16.
+TIM16_CR1.
+TIM16_CR2.
+TIM16_DIER.
+TIM16_SR.
+TIM16_EGR.
+TIM16_CCMR1_Output.
+TIM16_CCMR1_Input.
+TIM16_CCER.
+TIM16_CNT.
+TIM16_PSC.
+TIM16_ARR.
+TIM16_RCR.
+TIM16_CCR1.
+TIM16_BDTR.
+TIM16_DCR.
+TIM16_DMAR.
+TIM16_OR.
+;
+
+$40014800 constant TIM17
+TIM17 $0 +  constant  TIM17_CR1
+TIM17 $4 +  constant  TIM17_CR2
+TIM17 $C +  constant  TIM17_DIER
+TIM17 $10 +  constant  TIM17_SR
+TIM17 $14 +  constant  TIM17_EGR
+TIM17 $18 +  constant  TIM17_CCMR1_Output
+TIM17 $18 +  constant  TIM17_CCMR1_Input
+TIM17 $20 +  constant  TIM17_CCER
+TIM17 $24 +  constant  TIM17_CNT
+TIM17 $28 +  constant  TIM17_PSC
+TIM17 $2C +  constant  TIM17_ARR
+TIM17 $30 +  constant  TIM17_RCR
+TIM17 $34 +  constant  TIM17_CCR1
+TIM17 $44 +  constant  TIM17_BDTR
+TIM17 $48 +  constant  TIM17_DCR
+TIM17 $4C +  constant  TIM17_DMAR
+: TIM17_CR1. ." TIM17_CR1 (read-write) $" TIM17_CR1 @ hex. TIM17_CR1 TIM17_CR1 1b. ;
+: TIM17_CR2. ." TIM17_CR2 (read-write) $" TIM17_CR2 @ hex. TIM17_CR2 TIM17_CR2 1b. ;
+: TIM17_DIER. ." TIM17_DIER (read-write) $" TIM17_DIER @ hex. TIM17_DIER TIM17_DIER 1b. ;
+: TIM17_SR. ." TIM17_SR (read-write) $" TIM17_SR @ hex. TIM17_SR TIM17_SR 1b. ;
+: TIM17_EGR. ." TIM17_EGR (write-only) $" TIM17_EGR @ hex. TIM17_EGR TIM17_EGR 1b. ;
+: TIM17_CCMR1_Output. ." TIM17_CCMR1_Output (read-write) $" TIM17_CCMR1_Output @ hex. TIM17_CCMR1_Output TIM17_CCMR1_Output 1b. ;
+: TIM17_CCMR1_Input. ." TIM17_CCMR1_Input (read-write) $" TIM17_CCMR1_Input @ hex. TIM17_CCMR1_Input TIM17_CCMR1_Input 1b. ;
+: TIM17_CCER. ." TIM17_CCER (read-write) $" TIM17_CCER @ hex. TIM17_CCER TIM17_CCER 1b. ;
+: TIM17_CNT. ." TIM17_CNT () $" TIM17_CNT @ hex. TIM17_CNT TIM17_CNT 1b. ;
+: TIM17_PSC. ." TIM17_PSC (read-write) $" TIM17_PSC @ hex. TIM17_PSC TIM17_PSC 1b. ;
+: TIM17_ARR. ." TIM17_ARR (read-write) $" TIM17_ARR @ hex. TIM17_ARR TIM17_ARR 1b. ;
+: TIM17_RCR. ." TIM17_RCR (read-write) $" TIM17_RCR @ hex. TIM17_RCR TIM17_RCR 1b. ;
+: TIM17_CCR1. ." TIM17_CCR1 (read-write) $" TIM17_CCR1 @ hex. TIM17_CCR1 TIM17_CCR1 1b. ;
+: TIM17_BDTR. ." TIM17_BDTR (read-write) $" TIM17_BDTR @ hex. TIM17_BDTR TIM17_BDTR 1b. ;
+: TIM17_DCR. ." TIM17_DCR (read-write) $" TIM17_DCR @ hex. TIM17_DCR TIM17_DCR 1b. ;
+: TIM17_DMAR. ." TIM17_DMAR (read-write) $" TIM17_DMAR @ hex. TIM17_DMAR TIM17_DMAR 1b. ;
+: TIM17.
+TIM17_CR1.
+TIM17_CR2.
+TIM17_DIER.
+TIM17_SR.
+TIM17_EGR.
+TIM17_CCMR1_Output.
+TIM17_CCMR1_Input.
+TIM17_CCER.
+TIM17_CNT.
+TIM17_PSC.
+TIM17_ARR.
+TIM17_RCR.
+TIM17_CCR1.
+TIM17_BDTR.
+TIM17_DCR.
+TIM17_DMAR.
+;
+
+$40013800 constant USART1
+USART1 $0 +  constant  USART1_CR1
+USART1 $4 +  constant  USART1_CR2
+USART1 $8 +  constant  USART1_CR3
+USART1 $C +  constant  USART1_BRR
+USART1 $10 +  constant  USART1_GTPR
+USART1 $14 +  constant  USART1_RTOR
+USART1 $18 +  constant  USART1_RQR
+USART1 $1C +  constant  USART1_ISR
+USART1 $20 +  constant  USART1_ICR
+USART1 $24 +  constant  USART1_RDR
+USART1 $28 +  constant  USART1_TDR
+: USART1_CR1. ." USART1_CR1 (read-write) $" USART1_CR1 @ hex. USART1_CR1 USART1_CR1 1b. ;
+: USART1_CR2. ." USART1_CR2 (read-write) $" USART1_CR2 @ hex. USART1_CR2 USART1_CR2 1b. ;
+: USART1_CR3. ." USART1_CR3 (read-write) $" USART1_CR3 @ hex. USART1_CR3 USART1_CR3 1b. ;
+: USART1_BRR. ." USART1_BRR (read-write) $" USART1_BRR @ hex. USART1_BRR USART1_BRR 1b. ;
+: USART1_GTPR. ." USART1_GTPR (read-write) $" USART1_GTPR @ hex. USART1_GTPR USART1_GTPR 1b. ;
+: USART1_RTOR. ." USART1_RTOR (read-write) $" USART1_RTOR @ hex. USART1_RTOR USART1_RTOR 1b. ;
+: USART1_RQR. ." USART1_RQR (read-write) $" USART1_RQR @ hex. USART1_RQR USART1_RQR 1b. ;
+: USART1_ISR. ." USART1_ISR (read-only) $" USART1_ISR @ hex. USART1_ISR USART1_ISR 1b. ;
+: USART1_ICR. ." USART1_ICR (read-write) $" USART1_ICR @ hex. USART1_ICR USART1_ICR 1b. ;
+: USART1_RDR. ." USART1_RDR (read-only) $" USART1_RDR @ hex. USART1_RDR USART1_RDR 1b. ;
+: USART1_TDR. ." USART1_TDR (read-write) $" USART1_TDR @ hex. USART1_TDR USART1_TDR 1b. ;
+: USART1.
+USART1_CR1.
+USART1_CR2.
+USART1_CR3.
+USART1_BRR.
+USART1_GTPR.
+USART1_RTOR.
+USART1_RQR.
+USART1_ISR.
+USART1_ICR.
+USART1_RDR.
+USART1_TDR.
+;
+
+$40004400 constant USART2
+USART2 $0 +  constant  USART2_CR1
+USART2 $4 +  constant  USART2_CR2
+USART2 $8 +  constant  USART2_CR3
+USART2 $C +  constant  USART2_BRR
+USART2 $10 +  constant  USART2_GTPR
+USART2 $14 +  constant  USART2_RTOR
+USART2 $18 +  constant  USART2_RQR
+USART2 $1C +  constant  USART2_ISR
+USART2 $20 +  constant  USART2_ICR
+USART2 $24 +  constant  USART2_RDR
+USART2 $28 +  constant  USART2_TDR
+: USART2_CR1. ." USART2_CR1 (read-write) $" USART2_CR1 @ hex. USART2_CR1 USART2_CR1 1b. ;
+: USART2_CR2. ." USART2_CR2 (read-write) $" USART2_CR2 @ hex. USART2_CR2 USART2_CR2 1b. ;
+: USART2_CR3. ." USART2_CR3 (read-write) $" USART2_CR3 @ hex. USART2_CR3 USART2_CR3 1b. ;
+: USART2_BRR. ." USART2_BRR (read-write) $" USART2_BRR @ hex. USART2_BRR USART2_BRR 1b. ;
+: USART2_GTPR. ." USART2_GTPR (read-write) $" USART2_GTPR @ hex. USART2_GTPR USART2_GTPR 1b. ;
+: USART2_RTOR. ." USART2_RTOR (read-write) $" USART2_RTOR @ hex. USART2_RTOR USART2_RTOR 1b. ;
+: USART2_RQR. ." USART2_RQR (read-write) $" USART2_RQR @ hex. USART2_RQR USART2_RQR 1b. ;
+: USART2_ISR. ." USART2_ISR (read-only) $" USART2_ISR @ hex. USART2_ISR USART2_ISR 1b. ;
+: USART2_ICR. ." USART2_ICR (read-write) $" USART2_ICR @ hex. USART2_ICR USART2_ICR 1b. ;
+: USART2_RDR. ." USART2_RDR (read-only) $" USART2_RDR @ hex. USART2_RDR USART2_RDR 1b. ;
+: USART2_TDR. ." USART2_TDR (read-write) $" USART2_TDR @ hex. USART2_TDR USART2_TDR 1b. ;
+: USART2.
+USART2_CR1.
+USART2_CR2.
+USART2_CR3.
+USART2_BRR.
+USART2_GTPR.
+USART2_RTOR.
+USART2_RQR.
+USART2_ISR.
+USART2_ICR.
+USART2_RDR.
+USART2_TDR.
+;
+
+$40004800 constant USART3
+USART3 $0 +  constant  USART3_CR1
+USART3 $4 +  constant  USART3_CR2
+USART3 $8 +  constant  USART3_CR3
+USART3 $C +  constant  USART3_BRR
+USART3 $10 +  constant  USART3_GTPR
+USART3 $14 +  constant  USART3_RTOR
+USART3 $18 +  constant  USART3_RQR
+USART3 $1C +  constant  USART3_ISR
+USART3 $20 +  constant  USART3_ICR
+USART3 $24 +  constant  USART3_RDR
+USART3 $28 +  constant  USART3_TDR
+: USART3_CR1. ." USART3_CR1 (read-write) $" USART3_CR1 @ hex. USART3_CR1 USART3_CR1 1b. ;
+: USART3_CR2. ." USART3_CR2 (read-write) $" USART3_CR2 @ hex. USART3_CR2 USART3_CR2 1b. ;
+: USART3_CR3. ." USART3_CR3 (read-write) $" USART3_CR3 @ hex. USART3_CR3 USART3_CR3 1b. ;
+: USART3_BRR. ." USART3_BRR (read-write) $" USART3_BRR @ hex. USART3_BRR USART3_BRR 1b. ;
+: USART3_GTPR. ." USART3_GTPR (read-write) $" USART3_GTPR @ hex. USART3_GTPR USART3_GTPR 1b. ;
+: USART3_RTOR. ." USART3_RTOR (read-write) $" USART3_RTOR @ hex. USART3_RTOR USART3_RTOR 1b. ;
+: USART3_RQR. ." USART3_RQR (read-write) $" USART3_RQR @ hex. USART3_RQR USART3_RQR 1b. ;
+: USART3_ISR. ." USART3_ISR (read-only) $" USART3_ISR @ hex. USART3_ISR USART3_ISR 1b. ;
+: USART3_ICR. ." USART3_ICR (read-write) $" USART3_ICR @ hex. USART3_ICR USART3_ICR 1b. ;
+: USART3_RDR. ." USART3_RDR (read-only) $" USART3_RDR @ hex. USART3_RDR USART3_RDR 1b. ;
+: USART3_TDR. ." USART3_TDR (read-write) $" USART3_TDR @ hex. USART3_TDR USART3_TDR 1b. ;
+: USART3.
+USART3_CR1.
+USART3_CR2.
+USART3_CR3.
+USART3_BRR.
+USART3_GTPR.
+USART3_RTOR.
+USART3_RQR.
+USART3_ISR.
+USART3_ICR.
+USART3_RDR.
+USART3_TDR.
+;
+
+$40004C00 constant UART4
+UART4 $0 +  constant  UART4_CR1
+UART4 $4 +  constant  UART4_CR2
+UART4 $8 +  constant  UART4_CR3
+UART4 $C +  constant  UART4_BRR
+UART4 $10 +  constant  UART4_GTPR
+UART4 $14 +  constant  UART4_RTOR
+UART4 $18 +  constant  UART4_RQR
+UART4 $1C +  constant  UART4_ISR
+UART4 $20 +  constant  UART4_ICR
+UART4 $24 +  constant  UART4_RDR
+UART4 $28 +  constant  UART4_TDR
+: UART4_CR1. ." UART4_CR1 (read-write) $" UART4_CR1 @ hex. UART4_CR1 UART4_CR1 1b. ;
+: UART4_CR2. ." UART4_CR2 (read-write) $" UART4_CR2 @ hex. UART4_CR2 UART4_CR2 1b. ;
+: UART4_CR3. ." UART4_CR3 (read-write) $" UART4_CR3 @ hex. UART4_CR3 UART4_CR3 1b. ;
+: UART4_BRR. ." UART4_BRR (read-write) $" UART4_BRR @ hex. UART4_BRR UART4_BRR 1b. ;
+: UART4_GTPR. ." UART4_GTPR (read-write) $" UART4_GTPR @ hex. UART4_GTPR UART4_GTPR 1b. ;
+: UART4_RTOR. ." UART4_RTOR (read-write) $" UART4_RTOR @ hex. UART4_RTOR UART4_RTOR 1b. ;
+: UART4_RQR. ." UART4_RQR (read-write) $" UART4_RQR @ hex. UART4_RQR UART4_RQR 1b. ;
+: UART4_ISR. ." UART4_ISR (read-only) $" UART4_ISR @ hex. UART4_ISR UART4_ISR 1b. ;
+: UART4_ICR. ." UART4_ICR (read-write) $" UART4_ICR @ hex. UART4_ICR UART4_ICR 1b. ;
+: UART4_RDR. ." UART4_RDR (read-only) $" UART4_RDR @ hex. UART4_RDR UART4_RDR 1b. ;
+: UART4_TDR. ." UART4_TDR (read-write) $" UART4_TDR @ hex. UART4_TDR UART4_TDR 1b. ;
+: UART4.
+UART4_CR1.
+UART4_CR2.
+UART4_CR3.
+UART4_BRR.
+UART4_GTPR.
+UART4_RTOR.
+UART4_RQR.
+UART4_ISR.
+UART4_ICR.
+UART4_RDR.
+UART4_TDR.
+;
+
+$40005000 constant UART5
+UART5 $0 +  constant  UART5_CR1
+UART5 $4 +  constant  UART5_CR2
+UART5 $8 +  constant  UART5_CR3
+UART5 $C +  constant  UART5_BRR
+UART5 $10 +  constant  UART5_GTPR
+UART5 $14 +  constant  UART5_RTOR
+UART5 $18 +  constant  UART5_RQR
+UART5 $1C +  constant  UART5_ISR
+UART5 $20 +  constant  UART5_ICR
+UART5 $24 +  constant  UART5_RDR
+UART5 $28 +  constant  UART5_TDR
+: UART5_CR1. ." UART5_CR1 (read-write) $" UART5_CR1 @ hex. UART5_CR1 UART5_CR1 1b. ;
+: UART5_CR2. ." UART5_CR2 (read-write) $" UART5_CR2 @ hex. UART5_CR2 UART5_CR2 1b. ;
+: UART5_CR3. ." UART5_CR3 (read-write) $" UART5_CR3 @ hex. UART5_CR3 UART5_CR3 1b. ;
+: UART5_BRR. ." UART5_BRR (read-write) $" UART5_BRR @ hex. UART5_BRR UART5_BRR 1b. ;
+: UART5_GTPR. ." UART5_GTPR (read-write) $" UART5_GTPR @ hex. UART5_GTPR UART5_GTPR 1b. ;
+: UART5_RTOR. ." UART5_RTOR (read-write) $" UART5_RTOR @ hex. UART5_RTOR UART5_RTOR 1b. ;
+: UART5_RQR. ." UART5_RQR (read-write) $" UART5_RQR @ hex. UART5_RQR UART5_RQR 1b. ;
+: UART5_ISR. ." UART5_ISR (read-only) $" UART5_ISR @ hex. UART5_ISR UART5_ISR 1b. ;
+: UART5_ICR. ." UART5_ICR (read-write) $" UART5_ICR @ hex. UART5_ICR UART5_ICR 1b. ;
+: UART5_RDR. ." UART5_RDR (read-only) $" UART5_RDR @ hex. UART5_RDR UART5_RDR 1b. ;
+: UART5_TDR. ." UART5_TDR (read-write) $" UART5_TDR @ hex. UART5_TDR UART5_TDR 1b. ;
+: UART5.
+UART5_CR1.
+UART5_CR2.
+UART5_CR3.
+UART5_BRR.
+UART5_GTPR.
+UART5_RTOR.
+UART5_RQR.
+UART5_ISR.
+UART5_ICR.
+UART5_RDR.
+UART5_TDR.
+;
+
+$40013000 constant SPI1
+SPI1 $0 +  constant  SPI1_CR1
+SPI1 $4 +  constant  SPI1_CR2
+SPI1 $8 +  constant  SPI1_SR
+SPI1 $C +  constant  SPI1_DR
+SPI1 $10 +  constant  SPI1_CRCPR
+SPI1 $14 +  constant  SPI1_RXCRCR
+SPI1 $18 +  constant  SPI1_TXCRCR
+SPI1 $1C +  constant  SPI1_I2SCFGR
+SPI1 $20 +  constant  SPI1_I2SPR
+: SPI1_CR1. ." SPI1_CR1 (read-write) $" SPI1_CR1 @ hex. SPI1_CR1 SPI1_CR1 1b. ;
+: SPI1_CR2. ." SPI1_CR2 (read-write) $" SPI1_CR2 @ hex. SPI1_CR2 SPI1_CR2 1b. ;
+: SPI1_SR. ." SPI1_SR () $" SPI1_SR @ hex. SPI1_SR SPI1_SR 1b. ;
+: SPI1_DR. ." SPI1_DR (read-write) $" SPI1_DR @ hex. SPI1_DR SPI1_DR 1b. ;
+: SPI1_CRCPR. ." SPI1_CRCPR (read-write) $" SPI1_CRCPR @ hex. SPI1_CRCPR SPI1_CRCPR 1b. ;
+: SPI1_RXCRCR. ." SPI1_RXCRCR (read-only) $" SPI1_RXCRCR @ hex. SPI1_RXCRCR SPI1_RXCRCR 1b. ;
+: SPI1_TXCRCR. ." SPI1_TXCRCR (read-only) $" SPI1_TXCRCR @ hex. SPI1_TXCRCR SPI1_TXCRCR 1b. ;
+: SPI1_I2SCFGR. ." SPI1_I2SCFGR (read-write) $" SPI1_I2SCFGR @ hex. SPI1_I2SCFGR SPI1_I2SCFGR 1b. ;
+: SPI1_I2SPR. ." SPI1_I2SPR (read-write) $" SPI1_I2SPR @ hex. SPI1_I2SPR SPI1_I2SPR 1b. ;
+: SPI1.
+SPI1_CR1.
+SPI1_CR2.
+SPI1_SR.
+SPI1_DR.
+SPI1_CRCPR.
+SPI1_RXCRCR.
+SPI1_TXCRCR.
+SPI1_I2SCFGR.
+SPI1_I2SPR.
+;
+
+$40003800 constant SPI2
+SPI2 $0 +  constant  SPI2_CR1
+SPI2 $4 +  constant  SPI2_CR2
+SPI2 $8 +  constant  SPI2_SR
+SPI2 $C +  constant  SPI2_DR
+SPI2 $10 +  constant  SPI2_CRCPR
+SPI2 $14 +  constant  SPI2_RXCRCR
+SPI2 $18 +  constant  SPI2_TXCRCR
+SPI2 $1C +  constant  SPI2_I2SCFGR
+SPI2 $20 +  constant  SPI2_I2SPR
+: SPI2_CR1. ." SPI2_CR1 (read-write) $" SPI2_CR1 @ hex. SPI2_CR1 SPI2_CR1 1b. ;
+: SPI2_CR2. ." SPI2_CR2 (read-write) $" SPI2_CR2 @ hex. SPI2_CR2 SPI2_CR2 1b. ;
+: SPI2_SR. ." SPI2_SR () $" SPI2_SR @ hex. SPI2_SR SPI2_SR 1b. ;
+: SPI2_DR. ." SPI2_DR (read-write) $" SPI2_DR @ hex. SPI2_DR SPI2_DR 1b. ;
+: SPI2_CRCPR. ." SPI2_CRCPR (read-write) $" SPI2_CRCPR @ hex. SPI2_CRCPR SPI2_CRCPR 1b. ;
+: SPI2_RXCRCR. ." SPI2_RXCRCR (read-only) $" SPI2_RXCRCR @ hex. SPI2_RXCRCR SPI2_RXCRCR 1b. ;
+: SPI2_TXCRCR. ." SPI2_TXCRCR (read-only) $" SPI2_TXCRCR @ hex. SPI2_TXCRCR SPI2_TXCRCR 1b. ;
+: SPI2_I2SCFGR. ." SPI2_I2SCFGR (read-write) $" SPI2_I2SCFGR @ hex. SPI2_I2SCFGR SPI2_I2SCFGR 1b. ;
+: SPI2_I2SPR. ." SPI2_I2SPR (read-write) $" SPI2_I2SPR @ hex. SPI2_I2SPR SPI2_I2SPR 1b. ;
+: SPI2.
+SPI2_CR1.
+SPI2_CR2.
+SPI2_SR.
+SPI2_DR.
+SPI2_CRCPR.
+SPI2_RXCRCR.
+SPI2_TXCRCR.
+SPI2_I2SCFGR.
+SPI2_I2SPR.
+;
+
+$40003C00 constant SPI3
+SPI3 $0 +  constant  SPI3_CR1
+SPI3 $4 +  constant  SPI3_CR2
+SPI3 $8 +  constant  SPI3_SR
+SPI3 $C +  constant  SPI3_DR
+SPI3 $10 +  constant  SPI3_CRCPR
+SPI3 $14 +  constant  SPI3_RXCRCR
+SPI3 $18 +  constant  SPI3_TXCRCR
+SPI3 $1C +  constant  SPI3_I2SCFGR
+SPI3 $20 +  constant  SPI3_I2SPR
+: SPI3_CR1. ." SPI3_CR1 (read-write) $" SPI3_CR1 @ hex. SPI3_CR1 SPI3_CR1 1b. ;
+: SPI3_CR2. ." SPI3_CR2 (read-write) $" SPI3_CR2 @ hex. SPI3_CR2 SPI3_CR2 1b. ;
+: SPI3_SR. ." SPI3_SR () $" SPI3_SR @ hex. SPI3_SR SPI3_SR 1b. ;
+: SPI3_DR. ." SPI3_DR (read-write) $" SPI3_DR @ hex. SPI3_DR SPI3_DR 1b. ;
+: SPI3_CRCPR. ." SPI3_CRCPR (read-write) $" SPI3_CRCPR @ hex. SPI3_CRCPR SPI3_CRCPR 1b. ;
+: SPI3_RXCRCR. ." SPI3_RXCRCR (read-only) $" SPI3_RXCRCR @ hex. SPI3_RXCRCR SPI3_RXCRCR 1b. ;
+: SPI3_TXCRCR. ." SPI3_TXCRCR (read-only) $" SPI3_TXCRCR @ hex. SPI3_TXCRCR SPI3_TXCRCR 1b. ;
+: SPI3_I2SCFGR. ." SPI3_I2SCFGR (read-write) $" SPI3_I2SCFGR @ hex. SPI3_I2SCFGR SPI3_I2SCFGR 1b. ;
+: SPI3_I2SPR. ." SPI3_I2SPR (read-write) $" SPI3_I2SPR @ hex. SPI3_I2SPR SPI3_I2SPR 1b. ;
+: SPI3.
+SPI3_CR1.
+SPI3_CR2.
+SPI3_SR.
+SPI3_DR.
+SPI3_CRCPR.
+SPI3_RXCRCR.
+SPI3_TXCRCR.
+SPI3_I2SCFGR.
+SPI3_I2SPR.
+;
+
+$40003400 constant I2S2ext
+I2S2ext $0 +  constant  I2S2ext_CR1
+I2S2ext $4 +  constant  I2S2ext_CR2
+I2S2ext $8 +  constant  I2S2ext_SR
+I2S2ext $C +  constant  I2S2ext_DR
+I2S2ext $10 +  constant  I2S2ext_CRCPR
+I2S2ext $14 +  constant  I2S2ext_RXCRCR
+I2S2ext $18 +  constant  I2S2ext_TXCRCR
+I2S2ext $1C +  constant  I2S2ext_I2SCFGR
+I2S2ext $20 +  constant  I2S2ext_I2SPR
+: I2S2ext_CR1. ." I2S2ext_CR1 (read-write) $" I2S2ext_CR1 @ hex. I2S2ext_CR1 I2S2ext_CR1 1b. ;
+: I2S2ext_CR2. ." I2S2ext_CR2 (read-write) $" I2S2ext_CR2 @ hex. I2S2ext_CR2 I2S2ext_CR2 1b. ;
+: I2S2ext_SR. ." I2S2ext_SR () $" I2S2ext_SR @ hex. I2S2ext_SR I2S2ext_SR 1b. ;
+: I2S2ext_DR. ." I2S2ext_DR (read-write) $" I2S2ext_DR @ hex. I2S2ext_DR I2S2ext_DR 1b. ;
+: I2S2ext_CRCPR. ." I2S2ext_CRCPR (read-write) $" I2S2ext_CRCPR @ hex. I2S2ext_CRCPR I2S2ext_CRCPR 1b. ;
+: I2S2ext_RXCRCR. ." I2S2ext_RXCRCR (read-only) $" I2S2ext_RXCRCR @ hex. I2S2ext_RXCRCR I2S2ext_RXCRCR 1b. ;
+: I2S2ext_TXCRCR. ." I2S2ext_TXCRCR (read-only) $" I2S2ext_TXCRCR @ hex. I2S2ext_TXCRCR I2S2ext_TXCRCR 1b. ;
+: I2S2ext_I2SCFGR. ." I2S2ext_I2SCFGR (read-write) $" I2S2ext_I2SCFGR @ hex. I2S2ext_I2SCFGR I2S2ext_I2SCFGR 1b. ;
+: I2S2ext_I2SPR. ." I2S2ext_I2SPR (read-write) $" I2S2ext_I2SPR @ hex. I2S2ext_I2SPR I2S2ext_I2SPR 1b. ;
+: I2S2ext.
+I2S2ext_CR1.
+I2S2ext_CR2.
+I2S2ext_SR.
+I2S2ext_DR.
+I2S2ext_CRCPR.
+I2S2ext_RXCRCR.
+I2S2ext_TXCRCR.
+I2S2ext_I2SCFGR.
+I2S2ext_I2SPR.
+;
+
+$40004000 constant I2S3ext
+I2S3ext $0 +  constant  I2S3ext_CR1
+I2S3ext $4 +  constant  I2S3ext_CR2
+I2S3ext $8 +  constant  I2S3ext_SR
+I2S3ext $C +  constant  I2S3ext_DR
+I2S3ext $10 +  constant  I2S3ext_CRCPR
+I2S3ext $14 +  constant  I2S3ext_RXCRCR
+I2S3ext $18 +  constant  I2S3ext_TXCRCR
+I2S3ext $1C +  constant  I2S3ext_I2SCFGR
+I2S3ext $20 +  constant  I2S3ext_I2SPR
+: I2S3ext_CR1. ." I2S3ext_CR1 (read-write) $" I2S3ext_CR1 @ hex. I2S3ext_CR1 I2S3ext_CR1 1b. ;
+: I2S3ext_CR2. ." I2S3ext_CR2 (read-write) $" I2S3ext_CR2 @ hex. I2S3ext_CR2 I2S3ext_CR2 1b. ;
+: I2S3ext_SR. ." I2S3ext_SR () $" I2S3ext_SR @ hex. I2S3ext_SR I2S3ext_SR 1b. ;
+: I2S3ext_DR. ." I2S3ext_DR (read-write) $" I2S3ext_DR @ hex. I2S3ext_DR I2S3ext_DR 1b. ;
+: I2S3ext_CRCPR. ." I2S3ext_CRCPR (read-write) $" I2S3ext_CRCPR @ hex. I2S3ext_CRCPR I2S3ext_CRCPR 1b. ;
+: I2S3ext_RXCRCR. ." I2S3ext_RXCRCR (read-only) $" I2S3ext_RXCRCR @ hex. I2S3ext_RXCRCR I2S3ext_RXCRCR 1b. ;
+: I2S3ext_TXCRCR. ." I2S3ext_TXCRCR (read-only) $" I2S3ext_TXCRCR @ hex. I2S3ext_TXCRCR I2S3ext_TXCRCR 1b. ;
+: I2S3ext_I2SCFGR. ." I2S3ext_I2SCFGR (read-write) $" I2S3ext_I2SCFGR @ hex. I2S3ext_I2SCFGR I2S3ext_I2SCFGR 1b. ;
+: I2S3ext_I2SPR. ." I2S3ext_I2SPR (read-write) $" I2S3ext_I2SPR @ hex. I2S3ext_I2SPR I2S3ext_I2SPR 1b. ;
+: I2S3ext.
+I2S3ext_CR1.
+I2S3ext_CR2.
+I2S3ext_SR.
+I2S3ext_DR.
+I2S3ext_CRCPR.
+I2S3ext_RXCRCR.
+I2S3ext_TXCRCR.
+I2S3ext_I2SCFGR.
+I2S3ext_I2SPR.
+;
+
+$40013C00 constant SPI4
+SPI4 $0 +  constant  SPI4_CR1
+SPI4 $4 +  constant  SPI4_CR2
+SPI4 $8 +  constant  SPI4_SR
+SPI4 $C +  constant  SPI4_DR
+SPI4 $10 +  constant  SPI4_CRCPR
+SPI4 $14 +  constant  SPI4_RXCRCR
+SPI4 $18 +  constant  SPI4_TXCRCR
+SPI4 $1C +  constant  SPI4_I2SCFGR
+SPI4 $20 +  constant  SPI4_I2SPR
+: SPI4_CR1. ." SPI4_CR1 (read-write) $" SPI4_CR1 @ hex. SPI4_CR1 SPI4_CR1 1b. ;
+: SPI4_CR2. ." SPI4_CR2 (read-write) $" SPI4_CR2 @ hex. SPI4_CR2 SPI4_CR2 1b. ;
+: SPI4_SR. ." SPI4_SR () $" SPI4_SR @ hex. SPI4_SR SPI4_SR 1b. ;
+: SPI4_DR. ." SPI4_DR (read-write) $" SPI4_DR @ hex. SPI4_DR SPI4_DR 1b. ;
+: SPI4_CRCPR. ." SPI4_CRCPR (read-write) $" SPI4_CRCPR @ hex. SPI4_CRCPR SPI4_CRCPR 1b. ;
+: SPI4_RXCRCR. ." SPI4_RXCRCR (read-only) $" SPI4_RXCRCR @ hex. SPI4_RXCRCR SPI4_RXCRCR 1b. ;
+: SPI4_TXCRCR. ." SPI4_TXCRCR (read-only) $" SPI4_TXCRCR @ hex. SPI4_TXCRCR SPI4_TXCRCR 1b. ;
+: SPI4_I2SCFGR. ." SPI4_I2SCFGR (read-write) $" SPI4_I2SCFGR @ hex. SPI4_I2SCFGR SPI4_I2SCFGR 1b. ;
+: SPI4_I2SPR. ." SPI4_I2SPR (read-write) $" SPI4_I2SPR @ hex. SPI4_I2SPR SPI4_I2SPR 1b. ;
+: SPI4.
+SPI4_CR1.
+SPI4_CR2.
+SPI4_SR.
+SPI4_DR.
+SPI4_CRCPR.
+SPI4_RXCRCR.
+SPI4_TXCRCR.
+SPI4_I2SCFGR.
+SPI4_I2SPR.
+;
+
+$40010400 constant EXTI
+EXTI $0 +  constant  EXTI_IMR1
+EXTI $4 +  constant  EXTI_EMR1
+EXTI $8 +  constant  EXTI_RTSR1
+EXTI $C +  constant  EXTI_FTSR1
+EXTI $10 +  constant  EXTI_SWIER1
+EXTI $14 +  constant  EXTI_PR1
+EXTI $18 +  constant  EXTI_IMR2
+EXTI $1C +  constant  EXTI_EMR2
+EXTI $20 +  constant  EXTI_RTSR2
+EXTI $24 +  constant  EXTI_FTSR2
+EXTI $28 +  constant  EXTI_SWIER2
+EXTI $2C +  constant  EXTI_PR2
+: EXTI_IMR1. ." EXTI_IMR1 (read-write) $" EXTI_IMR1 @ hex. EXTI_IMR1 EXTI_IMR1 1b. ;
+: EXTI_EMR1. ." EXTI_EMR1 (read-write) $" EXTI_EMR1 @ hex. EXTI_EMR1 EXTI_EMR1 1b. ;
+: EXTI_RTSR1. ." EXTI_RTSR1 (read-write) $" EXTI_RTSR1 @ hex. EXTI_RTSR1 EXTI_RTSR1 1b. ;
+: EXTI_FTSR1. ." EXTI_FTSR1 (read-write) $" EXTI_FTSR1 @ hex. EXTI_FTSR1 EXTI_FTSR1 1b. ;
+: EXTI_SWIER1. ." EXTI_SWIER1 (read-write) $" EXTI_SWIER1 @ hex. EXTI_SWIER1 EXTI_SWIER1 1b. ;
+: EXTI_PR1. ." EXTI_PR1 (read-write) $" EXTI_PR1 @ hex. EXTI_PR1 EXTI_PR1 1b. ;
+: EXTI_IMR2. ." EXTI_IMR2 (read-write) $" EXTI_IMR2 @ hex. EXTI_IMR2 EXTI_IMR2 1b. ;
+: EXTI_EMR2. ." EXTI_EMR2 (read-write) $" EXTI_EMR2 @ hex. EXTI_EMR2 EXTI_EMR2 1b. ;
+: EXTI_RTSR2. ." EXTI_RTSR2 (read-write) $" EXTI_RTSR2 @ hex. EXTI_RTSR2 EXTI_RTSR2 1b. ;
+: EXTI_FTSR2. ." EXTI_FTSR2 (read-write) $" EXTI_FTSR2 @ hex. EXTI_FTSR2 EXTI_FTSR2 1b. ;
+: EXTI_SWIER2. ." EXTI_SWIER2 (read-write) $" EXTI_SWIER2 @ hex. EXTI_SWIER2 EXTI_SWIER2 1b. ;
+: EXTI_PR2. ." EXTI_PR2 (read-write) $" EXTI_PR2 @ hex. EXTI_PR2 EXTI_PR2 1b. ;
+: EXTI.
+EXTI_IMR1.
+EXTI_EMR1.
+EXTI_RTSR1.
+EXTI_FTSR1.
+EXTI_SWIER1.
+EXTI_PR1.
+EXTI_IMR2.
+EXTI_EMR2.
+EXTI_RTSR2.
+EXTI_FTSR2.
+EXTI_SWIER2.
+EXTI_PR2.
+;
+
+$4001001C constant COMP
+COMP $0 +  constant  COMP_COMP1_CSR
+COMP $4 +  constant  COMP_COMP2_CSR
+COMP $8 +  constant  COMP_COMP3_CSR
+COMP $C +  constant  COMP_COMP4_CSR
+COMP $10 +  constant  COMP_COMP5_CSR
+COMP $14 +  constant  COMP_COMP6_CSR
+COMP $18 +  constant  COMP_COMP7_CSR
+: COMP_COMP1_CSR. ." COMP_COMP1_CSR () $" COMP_COMP1_CSR @ hex. COMP_COMP1_CSR COMP_COMP1_CSR 1b. ;
+: COMP_COMP2_CSR. ." COMP_COMP2_CSR (read-write) $" COMP_COMP2_CSR @ hex. COMP_COMP2_CSR COMP_COMP2_CSR 1b. ;
+: COMP_COMP3_CSR. ." COMP_COMP3_CSR () $" COMP_COMP3_CSR @ hex. COMP_COMP3_CSR COMP_COMP3_CSR 1b. ;
+: COMP_COMP4_CSR. ." COMP_COMP4_CSR () $" COMP_COMP4_CSR @ hex. COMP_COMP4_CSR COMP_COMP4_CSR 1b. ;
+: COMP_COMP5_CSR. ." COMP_COMP5_CSR () $" COMP_COMP5_CSR @ hex. COMP_COMP5_CSR COMP_COMP5_CSR 1b. ;
+: COMP_COMP6_CSR. ." COMP_COMP6_CSR () $" COMP_COMP6_CSR @ hex. COMP_COMP6_CSR COMP_COMP6_CSR 1b. ;
+: COMP_COMP7_CSR. ." COMP_COMP7_CSR () $" COMP_COMP7_CSR @ hex. COMP_COMP7_CSR COMP_COMP7_CSR 1b. ;
+: COMP.
+COMP_COMP1_CSR.
+COMP_COMP2_CSR.
+COMP_COMP3_CSR.
+COMP_COMP4_CSR.
+COMP_COMP5_CSR.
+COMP_COMP6_CSR.
+COMP_COMP7_CSR.
+;
+
+$40007000 constant PWR
+PWR $0 +  constant  PWR_CR
+PWR $4 +  constant  PWR_CSR
+: PWR_CR. ." PWR_CR (read-write) $" PWR_CR @ hex. PWR_CR PWR_CR 1b. ;
+: PWR_CSR. ." PWR_CSR () $" PWR_CSR @ hex. PWR_CSR PWR_CSR 1b. ;
+: PWR.
+PWR_CR.
+PWR_CSR.
+;
+
+$40006400 constant CAN
+CAN $0 +  constant  CAN_MCR
+CAN $4 +  constant  CAN_MSR
+CAN $8 +  constant  CAN_TSR
+CAN $C +  constant  CAN_RF0R
+CAN $10 +  constant  CAN_RF1R
+CAN $14 +  constant  CAN_IER
+CAN $18 +  constant  CAN_ESR
+CAN $1C +  constant  CAN_BTR
+CAN $180 +  constant  CAN_TI0R
+CAN $184 +  constant  CAN_TDT0R
+CAN $188 +  constant  CAN_TDL0R
+CAN $18C +  constant  CAN_TDH0R
+CAN $190 +  constant  CAN_TI1R
+CAN $194 +  constant  CAN_TDT1R
+CAN $198 +  constant  CAN_TDL1R
+CAN $19C +  constant  CAN_TDH1R
+CAN $1A0 +  constant  CAN_TI2R
+CAN $1A4 +  constant  CAN_TDT2R
+CAN $1A8 +  constant  CAN_TDL2R
+CAN $1AC +  constant  CAN_TDH2R
+CAN $1B0 +  constant  CAN_RI0R
+CAN $1B4 +  constant  CAN_RDT0R
+CAN $1B8 +  constant  CAN_RDL0R
+CAN $1BC +  constant  CAN_RDH0R
+CAN $1C0 +  constant  CAN_RI1R
+CAN $1C4 +  constant  CAN_RDT1R
+CAN $1C8 +  constant  CAN_RDL1R
+CAN $1CC +  constant  CAN_RDH1R
+CAN $200 +  constant  CAN_FMR
+CAN $204 +  constant  CAN_FM1R
+CAN $20C +  constant  CAN_FS1R
+CAN $214 +  constant  CAN_FFA1R
+CAN $21C +  constant  CAN_FA1R
+CAN $240 +  constant  CAN_F0R1
+CAN $244 +  constant  CAN_F0R2
+CAN $248 +  constant  CAN_F1R1
+CAN $24C +  constant  CAN_F1R2
+CAN $250 +  constant  CAN_F2R1
+CAN $254 +  constant  CAN_F2R2
+CAN $258 +  constant  CAN_F3R1
+CAN $25C +  constant  CAN_F3R2
+CAN $260 +  constant  CAN_F4R1
+CAN $264 +  constant  CAN_F4R2
+CAN $268 +  constant  CAN_F5R1
+CAN $26C +  constant  CAN_F5R2
+CAN $270 +  constant  CAN_F6R1
+CAN $274 +  constant  CAN_F6R2
+CAN $278 +  constant  CAN_F7R1
+CAN $27C +  constant  CAN_F7R2
+CAN $280 +  constant  CAN_F8R1
+CAN $284 +  constant  CAN_F8R2
+CAN $288 +  constant  CAN_F9R1
+CAN $28C +  constant  CAN_F9R2
+CAN $290 +  constant  CAN_F10R1
+CAN $294 +  constant  CAN_F10R2
+CAN $298 +  constant  CAN_F11R1
+CAN $29C +  constant  CAN_F11R2
+CAN $2A0 +  constant  CAN_F12R1
+CAN $2A4 +  constant  CAN_F12R2
+CAN $2A8 +  constant  CAN_F13R1
+CAN $2AC +  constant  CAN_F13R2
+CAN $2B0 +  constant  CAN_F14R1
+CAN $2B4 +  constant  CAN_F14R2
+CAN $2B8 +  constant  CAN_F15R1
+CAN $2BC +  constant  CAN_F15R2
+CAN $2C0 +  constant  CAN_F16R1
+CAN $2C4 +  constant  CAN_F16R2
+CAN $2C8 +  constant  CAN_F17R1
+CAN $2CC +  constant  CAN_F17R2
+CAN $2D0 +  constant  CAN_F18R1
+CAN $2D4 +  constant  CAN_F18R2
+CAN $2D8 +  constant  CAN_F19R1
+CAN $2DC +  constant  CAN_F19R2
+CAN $2E0 +  constant  CAN_F20R1
+CAN $2E4 +  constant  CAN_F20R2
+CAN $2E8 +  constant  CAN_F21R1
+CAN $2EC +  constant  CAN_F21R2
+CAN $2F0 +  constant  CAN_F22R1
+CAN $2F4 +  constant  CAN_F22R2
+CAN $2F8 +  constant  CAN_F23R1
+CAN $2FC +  constant  CAN_F23R2
+CAN $300 +  constant  CAN_F24R1
+CAN $304 +  constant  CAN_F24R2
+CAN $308 +  constant  CAN_F25R1
+CAN $30C +  constant  CAN_F25R2
+CAN $310 +  constant  CAN_F26R1
+CAN $314 +  constant  CAN_F26R2
+CAN $318 +  constant  CAN_F27R1
+CAN $31C +  constant  CAN_F27R2
+: CAN_MCR. ." CAN_MCR (read-write) $" CAN_MCR @ hex. CAN_MCR CAN_MCR 1b. ;
+: CAN_MSR. ." CAN_MSR () $" CAN_MSR @ hex. CAN_MSR CAN_MSR 1b. ;
+: CAN_TSR. ." CAN_TSR () $" CAN_TSR @ hex. CAN_TSR CAN_TSR 1b. ;
+: CAN_RF0R. ." CAN_RF0R () $" CAN_RF0R @ hex. CAN_RF0R CAN_RF0R 1b. ;
+: CAN_RF1R. ." CAN_RF1R () $" CAN_RF1R @ hex. CAN_RF1R CAN_RF1R 1b. ;
+: CAN_IER. ." CAN_IER (read-write) $" CAN_IER @ hex. CAN_IER CAN_IER 1b. ;
+: CAN_ESR. ." CAN_ESR () $" CAN_ESR @ hex. CAN_ESR CAN_ESR 1b. ;
+: CAN_BTR. ." CAN_BTR (read-write) $" CAN_BTR @ hex. CAN_BTR CAN_BTR 1b. ;
+: CAN_TI0R. ." CAN_TI0R (read-write) $" CAN_TI0R @ hex. CAN_TI0R CAN_TI0R 1b. ;
+: CAN_TDT0R. ." CAN_TDT0R (read-write) $" CAN_TDT0R @ hex. CAN_TDT0R CAN_TDT0R 1b. ;
+: CAN_TDL0R. ." CAN_TDL0R (read-write) $" CAN_TDL0R @ hex. CAN_TDL0R CAN_TDL0R 1b. ;
+: CAN_TDH0R. ." CAN_TDH0R (read-write) $" CAN_TDH0R @ hex. CAN_TDH0R CAN_TDH0R 1b. ;
+: CAN_TI1R. ." CAN_TI1R (read-write) $" CAN_TI1R @ hex. CAN_TI1R CAN_TI1R 1b. ;
+: CAN_TDT1R. ." CAN_TDT1R (read-write) $" CAN_TDT1R @ hex. CAN_TDT1R CAN_TDT1R 1b. ;
+: CAN_TDL1R. ." CAN_TDL1R (read-write) $" CAN_TDL1R @ hex. CAN_TDL1R CAN_TDL1R 1b. ;
+: CAN_TDH1R. ." CAN_TDH1R (read-write) $" CAN_TDH1R @ hex. CAN_TDH1R CAN_TDH1R 1b. ;
+: CAN_TI2R. ." CAN_TI2R (read-write) $" CAN_TI2R @ hex. CAN_TI2R CAN_TI2R 1b. ;
+: CAN_TDT2R. ." CAN_TDT2R (read-write) $" CAN_TDT2R @ hex. CAN_TDT2R CAN_TDT2R 1b. ;
+: CAN_TDL2R. ." CAN_TDL2R (read-write) $" CAN_TDL2R @ hex. CAN_TDL2R CAN_TDL2R 1b. ;
+: CAN_TDH2R. ." CAN_TDH2R (read-write) $" CAN_TDH2R @ hex. CAN_TDH2R CAN_TDH2R 1b. ;
+: CAN_RI0R. ." CAN_RI0R (read-only) $" CAN_RI0R @ hex. CAN_RI0R CAN_RI0R 1b. ;
+: CAN_RDT0R. ." CAN_RDT0R (read-only) $" CAN_RDT0R @ hex. CAN_RDT0R CAN_RDT0R 1b. ;
+: CAN_RDL0R. ." CAN_RDL0R (read-only) $" CAN_RDL0R @ hex. CAN_RDL0R CAN_RDL0R 1b. ;
+: CAN_RDH0R. ." CAN_RDH0R (read-only) $" CAN_RDH0R @ hex. CAN_RDH0R CAN_RDH0R 1b. ;
+: CAN_RI1R. ." CAN_RI1R (read-only) $" CAN_RI1R @ hex. CAN_RI1R CAN_RI1R 1b. ;
+: CAN_RDT1R. ." CAN_RDT1R (read-only) $" CAN_RDT1R @ hex. CAN_RDT1R CAN_RDT1R 1b. ;
+: CAN_RDL1R. ." CAN_RDL1R (read-only) $" CAN_RDL1R @ hex. CAN_RDL1R CAN_RDL1R 1b. ;
+: CAN_RDH1R. ." CAN_RDH1R (read-only) $" CAN_RDH1R @ hex. CAN_RDH1R CAN_RDH1R 1b. ;
+: CAN_FMR. ." CAN_FMR (read-write) $" CAN_FMR @ hex. CAN_FMR CAN_FMR 1b. ;
+: CAN_FM1R. ." CAN_FM1R (read-write) $" CAN_FM1R @ hex. CAN_FM1R CAN_FM1R 1b. ;
+: CAN_FS1R. ." CAN_FS1R (read-write) $" CAN_FS1R @ hex. CAN_FS1R CAN_FS1R 1b. ;
+: CAN_FFA1R. ." CAN_FFA1R (read-write) $" CAN_FFA1R @ hex. CAN_FFA1R CAN_FFA1R 1b. ;
+: CAN_FA1R. ." CAN_FA1R (read-write) $" CAN_FA1R @ hex. CAN_FA1R CAN_FA1R 1b. ;
+: CAN_F0R1. ." CAN_F0R1 (read-write) $" CAN_F0R1 @ hex. CAN_F0R1 CAN_F0R1 1b. ;
+: CAN_F0R2. ." CAN_F0R2 (read-write) $" CAN_F0R2 @ hex. CAN_F0R2 CAN_F0R2 1b. ;
+: CAN_F1R1. ." CAN_F1R1 (read-write) $" CAN_F1R1 @ hex. CAN_F1R1 CAN_F1R1 1b. ;
+: CAN_F1R2. ." CAN_F1R2 (read-write) $" CAN_F1R2 @ hex. CAN_F1R2 CAN_F1R2 1b. ;
+: CAN_F2R1. ." CAN_F2R1 (read-write) $" CAN_F2R1 @ hex. CAN_F2R1 CAN_F2R1 1b. ;
+: CAN_F2R2. ." CAN_F2R2 (read-write) $" CAN_F2R2 @ hex. CAN_F2R2 CAN_F2R2 1b. ;
+: CAN_F3R1. ." CAN_F3R1 (read-write) $" CAN_F3R1 @ hex. CAN_F3R1 CAN_F3R1 1b. ;
+: CAN_F3R2. ." CAN_F3R2 (read-write) $" CAN_F3R2 @ hex. CAN_F3R2 CAN_F3R2 1b. ;
+: CAN_F4R1. ." CAN_F4R1 (read-write) $" CAN_F4R1 @ hex. CAN_F4R1 CAN_F4R1 1b. ;
+: CAN_F4R2. ." CAN_F4R2 (read-write) $" CAN_F4R2 @ hex. CAN_F4R2 CAN_F4R2 1b. ;
+: CAN_F5R1. ." CAN_F5R1 (read-write) $" CAN_F5R1 @ hex. CAN_F5R1 CAN_F5R1 1b. ;
+: CAN_F5R2. ." CAN_F5R2 (read-write) $" CAN_F5R2 @ hex. CAN_F5R2 CAN_F5R2 1b. ;
+: CAN_F6R1. ." CAN_F6R1 (read-write) $" CAN_F6R1 @ hex. CAN_F6R1 CAN_F6R1 1b. ;
+: CAN_F6R2. ." CAN_F6R2 (read-write) $" CAN_F6R2 @ hex. CAN_F6R2 CAN_F6R2 1b. ;
+: CAN_F7R1. ." CAN_F7R1 (read-write) $" CAN_F7R1 @ hex. CAN_F7R1 CAN_F7R1 1b. ;
+: CAN_F7R2. ." CAN_F7R2 (read-write) $" CAN_F7R2 @ hex. CAN_F7R2 CAN_F7R2 1b. ;
+: CAN_F8R1. ." CAN_F8R1 (read-write) $" CAN_F8R1 @ hex. CAN_F8R1 CAN_F8R1 1b. ;
+: CAN_F8R2. ." CAN_F8R2 (read-write) $" CAN_F8R2 @ hex. CAN_F8R2 CAN_F8R2 1b. ;
+: CAN_F9R1. ." CAN_F9R1 (read-write) $" CAN_F9R1 @ hex. CAN_F9R1 CAN_F9R1 1b. ;
+: CAN_F9R2. ." CAN_F9R2 (read-write) $" CAN_F9R2 @ hex. CAN_F9R2 CAN_F9R2 1b. ;
+: CAN_F10R1. ." CAN_F10R1 (read-write) $" CAN_F10R1 @ hex. CAN_F10R1 CAN_F10R1 1b. ;
+: CAN_F10R2. ." CAN_F10R2 (read-write) $" CAN_F10R2 @ hex. CAN_F10R2 CAN_F10R2 1b. ;
+: CAN_F11R1. ." CAN_F11R1 (read-write) $" CAN_F11R1 @ hex. CAN_F11R1 CAN_F11R1 1b. ;
+: CAN_F11R2. ." CAN_F11R2 (read-write) $" CAN_F11R2 @ hex. CAN_F11R2 CAN_F11R2 1b. ;
+: CAN_F12R1. ." CAN_F12R1 (read-write) $" CAN_F12R1 @ hex. CAN_F12R1 CAN_F12R1 1b. ;
+: CAN_F12R2. ." CAN_F12R2 (read-write) $" CAN_F12R2 @ hex. CAN_F12R2 CAN_F12R2 1b. ;
+: CAN_F13R1. ." CAN_F13R1 (read-write) $" CAN_F13R1 @ hex. CAN_F13R1 CAN_F13R1 1b. ;
+: CAN_F13R2. ." CAN_F13R2 (read-write) $" CAN_F13R2 @ hex. CAN_F13R2 CAN_F13R2 1b. ;
+: CAN_F14R1. ." CAN_F14R1 (read-write) $" CAN_F14R1 @ hex. CAN_F14R1 CAN_F14R1 1b. ;
+: CAN_F14R2. ." CAN_F14R2 (read-write) $" CAN_F14R2 @ hex. CAN_F14R2 CAN_F14R2 1b. ;
+: CAN_F15R1. ." CAN_F15R1 (read-write) $" CAN_F15R1 @ hex. CAN_F15R1 CAN_F15R1 1b. ;
+: CAN_F15R2. ." CAN_F15R2 (read-write) $" CAN_F15R2 @ hex. CAN_F15R2 CAN_F15R2 1b. ;
+: CAN_F16R1. ." CAN_F16R1 (read-write) $" CAN_F16R1 @ hex. CAN_F16R1 CAN_F16R1 1b. ;
+: CAN_F16R2. ." CAN_F16R2 (read-write) $" CAN_F16R2 @ hex. CAN_F16R2 CAN_F16R2 1b. ;
+: CAN_F17R1. ." CAN_F17R1 (read-write) $" CAN_F17R1 @ hex. CAN_F17R1 CAN_F17R1 1b. ;
+: CAN_F17R2. ." CAN_F17R2 (read-write) $" CAN_F17R2 @ hex. CAN_F17R2 CAN_F17R2 1b. ;
+: CAN_F18R1. ." CAN_F18R1 (read-write) $" CAN_F18R1 @ hex. CAN_F18R1 CAN_F18R1 1b. ;
+: CAN_F18R2. ." CAN_F18R2 (read-write) $" CAN_F18R2 @ hex. CAN_F18R2 CAN_F18R2 1b. ;
+: CAN_F19R1. ." CAN_F19R1 (read-write) $" CAN_F19R1 @ hex. CAN_F19R1 CAN_F19R1 1b. ;
+: CAN_F19R2. ." CAN_F19R2 (read-write) $" CAN_F19R2 @ hex. CAN_F19R2 CAN_F19R2 1b. ;
+: CAN_F20R1. ." CAN_F20R1 (read-write) $" CAN_F20R1 @ hex. CAN_F20R1 CAN_F20R1 1b. ;
+: CAN_F20R2. ." CAN_F20R2 (read-write) $" CAN_F20R2 @ hex. CAN_F20R2 CAN_F20R2 1b. ;
+: CAN_F21R1. ." CAN_F21R1 (read-write) $" CAN_F21R1 @ hex. CAN_F21R1 CAN_F21R1 1b. ;
+: CAN_F21R2. ." CAN_F21R2 (read-write) $" CAN_F21R2 @ hex. CAN_F21R2 CAN_F21R2 1b. ;
+: CAN_F22R1. ." CAN_F22R1 (read-write) $" CAN_F22R1 @ hex. CAN_F22R1 CAN_F22R1 1b. ;
+: CAN_F22R2. ." CAN_F22R2 (read-write) $" CAN_F22R2 @ hex. CAN_F22R2 CAN_F22R2 1b. ;
+: CAN_F23R1. ." CAN_F23R1 (read-write) $" CAN_F23R1 @ hex. CAN_F23R1 CAN_F23R1 1b. ;
+: CAN_F23R2. ." CAN_F23R2 (read-write) $" CAN_F23R2 @ hex. CAN_F23R2 CAN_F23R2 1b. ;
+: CAN_F24R1. ." CAN_F24R1 (read-write) $" CAN_F24R1 @ hex. CAN_F24R1 CAN_F24R1 1b. ;
+: CAN_F24R2. ." CAN_F24R2 (read-write) $" CAN_F24R2 @ hex. CAN_F24R2 CAN_F24R2 1b. ;
+: CAN_F25R1. ." CAN_F25R1 (read-write) $" CAN_F25R1 @ hex. CAN_F25R1 CAN_F25R1 1b. ;
+: CAN_F25R2. ." CAN_F25R2 (read-write) $" CAN_F25R2 @ hex. CAN_F25R2 CAN_F25R2 1b. ;
+: CAN_F26R1. ." CAN_F26R1 (read-write) $" CAN_F26R1 @ hex. CAN_F26R1 CAN_F26R1 1b. ;
+: CAN_F26R2. ." CAN_F26R2 (read-write) $" CAN_F26R2 @ hex. CAN_F26R2 CAN_F26R2 1b. ;
+: CAN_F27R1. ." CAN_F27R1 (read-write) $" CAN_F27R1 @ hex. CAN_F27R1 CAN_F27R1 1b. ;
+: CAN_F27R2. ." CAN_F27R2 (read-write) $" CAN_F27R2 @ hex. CAN_F27R2 CAN_F27R2 1b. ;
+: CAN.
+CAN_MCR.
+CAN_MSR.
+CAN_TSR.
+CAN_RF0R.
+CAN_RF1R.
+CAN_IER.
+CAN_ESR.
+CAN_BTR.
+CAN_TI0R.
+CAN_TDT0R.
+CAN_TDL0R.
+CAN_TDH0R.
+CAN_TI1R.
+CAN_TDT1R.
+CAN_TDL1R.
+CAN_TDH1R.
+CAN_TI2R.
+CAN_TDT2R.
+CAN_TDL2R.
+CAN_TDH2R.
+CAN_RI0R.
+CAN_RDT0R.
+CAN_RDL0R.
+CAN_RDH0R.
+CAN_RI1R.
+CAN_RDT1R.
+CAN_RDL1R.
+CAN_RDH1R.
+CAN_FMR.
+CAN_FM1R.
+CAN_FS1R.
+CAN_FFA1R.
+CAN_FA1R.
+CAN_F0R1.
+CAN_F0R2.
+CAN_F1R1.
+CAN_F1R2.
+CAN_F2R1.
+CAN_F2R2.
+CAN_F3R1.
+CAN_F3R2.
+CAN_F4R1.
+CAN_F4R2.
+CAN_F5R1.
+CAN_F5R2.
+CAN_F6R1.
+CAN_F6R2.
+CAN_F7R1.
+CAN_F7R2.
+CAN_F8R1.
+CAN_F8R2.
+CAN_F9R1.
+CAN_F9R2.
+CAN_F10R1.
+CAN_F10R2.
+CAN_F11R1.
+CAN_F11R2.
+CAN_F12R1.
+CAN_F12R2.
+CAN_F13R1.
+CAN_F13R2.
+CAN_F14R1.
+CAN_F14R2.
+CAN_F15R1.
+CAN_F15R2.
+CAN_F16R1.
+CAN_F16R2.
+CAN_F17R1.
+CAN_F17R2.
+CAN_F18R1.
+CAN_F18R2.
+CAN_F19R1.
+CAN_F19R2.
+CAN_F20R1.
+CAN_F20R2.
+CAN_F21R1.
+CAN_F21R2.
+CAN_F22R1.
+CAN_F22R2.
+CAN_F23R1.
+CAN_F23R2.
+CAN_F24R1.
+CAN_F24R2.
+CAN_F25R1.
+CAN_F25R2.
+CAN_F26R1.
+CAN_F26R2.
+CAN_F27R1.
+CAN_F27R2.
+;
+
+$40005C00 constant USB_FS
+USB_FS $0 +  constant  USB_FS_USB_EP0R
+USB_FS $4 +  constant  USB_FS_USB_EP1R
+USB_FS $8 +  constant  USB_FS_USB_EP2R
+USB_FS $C +  constant  USB_FS_USB_EP3R
+USB_FS $10 +  constant  USB_FS_USB_EP4R
+USB_FS $14 +  constant  USB_FS_USB_EP5R
+USB_FS $18 +  constant  USB_FS_USB_EP6R
+USB_FS $1C +  constant  USB_FS_USB_EP7R
+USB_FS $40 +  constant  USB_FS_USB_CNTR
+USB_FS $44 +  constant  USB_FS_ISTR
+USB_FS $48 +  constant  USB_FS_FNR
+USB_FS $4C +  constant  USB_FS_DADDR
+USB_FS $50 +  constant  USB_FS_BTABLE
+: USB_FS_USB_EP0R. ." USB_FS_USB_EP0R () $" USB_FS_USB_EP0R @ hex. USB_FS_USB_EP0R USB_FS_USB_EP0R 1b. ;
+: USB_FS_USB_EP1R. ." USB_FS_USB_EP1R () $" USB_FS_USB_EP1R @ hex. USB_FS_USB_EP1R USB_FS_USB_EP1R 1b. ;
+: USB_FS_USB_EP2R. ." USB_FS_USB_EP2R () $" USB_FS_USB_EP2R @ hex. USB_FS_USB_EP2R USB_FS_USB_EP2R 1b. ;
+: USB_FS_USB_EP3R. ." USB_FS_USB_EP3R () $" USB_FS_USB_EP3R @ hex. USB_FS_USB_EP3R USB_FS_USB_EP3R 1b. ;
+: USB_FS_USB_EP4R. ." USB_FS_USB_EP4R () $" USB_FS_USB_EP4R @ hex. USB_FS_USB_EP4R USB_FS_USB_EP4R 1b. ;
+: USB_FS_USB_EP5R. ." USB_FS_USB_EP5R () $" USB_FS_USB_EP5R @ hex. USB_FS_USB_EP5R USB_FS_USB_EP5R 1b. ;
+: USB_FS_USB_EP6R. ." USB_FS_USB_EP6R () $" USB_FS_USB_EP6R @ hex. USB_FS_USB_EP6R USB_FS_USB_EP6R 1b. ;
+: USB_FS_USB_EP7R. ." USB_FS_USB_EP7R () $" USB_FS_USB_EP7R @ hex. USB_FS_USB_EP7R USB_FS_USB_EP7R 1b. ;
+: USB_FS_USB_CNTR. ." USB_FS_USB_CNTR (read-write) $" USB_FS_USB_CNTR @ hex. USB_FS_USB_CNTR USB_FS_USB_CNTR 1b. ;
+: USB_FS_ISTR. ." USB_FS_ISTR () $" USB_FS_ISTR @ hex. USB_FS_ISTR USB_FS_ISTR 1b. ;
+: USB_FS_FNR. ." USB_FS_FNR (read-only) $" USB_FS_FNR @ hex. USB_FS_FNR USB_FS_FNR 1b. ;
+: USB_FS_DADDR. ." USB_FS_DADDR (read-write) $" USB_FS_DADDR @ hex. USB_FS_DADDR USB_FS_DADDR 1b. ;
+: USB_FS_BTABLE. ." USB_FS_BTABLE (read-write) $" USB_FS_BTABLE @ hex. USB_FS_BTABLE USB_FS_BTABLE 1b. ;
+: USB_FS.
+USB_FS_USB_EP0R.
+USB_FS_USB_EP1R.
+USB_FS_USB_EP2R.
+USB_FS_USB_EP3R.
+USB_FS_USB_EP4R.
+USB_FS_USB_EP5R.
+USB_FS_USB_EP6R.
+USB_FS_USB_EP7R.
+USB_FS_USB_CNTR.
+USB_FS_ISTR.
+USB_FS_FNR.
+USB_FS_DADDR.
+USB_FS_BTABLE.
+;
+
+$40005400 constant I2C1
+I2C1 $0 +  constant  I2C1_CR1
+I2C1 $4 +  constant  I2C1_CR2
+I2C1 $8 +  constant  I2C1_OAR1
+I2C1 $C +  constant  I2C1_OAR2
+I2C1 $10 +  constant  I2C1_TIMINGR
+I2C1 $14 +  constant  I2C1_TIMEOUTR
+I2C1 $18 +  constant  I2C1_ISR
+I2C1 $1C +  constant  I2C1_ICR
+I2C1 $20 +  constant  I2C1_PECR
+I2C1 $24 +  constant  I2C1_RXDR
+I2C1 $28 +  constant  I2C1_TXDR
+: I2C1_CR1. ." I2C1_CR1 () $" I2C1_CR1 @ hex. I2C1_CR1 I2C1_CR1 1b. ;
+: I2C1_CR2. ." I2C1_CR2 (read-write) $" I2C1_CR2 @ hex. I2C1_CR2 I2C1_CR2 1b. ;
+: I2C1_OAR1. ." I2C1_OAR1 (read-write) $" I2C1_OAR1 @ hex. I2C1_OAR1 I2C1_OAR1 1b. ;
+: I2C1_OAR2. ." I2C1_OAR2 (read-write) $" I2C1_OAR2 @ hex. I2C1_OAR2 I2C1_OAR2 1b. ;
+: I2C1_TIMINGR. ." I2C1_TIMINGR (read-write) $" I2C1_TIMINGR @ hex. I2C1_TIMINGR I2C1_TIMINGR 1b. ;
+: I2C1_TIMEOUTR. ." I2C1_TIMEOUTR (read-write) $" I2C1_TIMEOUTR @ hex. I2C1_TIMEOUTR I2C1_TIMEOUTR 1b. ;
+: I2C1_ISR. ." I2C1_ISR () $" I2C1_ISR @ hex. I2C1_ISR I2C1_ISR 1b. ;
+: I2C1_ICR. ." I2C1_ICR (write-only) $" I2C1_ICR @ hex. I2C1_ICR I2C1_ICR 1b. ;
+: I2C1_PECR. ." I2C1_PECR (read-only) $" I2C1_PECR @ hex. I2C1_PECR I2C1_PECR 1b. ;
+: I2C1_RXDR. ." I2C1_RXDR (read-only) $" I2C1_RXDR @ hex. I2C1_RXDR I2C1_RXDR 1b. ;
+: I2C1_TXDR. ." I2C1_TXDR (read-write) $" I2C1_TXDR @ hex. I2C1_TXDR I2C1_TXDR 1b. ;
+: I2C1.
+I2C1_CR1.
+I2C1_CR2.
+I2C1_OAR1.
+I2C1_OAR2.
+I2C1_TIMINGR.
+I2C1_TIMEOUTR.
+I2C1_ISR.
+I2C1_ICR.
+I2C1_PECR.
+I2C1_RXDR.
+I2C1_TXDR.
+;
+
+$40005800 constant I2C2
+I2C2 $0 +  constant  I2C2_CR1
+I2C2 $4 +  constant  I2C2_CR2
+I2C2 $8 +  constant  I2C2_OAR1
+I2C2 $C +  constant  I2C2_OAR2
+I2C2 $10 +  constant  I2C2_TIMINGR
+I2C2 $14 +  constant  I2C2_TIMEOUTR
+I2C2 $18 +  constant  I2C2_ISR
+I2C2 $1C +  constant  I2C2_ICR
+I2C2 $20 +  constant  I2C2_PECR
+I2C2 $24 +  constant  I2C2_RXDR
+I2C2 $28 +  constant  I2C2_TXDR
+: I2C2_CR1. ." I2C2_CR1 () $" I2C2_CR1 @ hex. I2C2_CR1 I2C2_CR1 1b. ;
+: I2C2_CR2. ." I2C2_CR2 (read-write) $" I2C2_CR2 @ hex. I2C2_CR2 I2C2_CR2 1b. ;
+: I2C2_OAR1. ." I2C2_OAR1 (read-write) $" I2C2_OAR1 @ hex. I2C2_OAR1 I2C2_OAR1 1b. ;
+: I2C2_OAR2. ." I2C2_OAR2 (read-write) $" I2C2_OAR2 @ hex. I2C2_OAR2 I2C2_OAR2 1b. ;
+: I2C2_TIMINGR. ." I2C2_TIMINGR (read-write) $" I2C2_TIMINGR @ hex. I2C2_TIMINGR I2C2_TIMINGR 1b. ;
+: I2C2_TIMEOUTR. ." I2C2_TIMEOUTR (read-write) $" I2C2_TIMEOUTR @ hex. I2C2_TIMEOUTR I2C2_TIMEOUTR 1b. ;
+: I2C2_ISR. ." I2C2_ISR () $" I2C2_ISR @ hex. I2C2_ISR I2C2_ISR 1b. ;
+: I2C2_ICR. ." I2C2_ICR (write-only) $" I2C2_ICR @ hex. I2C2_ICR I2C2_ICR 1b. ;
+: I2C2_PECR. ." I2C2_PECR (read-only) $" I2C2_PECR @ hex. I2C2_PECR I2C2_PECR 1b. ;
+: I2C2_RXDR. ." I2C2_RXDR (read-only) $" I2C2_RXDR @ hex. I2C2_RXDR I2C2_RXDR 1b. ;
+: I2C2_TXDR. ." I2C2_TXDR (read-write) $" I2C2_TXDR @ hex. I2C2_TXDR I2C2_TXDR 1b. ;
+: I2C2.
+I2C2_CR1.
+I2C2_CR2.
+I2C2_OAR1.
+I2C2_OAR2.
+I2C2_TIMINGR.
+I2C2_TIMEOUTR.
+I2C2_ISR.
+I2C2_ICR.
+I2C2_PECR.
+I2C2_RXDR.
+I2C2_TXDR.
+;
+
+$40007800 constant I2C3
+I2C3 $0 +  constant  I2C3_CR1
+I2C3 $4 +  constant  I2C3_CR2
+I2C3 $8 +  constant  I2C3_OAR1
+I2C3 $C +  constant  I2C3_OAR2
+I2C3 $10 +  constant  I2C3_TIMINGR
+I2C3 $14 +  constant  I2C3_TIMEOUTR
+I2C3 $18 +  constant  I2C3_ISR
+I2C3 $1C +  constant  I2C3_ICR
+I2C3 $20 +  constant  I2C3_PECR
+I2C3 $24 +  constant  I2C3_RXDR
+I2C3 $28 +  constant  I2C3_TXDR
+: I2C3_CR1. ." I2C3_CR1 () $" I2C3_CR1 @ hex. I2C3_CR1 I2C3_CR1 1b. ;
+: I2C3_CR2. ." I2C3_CR2 (read-write) $" I2C3_CR2 @ hex. I2C3_CR2 I2C3_CR2 1b. ;
+: I2C3_OAR1. ." I2C3_OAR1 (read-write) $" I2C3_OAR1 @ hex. I2C3_OAR1 I2C3_OAR1 1b. ;
+: I2C3_OAR2. ." I2C3_OAR2 (read-write) $" I2C3_OAR2 @ hex. I2C3_OAR2 I2C3_OAR2 1b. ;
+: I2C3_TIMINGR. ." I2C3_TIMINGR (read-write) $" I2C3_TIMINGR @ hex. I2C3_TIMINGR I2C3_TIMINGR 1b. ;
+: I2C3_TIMEOUTR. ." I2C3_TIMEOUTR (read-write) $" I2C3_TIMEOUTR @ hex. I2C3_TIMEOUTR I2C3_TIMEOUTR 1b. ;
+: I2C3_ISR. ." I2C3_ISR () $" I2C3_ISR @ hex. I2C3_ISR I2C3_ISR 1b. ;
+: I2C3_ICR. ." I2C3_ICR (write-only) $" I2C3_ICR @ hex. I2C3_ICR I2C3_ICR 1b. ;
+: I2C3_PECR. ." I2C3_PECR (read-only) $" I2C3_PECR @ hex. I2C3_PECR I2C3_PECR 1b. ;
+: I2C3_RXDR. ." I2C3_RXDR (read-only) $" I2C3_RXDR @ hex. I2C3_RXDR I2C3_RXDR 1b. ;
+: I2C3_TXDR. ." I2C3_TXDR (read-write) $" I2C3_TXDR @ hex. I2C3_TXDR I2C3_TXDR 1b. ;
+: I2C3.
+I2C3_CR1.
+I2C3_CR2.
+I2C3_OAR1.
+I2C3_OAR2.
+I2C3_TIMINGR.
+I2C3_TIMEOUTR.
+I2C3_ISR.
+I2C3_ICR.
+I2C3_PECR.
+I2C3_RXDR.
+I2C3_TXDR.
+;
+
+$40003000 constant IWDG
+IWDG $0 +  constant  IWDG_KR
+IWDG $4 +  constant  IWDG_PR
+IWDG $8 +  constant  IWDG_RLR
+IWDG $C +  constant  IWDG_SR
+IWDG $10 +  constant  IWDG_WINR
+: IWDG_KR. ." IWDG_KR (write-only) $" IWDG_KR @ hex. IWDG_KR IWDG_KR 1b. ;
+: IWDG_PR. ." IWDG_PR (read-write) $" IWDG_PR @ hex. IWDG_PR IWDG_PR 1b. ;
+: IWDG_RLR. ." IWDG_RLR (read-write) $" IWDG_RLR @ hex. IWDG_RLR IWDG_RLR 1b. ;
+: IWDG_SR. ." IWDG_SR (read-only) $" IWDG_SR @ hex. IWDG_SR IWDG_SR 1b. ;
+: IWDG_WINR. ." IWDG_WINR (read-write) $" IWDG_WINR @ hex. IWDG_WINR IWDG_WINR 1b. ;
+: IWDG.
+IWDG_KR.
+IWDG_PR.
+IWDG_RLR.
+IWDG_SR.
+IWDG_WINR.
+;
+
+$40002C00 constant WWDG
+WWDG $0 +  constant  WWDG_CR
+WWDG $4 +  constant  WWDG_CFR
+WWDG $8 +  constant  WWDG_SR
+: WWDG_CR. ." WWDG_CR (read-write) $" WWDG_CR @ hex. WWDG_CR WWDG_CR 1b. ;
+: WWDG_CFR. ." WWDG_CFR (read-write) $" WWDG_CFR @ hex. WWDG_CFR WWDG_CFR 1b. ;
+: WWDG_SR. ." WWDG_SR (read-write) $" WWDG_SR @ hex. WWDG_SR WWDG_SR 1b. ;
+: WWDG.
+WWDG_CR.
+WWDG_CFR.
+WWDG_SR.
+;
+
+$40002800 constant RTC
+RTC $0 +  constant  RTC_TR
+RTC $4 +  constant  RTC_DR
+RTC $8 +  constant  RTC_CR
+RTC $C +  constant  RTC_ISR
+RTC $10 +  constant  RTC_PRER
+RTC $14 +  constant  RTC_WUTR
+RTC $1C +  constant  RTC_ALRMAR
+RTC $20 +  constant  RTC_ALRMBR
+RTC $24 +  constant  RTC_WPR
+RTC $28 +  constant  RTC_SSR
+RTC $2C +  constant  RTC_SHIFTR
+RTC $30 +  constant  RTC_TSTR
+RTC $34 +  constant  RTC_TSDR
+RTC $38 +  constant  RTC_TSSSR
+RTC $3C +  constant  RTC_CALR
+RTC $40 +  constant  RTC_TAFCR
+RTC $44 +  constant  RTC_ALRMASSR
+RTC $48 +  constant  RTC_ALRMBSSR
+RTC $50 +  constant  RTC_BKP0R
+RTC $54 +  constant  RTC_BKP1R
+RTC $58 +  constant  RTC_BKP2R
+RTC $5C +  constant  RTC_BKP3R
+RTC $60 +  constant  RTC_BKP4R
+RTC $64 +  constant  RTC_BKP5R
+RTC $68 +  constant  RTC_BKP6R
+RTC $6C +  constant  RTC_BKP7R
+RTC $70 +  constant  RTC_BKP8R
+RTC $74 +  constant  RTC_BKP9R
+RTC $78 +  constant  RTC_BKP10R
+RTC $7C +  constant  RTC_BKP11R
+RTC $80 +  constant  RTC_BKP12R
+RTC $84 +  constant  RTC_BKP13R
+RTC $88 +  constant  RTC_BKP14R
+RTC $8C +  constant  RTC_BKP15R
+RTC $90 +  constant  RTC_BKP16R
+RTC $94 +  constant  RTC_BKP17R
+RTC $98 +  constant  RTC_BKP18R
+RTC $9C +  constant  RTC_BKP19R
+RTC $A0 +  constant  RTC_BKP20R
+RTC $A4 +  constant  RTC_BKP21R
+RTC $A8 +  constant  RTC_BKP22R
+RTC $AC +  constant  RTC_BKP23R
+RTC $B0 +  constant  RTC_BKP24R
+RTC $B4 +  constant  RTC_BKP25R
+RTC $B8 +  constant  RTC_BKP26R
+RTC $BC +  constant  RTC_BKP27R
+RTC $C0 +  constant  RTC_BKP28R
+RTC $C4 +  constant  RTC_BKP29R
+RTC $C8 +  constant  RTC_BKP30R
+RTC $CC +  constant  RTC_BKP31R
+: RTC_TR. ." RTC_TR (read-write) $" RTC_TR @ hex. RTC_TR RTC_TR 1b. ;
+: RTC_DR. ." RTC_DR (read-write) $" RTC_DR @ hex. RTC_DR RTC_DR 1b. ;
+: RTC_CR. ." RTC_CR (read-write) $" RTC_CR @ hex. RTC_CR RTC_CR 1b. ;
+: RTC_ISR. ." RTC_ISR () $" RTC_ISR @ hex. RTC_ISR RTC_ISR 1b. ;
+: RTC_PRER. ." RTC_PRER (read-write) $" RTC_PRER @ hex. RTC_PRER RTC_PRER 1b. ;
+: RTC_WUTR. ." RTC_WUTR (read-write) $" RTC_WUTR @ hex. RTC_WUTR RTC_WUTR 1b. ;
+: RTC_ALRMAR. ." RTC_ALRMAR (read-write) $" RTC_ALRMAR @ hex. RTC_ALRMAR RTC_ALRMAR 1b. ;
+: RTC_ALRMBR. ." RTC_ALRMBR (read-write) $" RTC_ALRMBR @ hex. RTC_ALRMBR RTC_ALRMBR 1b. ;
+: RTC_WPR. ." RTC_WPR (write-only) $" RTC_WPR @ hex. RTC_WPR RTC_WPR 1b. ;
+: RTC_SSR. ." RTC_SSR (read-only) $" RTC_SSR @ hex. RTC_SSR RTC_SSR 1b. ;
+: RTC_SHIFTR. ." RTC_SHIFTR (write-only) $" RTC_SHIFTR @ hex. RTC_SHIFTR RTC_SHIFTR 1b. ;
+: RTC_TSTR. ." RTC_TSTR (read-only) $" RTC_TSTR @ hex. RTC_TSTR RTC_TSTR 1b. ;
+: RTC_TSDR. ." RTC_TSDR (read-only) $" RTC_TSDR @ hex. RTC_TSDR RTC_TSDR 1b. ;
+: RTC_TSSSR. ." RTC_TSSSR (read-only) $" RTC_TSSSR @ hex. RTC_TSSSR RTC_TSSSR 1b. ;
+: RTC_CALR. ." RTC_CALR (read-write) $" RTC_CALR @ hex. RTC_CALR RTC_CALR 1b. ;
+: RTC_TAFCR. ." RTC_TAFCR (read-write) $" RTC_TAFCR @ hex. RTC_TAFCR RTC_TAFCR 1b. ;
+: RTC_ALRMASSR. ." RTC_ALRMASSR (read-write) $" RTC_ALRMASSR @ hex. RTC_ALRMASSR RTC_ALRMASSR 1b. ;
+: RTC_ALRMBSSR. ." RTC_ALRMBSSR (read-write) $" RTC_ALRMBSSR @ hex. RTC_ALRMBSSR RTC_ALRMBSSR 1b. ;
+: RTC_BKP0R. ." RTC_BKP0R (read-write) $" RTC_BKP0R @ hex. RTC_BKP0R RTC_BKP0R 1b. ;
+: RTC_BKP1R. ." RTC_BKP1R (read-write) $" RTC_BKP1R @ hex. RTC_BKP1R RTC_BKP1R 1b. ;
+: RTC_BKP2R. ." RTC_BKP2R (read-write) $" RTC_BKP2R @ hex. RTC_BKP2R RTC_BKP2R 1b. ;
+: RTC_BKP3R. ." RTC_BKP3R (read-write) $" RTC_BKP3R @ hex. RTC_BKP3R RTC_BKP3R 1b. ;
+: RTC_BKP4R. ." RTC_BKP4R (read-write) $" RTC_BKP4R @ hex. RTC_BKP4R RTC_BKP4R 1b. ;
+: RTC_BKP5R. ." RTC_BKP5R (read-write) $" RTC_BKP5R @ hex. RTC_BKP5R RTC_BKP5R 1b. ;
+: RTC_BKP6R. ." RTC_BKP6R (read-write) $" RTC_BKP6R @ hex. RTC_BKP6R RTC_BKP6R 1b. ;
+: RTC_BKP7R. ." RTC_BKP7R (read-write) $" RTC_BKP7R @ hex. RTC_BKP7R RTC_BKP7R 1b. ;
+: RTC_BKP8R. ." RTC_BKP8R (read-write) $" RTC_BKP8R @ hex. RTC_BKP8R RTC_BKP8R 1b. ;
+: RTC_BKP9R. ." RTC_BKP9R (read-write) $" RTC_BKP9R @ hex. RTC_BKP9R RTC_BKP9R 1b. ;
+: RTC_BKP10R. ." RTC_BKP10R (read-write) $" RTC_BKP10R @ hex. RTC_BKP10R RTC_BKP10R 1b. ;
+: RTC_BKP11R. ." RTC_BKP11R (read-write) $" RTC_BKP11R @ hex. RTC_BKP11R RTC_BKP11R 1b. ;
+: RTC_BKP12R. ." RTC_BKP12R (read-write) $" RTC_BKP12R @ hex. RTC_BKP12R RTC_BKP12R 1b. ;
+: RTC_BKP13R. ." RTC_BKP13R (read-write) $" RTC_BKP13R @ hex. RTC_BKP13R RTC_BKP13R 1b. ;
+: RTC_BKP14R. ." RTC_BKP14R (read-write) $" RTC_BKP14R @ hex. RTC_BKP14R RTC_BKP14R 1b. ;
+: RTC_BKP15R. ." RTC_BKP15R (read-write) $" RTC_BKP15R @ hex. RTC_BKP15R RTC_BKP15R 1b. ;
+: RTC_BKP16R. ." RTC_BKP16R (read-write) $" RTC_BKP16R @ hex. RTC_BKP16R RTC_BKP16R 1b. ;
+: RTC_BKP17R. ." RTC_BKP17R (read-write) $" RTC_BKP17R @ hex. RTC_BKP17R RTC_BKP17R 1b. ;
+: RTC_BKP18R. ." RTC_BKP18R (read-write) $" RTC_BKP18R @ hex. RTC_BKP18R RTC_BKP18R 1b. ;
+: RTC_BKP19R. ." RTC_BKP19R (read-write) $" RTC_BKP19R @ hex. RTC_BKP19R RTC_BKP19R 1b. ;
+: RTC_BKP20R. ." RTC_BKP20R (read-write) $" RTC_BKP20R @ hex. RTC_BKP20R RTC_BKP20R 1b. ;
+: RTC_BKP21R. ." RTC_BKP21R (read-write) $" RTC_BKP21R @ hex. RTC_BKP21R RTC_BKP21R 1b. ;
+: RTC_BKP22R. ." RTC_BKP22R (read-write) $" RTC_BKP22R @ hex. RTC_BKP22R RTC_BKP22R 1b. ;
+: RTC_BKP23R. ." RTC_BKP23R (read-write) $" RTC_BKP23R @ hex. RTC_BKP23R RTC_BKP23R 1b. ;
+: RTC_BKP24R. ." RTC_BKP24R (read-write) $" RTC_BKP24R @ hex. RTC_BKP24R RTC_BKP24R 1b. ;
+: RTC_BKP25R. ." RTC_BKP25R (read-write) $" RTC_BKP25R @ hex. RTC_BKP25R RTC_BKP25R 1b. ;
+: RTC_BKP26R. ." RTC_BKP26R (read-write) $" RTC_BKP26R @ hex. RTC_BKP26R RTC_BKP26R 1b. ;
+: RTC_BKP27R. ." RTC_BKP27R (read-write) $" RTC_BKP27R @ hex. RTC_BKP27R RTC_BKP27R 1b. ;
+: RTC_BKP28R. ." RTC_BKP28R (read-write) $" RTC_BKP28R @ hex. RTC_BKP28R RTC_BKP28R 1b. ;
+: RTC_BKP29R. ." RTC_BKP29R (read-write) $" RTC_BKP29R @ hex. RTC_BKP29R RTC_BKP29R 1b. ;
+: RTC_BKP30R. ." RTC_BKP30R (read-write) $" RTC_BKP30R @ hex. RTC_BKP30R RTC_BKP30R 1b. ;
+: RTC_BKP31R. ." RTC_BKP31R (read-write) $" RTC_BKP31R @ hex. RTC_BKP31R RTC_BKP31R 1b. ;
+: RTC.
+RTC_TR.
+RTC_DR.
+RTC_CR.
+RTC_ISR.
+RTC_PRER.
+RTC_WUTR.
+RTC_ALRMAR.
+RTC_ALRMBR.
+RTC_WPR.
+RTC_SSR.
+RTC_SHIFTR.
+RTC_TSTR.
+RTC_TSDR.
+RTC_TSSSR.
+RTC_CALR.
+RTC_TAFCR.
+RTC_ALRMASSR.
+RTC_ALRMBSSR.
+RTC_BKP0R.
+RTC_BKP1R.
+RTC_BKP2R.
+RTC_BKP3R.
+RTC_BKP4R.
+RTC_BKP5R.
+RTC_BKP6R.
+RTC_BKP7R.
+RTC_BKP8R.
+RTC_BKP9R.
+RTC_BKP10R.
+RTC_BKP11R.
+RTC_BKP12R.
+RTC_BKP13R.
+RTC_BKP14R.
+RTC_BKP15R.
+RTC_BKP16R.
+RTC_BKP17R.
+RTC_BKP18R.
+RTC_BKP19R.
+RTC_BKP20R.
+RTC_BKP21R.
+RTC_BKP22R.
+RTC_BKP23R.
+RTC_BKP24R.
+RTC_BKP25R.
+RTC_BKP26R.
+RTC_BKP27R.
+RTC_BKP28R.
+RTC_BKP29R.
+RTC_BKP30R.
+RTC_BKP31R.
+;
+
+$40001000 constant TIM6
+TIM6 $0 +  constant  TIM6_CR1
+TIM6 $4 +  constant  TIM6_CR2
+TIM6 $C +  constant  TIM6_DIER
+TIM6 $10 +  constant  TIM6_SR
+TIM6 $14 +  constant  TIM6_EGR
+TIM6 $24 +  constant  TIM6_CNT
+TIM6 $28 +  constant  TIM6_PSC
+TIM6 $2C +  constant  TIM6_ARR
+: TIM6_CR1. ." TIM6_CR1 (read-write) $" TIM6_CR1 @ hex. TIM6_CR1 TIM6_CR1 1b. ;
+: TIM6_CR2. ." TIM6_CR2 (read-write) $" TIM6_CR2 @ hex. TIM6_CR2 TIM6_CR2 1b. ;
+: TIM6_DIER. ." TIM6_DIER (read-write) $" TIM6_DIER @ hex. TIM6_DIER TIM6_DIER 1b. ;
+: TIM6_SR. ." TIM6_SR (read-write) $" TIM6_SR @ hex. TIM6_SR TIM6_SR 1b. ;
+: TIM6_EGR. ." TIM6_EGR (write-only) $" TIM6_EGR @ hex. TIM6_EGR TIM6_EGR 1b. ;
+: TIM6_CNT. ." TIM6_CNT () $" TIM6_CNT @ hex. TIM6_CNT TIM6_CNT 1b. ;
+: TIM6_PSC. ." TIM6_PSC (read-write) $" TIM6_PSC @ hex. TIM6_PSC TIM6_PSC 1b. ;
+: TIM6_ARR. ." TIM6_ARR (read-write) $" TIM6_ARR @ hex. TIM6_ARR TIM6_ARR 1b. ;
+: TIM6.
+TIM6_CR1.
+TIM6_CR2.
+TIM6_DIER.
+TIM6_SR.
+TIM6_EGR.
+TIM6_CNT.
+TIM6_PSC.
+TIM6_ARR.
+;
+
+$40001400 constant TIM7
+TIM7 $0 +  constant  TIM7_CR1
+TIM7 $4 +  constant  TIM7_CR2
+TIM7 $C +  constant  TIM7_DIER
+TIM7 $10 +  constant  TIM7_SR
+TIM7 $14 +  constant  TIM7_EGR
+TIM7 $24 +  constant  TIM7_CNT
+TIM7 $28 +  constant  TIM7_PSC
+TIM7 $2C +  constant  TIM7_ARR
+: TIM7_CR1. ." TIM7_CR1 (read-write) $" TIM7_CR1 @ hex. TIM7_CR1 TIM7_CR1 1b. ;
+: TIM7_CR2. ." TIM7_CR2 (read-write) $" TIM7_CR2 @ hex. TIM7_CR2 TIM7_CR2 1b. ;
+: TIM7_DIER. ." TIM7_DIER (read-write) $" TIM7_DIER @ hex. TIM7_DIER TIM7_DIER 1b. ;
+: TIM7_SR. ." TIM7_SR (read-write) $" TIM7_SR @ hex. TIM7_SR TIM7_SR 1b. ;
+: TIM7_EGR. ." TIM7_EGR (write-only) $" TIM7_EGR @ hex. TIM7_EGR TIM7_EGR 1b. ;
+: TIM7_CNT. ." TIM7_CNT () $" TIM7_CNT @ hex. TIM7_CNT TIM7_CNT 1b. ;
+: TIM7_PSC. ." TIM7_PSC (read-write) $" TIM7_PSC @ hex. TIM7_PSC TIM7_PSC 1b. ;
+: TIM7_ARR. ." TIM7_ARR (read-write) $" TIM7_ARR @ hex. TIM7_ARR TIM7_ARR 1b. ;
+: TIM7.
+TIM7_CR1.
+TIM7_CR2.
+TIM7_DIER.
+TIM7_SR.
+TIM7_EGR.
+TIM7_CNT.
+TIM7_PSC.
+TIM7_ARR.
+;
+
+$40007400 constant DAC
+DAC $0 +  constant  DAC_CR
+DAC $4 +  constant  DAC_SWTRIGR
+DAC $8 +  constant  DAC_DHR12R1
+DAC $C +  constant  DAC_DHR12L1
+DAC $10 +  constant  DAC_DHR8R1
+DAC $14 +  constant  DAC_DHR12R2
+DAC $18 +  constant  DAC_DHR12L2
+DAC $1C +  constant  DAC_DHR8R2
+DAC $20 +  constant  DAC_DHR12RD
+DAC $24 +  constant  DAC_DHR12LD
+DAC $28 +  constant  DAC_DHR8RD
+DAC $2C +  constant  DAC_DOR1
+DAC $30 +  constant  DAC_DOR2
+DAC $34 +  constant  DAC_SR
+: DAC_CR. ." DAC_CR (read-write) $" DAC_CR @ hex. DAC_CR DAC_CR 1b. ;
+: DAC_SWTRIGR. ." DAC_SWTRIGR (write-only) $" DAC_SWTRIGR @ hex. DAC_SWTRIGR DAC_SWTRIGR 1b. ;
+: DAC_DHR12R1. ." DAC_DHR12R1 (read-write) $" DAC_DHR12R1 @ hex. DAC_DHR12R1 DAC_DHR12R1 1b. ;
+: DAC_DHR12L1. ." DAC_DHR12L1 (read-write) $" DAC_DHR12L1 @ hex. DAC_DHR12L1 DAC_DHR12L1 1b. ;
+: DAC_DHR8R1. ." DAC_DHR8R1 (read-write) $" DAC_DHR8R1 @ hex. DAC_DHR8R1 DAC_DHR8R1 1b. ;
+: DAC_DHR12R2. ." DAC_DHR12R2 (read-write) $" DAC_DHR12R2 @ hex. DAC_DHR12R2 DAC_DHR12R2 1b. ;
+: DAC_DHR12L2. ." DAC_DHR12L2 (read-write) $" DAC_DHR12L2 @ hex. DAC_DHR12L2 DAC_DHR12L2 1b. ;
+: DAC_DHR8R2. ." DAC_DHR8R2 (read-write) $" DAC_DHR8R2 @ hex. DAC_DHR8R2 DAC_DHR8R2 1b. ;
+: DAC_DHR12RD. ." DAC_DHR12RD (read-write) $" DAC_DHR12RD @ hex. DAC_DHR12RD DAC_DHR12RD 1b. ;
+: DAC_DHR12LD. ." DAC_DHR12LD (read-write) $" DAC_DHR12LD @ hex. DAC_DHR12LD DAC_DHR12LD 1b. ;
+: DAC_DHR8RD. ." DAC_DHR8RD (read-write) $" DAC_DHR8RD @ hex. DAC_DHR8RD DAC_DHR8RD 1b. ;
+: DAC_DOR1. ." DAC_DOR1 (read-only) $" DAC_DOR1 @ hex. DAC_DOR1 DAC_DOR1 1b. ;
+: DAC_DOR2. ." DAC_DOR2 (read-only) $" DAC_DOR2 @ hex. DAC_DOR2 DAC_DOR2 1b. ;
+: DAC_SR. ." DAC_SR (read-write) $" DAC_SR @ hex. DAC_SR DAC_SR 1b. ;
+: DAC.
+DAC_CR.
+DAC_SWTRIGR.
+DAC_DHR12R1.
+DAC_DHR12L1.
+DAC_DHR8R1.
+DAC_DHR12R2.
+DAC_DHR12L2.
+DAC_DHR8R2.
+DAC_DHR12RD.
+DAC_DHR12LD.
+DAC_DHR8RD.
+DAC_DOR1.
+DAC_DOR2.
+DAC_SR.
+;
+
+$E000E000 constant NVIC
+NVIC $4 +  constant  NVIC_ICTR
+NVIC $F00 +  constant  NVIC_STIR
+NVIC $100 +  constant  NVIC_ISER0
+NVIC $104 +  constant  NVIC_ISER1
+NVIC $108 +  constant  NVIC_ISER2
+NVIC $180 +  constant  NVIC_ICER0
+NVIC $184 +  constant  NVIC_ICER1
+NVIC $188 +  constant  NVIC_ICER2
+NVIC $200 +  constant  NVIC_ISPR0
+NVIC $204 +  constant  NVIC_ISPR1
+NVIC $208 +  constant  NVIC_ISPR2
+NVIC $280 +  constant  NVIC_ICPR0
+NVIC $284 +  constant  NVIC_ICPR1
+NVIC $288 +  constant  NVIC_ICPR2
+NVIC $300 +  constant  NVIC_IABR0
+NVIC $304 +  constant  NVIC_IABR1
+NVIC $308 +  constant  NVIC_IABR2
+NVIC $400 +  constant  NVIC_IPR0
+NVIC $404 +  constant  NVIC_IPR1
+NVIC $408 +  constant  NVIC_IPR2
+NVIC $40C +  constant  NVIC_IPR3
+NVIC $410 +  constant  NVIC_IPR4
+NVIC $414 +  constant  NVIC_IPR5
+NVIC $418 +  constant  NVIC_IPR6
+NVIC $41C +  constant  NVIC_IPR7
+NVIC $420 +  constant  NVIC_IPR8
+NVIC $424 +  constant  NVIC_IPR9
+NVIC $428 +  constant  NVIC_IPR10
+NVIC $42C +  constant  NVIC_IPR11
+NVIC $430 +  constant  NVIC_IPR12
+NVIC $434 +  constant  NVIC_IPR13
+NVIC $438 +  constant  NVIC_IPR14
+NVIC $43C +  constant  NVIC_IPR15
+NVIC $440 +  constant  NVIC_IPR16
+NVIC $444 +  constant  NVIC_IPR17
+NVIC $448 +  constant  NVIC_IPR18
+NVIC $44C +  constant  NVIC_IPR19
+NVIC $450 +  constant  NVIC_IPR20
+: NVIC_ICTR. ." NVIC_ICTR (read-only) $" NVIC_ICTR @ hex. NVIC_ICTR NVIC_ICTR 1b. ;
+: NVIC_STIR. ." NVIC_STIR (write-only) $" NVIC_STIR @ hex. NVIC_STIR NVIC_STIR 1b. ;
+: NVIC_ISER0. ." NVIC_ISER0 (read-write) $" NVIC_ISER0 @ hex. NVIC_ISER0 NVIC_ISER0 1b. ;
+: NVIC_ISER1. ." NVIC_ISER1 (read-write) $" NVIC_ISER1 @ hex. NVIC_ISER1 NVIC_ISER1 1b. ;
+: NVIC_ISER2. ." NVIC_ISER2 (read-write) $" NVIC_ISER2 @ hex. NVIC_ISER2 NVIC_ISER2 1b. ;
+: NVIC_ICER0. ." NVIC_ICER0 (read-write) $" NVIC_ICER0 @ hex. NVIC_ICER0 NVIC_ICER0 1b. ;
+: NVIC_ICER1. ." NVIC_ICER1 (read-write) $" NVIC_ICER1 @ hex. NVIC_ICER1 NVIC_ICER1 1b. ;
+: NVIC_ICER2. ." NVIC_ICER2 (read-write) $" NVIC_ICER2 @ hex. NVIC_ICER2 NVIC_ICER2 1b. ;
+: NVIC_ISPR0. ." NVIC_ISPR0 (read-write) $" NVIC_ISPR0 @ hex. NVIC_ISPR0 NVIC_ISPR0 1b. ;
+: NVIC_ISPR1. ." NVIC_ISPR1 (read-write) $" NVIC_ISPR1 @ hex. NVIC_ISPR1 NVIC_ISPR1 1b. ;
+: NVIC_ISPR2. ." NVIC_ISPR2 (read-write) $" NVIC_ISPR2 @ hex. NVIC_ISPR2 NVIC_ISPR2 1b. ;
+: NVIC_ICPR0. ." NVIC_ICPR0 (read-write) $" NVIC_ICPR0 @ hex. NVIC_ICPR0 NVIC_ICPR0 1b. ;
+: NVIC_ICPR1. ." NVIC_ICPR1 (read-write) $" NVIC_ICPR1 @ hex. NVIC_ICPR1 NVIC_ICPR1 1b. ;
+: NVIC_ICPR2. ." NVIC_ICPR2 (read-write) $" NVIC_ICPR2 @ hex. NVIC_ICPR2 NVIC_ICPR2 1b. ;
+: NVIC_IABR0. ." NVIC_IABR0 (read-only) $" NVIC_IABR0 @ hex. NVIC_IABR0 NVIC_IABR0 1b. ;
+: NVIC_IABR1. ." NVIC_IABR1 (read-only) $" NVIC_IABR1 @ hex. NVIC_IABR1 NVIC_IABR1 1b. ;
+: NVIC_IABR2. ." NVIC_IABR2 (read-only) $" NVIC_IABR2 @ hex. NVIC_IABR2 NVIC_IABR2 1b. ;
+: NVIC_IPR0. ." NVIC_IPR0 (read-write) $" NVIC_IPR0 @ hex. NVIC_IPR0 NVIC_IPR0 1b. ;
+: NVIC_IPR1. ." NVIC_IPR1 (read-write) $" NVIC_IPR1 @ hex. NVIC_IPR1 NVIC_IPR1 1b. ;
+: NVIC_IPR2. ." NVIC_IPR2 (read-write) $" NVIC_IPR2 @ hex. NVIC_IPR2 NVIC_IPR2 1b. ;
+: NVIC_IPR3. ." NVIC_IPR3 (read-write) $" NVIC_IPR3 @ hex. NVIC_IPR3 NVIC_IPR3 1b. ;
+: NVIC_IPR4. ." NVIC_IPR4 (read-write) $" NVIC_IPR4 @ hex. NVIC_IPR4 NVIC_IPR4 1b. ;
+: NVIC_IPR5. ." NVIC_IPR5 (read-write) $" NVIC_IPR5 @ hex. NVIC_IPR5 NVIC_IPR5 1b. ;
+: NVIC_IPR6. ." NVIC_IPR6 (read-write) $" NVIC_IPR6 @ hex. NVIC_IPR6 NVIC_IPR6 1b. ;
+: NVIC_IPR7. ." NVIC_IPR7 (read-write) $" NVIC_IPR7 @ hex. NVIC_IPR7 NVIC_IPR7 1b. ;
+: NVIC_IPR8. ." NVIC_IPR8 (read-write) $" NVIC_IPR8 @ hex. NVIC_IPR8 NVIC_IPR8 1b. ;
+: NVIC_IPR9. ." NVIC_IPR9 (read-write) $" NVIC_IPR9 @ hex. NVIC_IPR9 NVIC_IPR9 1b. ;
+: NVIC_IPR10. ." NVIC_IPR10 (read-write) $" NVIC_IPR10 @ hex. NVIC_IPR10 NVIC_IPR10 1b. ;
+: NVIC_IPR11. ." NVIC_IPR11 (read-write) $" NVIC_IPR11 @ hex. NVIC_IPR11 NVIC_IPR11 1b. ;
+: NVIC_IPR12. ." NVIC_IPR12 (read-write) $" NVIC_IPR12 @ hex. NVIC_IPR12 NVIC_IPR12 1b. ;
+: NVIC_IPR13. ." NVIC_IPR13 (read-write) $" NVIC_IPR13 @ hex. NVIC_IPR13 NVIC_IPR13 1b. ;
+: NVIC_IPR14. ." NVIC_IPR14 (read-write) $" NVIC_IPR14 @ hex. NVIC_IPR14 NVIC_IPR14 1b. ;
+: NVIC_IPR15. ." NVIC_IPR15 (read-write) $" NVIC_IPR15 @ hex. NVIC_IPR15 NVIC_IPR15 1b. ;
+: NVIC_IPR16. ." NVIC_IPR16 (read-write) $" NVIC_IPR16 @ hex. NVIC_IPR16 NVIC_IPR16 1b. ;
+: NVIC_IPR17. ." NVIC_IPR17 (read-write) $" NVIC_IPR17 @ hex. NVIC_IPR17 NVIC_IPR17 1b. ;
+: NVIC_IPR18. ." NVIC_IPR18 (read-write) $" NVIC_IPR18 @ hex. NVIC_IPR18 NVIC_IPR18 1b. ;
+: NVIC_IPR19. ." NVIC_IPR19 (read-write) $" NVIC_IPR19 @ hex. NVIC_IPR19 NVIC_IPR19 1b. ;
+: NVIC_IPR20. ." NVIC_IPR20 (read-write) $" NVIC_IPR20 @ hex. NVIC_IPR20 NVIC_IPR20 1b. ;
+: NVIC.
+NVIC_ICTR.
+NVIC_STIR.
+NVIC_ISER0.
+NVIC_ISER1.
+NVIC_ISER2.
+NVIC_ICER0.
+NVIC_ICER1.
+NVIC_ICER2.
+NVIC_ISPR0.
+NVIC_ISPR1.
+NVIC_ISPR2.
+NVIC_ICPR0.
+NVIC_ICPR1.
+NVIC_ICPR2.
+NVIC_IABR0.
+NVIC_IABR1.
+NVIC_IABR2.
+NVIC_IPR0.
+NVIC_IPR1.
+NVIC_IPR2.
+NVIC_IPR3.
+NVIC_IPR4.
+NVIC_IPR5.
+NVIC_IPR6.
+NVIC_IPR7.
+NVIC_IPR8.
+NVIC_IPR9.
+NVIC_IPR10.
+NVIC_IPR11.
+NVIC_IPR12.
+NVIC_IPR13.
+NVIC_IPR14.
+NVIC_IPR15.
+NVIC_IPR16.
+NVIC_IPR17.
+NVIC_IPR18.
+NVIC_IPR19.
+NVIC_IPR20.
+;
+
+$E000ED88 constant FPU
+FPU $0 +  constant  FPU_CPACR
+FPU $1AC +  constant  FPU_FPCCR
+FPU $1B0 +  constant  FPU_FPCAR
+FPU $1B4 +  constant  FPU_FPDSCR
+FPU $1B8 +  constant  FPU_MVFR0
+FPU $1BC +  constant  FPU_MVFR1
+: FPU_CPACR. ." FPU_CPACR (read-write) $" FPU_CPACR @ hex. FPU_CPACR FPU_CPACR 1b. ;
+: FPU_FPCCR. ." FPU_FPCCR (read-write) $" FPU_FPCCR @ hex. FPU_FPCCR FPU_FPCCR 1b. ;
+: FPU_FPCAR. ." FPU_FPCAR (read-write) $" FPU_FPCAR @ hex. FPU_FPCAR FPU_FPCAR 1b. ;
+: FPU_FPDSCR. ." FPU_FPDSCR (read-write) $" FPU_FPDSCR @ hex. FPU_FPDSCR FPU_FPDSCR 1b. ;
+: FPU_MVFR0. ." FPU_MVFR0 (read-only) $" FPU_MVFR0 @ hex. FPU_MVFR0 FPU_MVFR0 1b. ;
+: FPU_MVFR1. ." FPU_MVFR1 (read-only) $" FPU_MVFR1 @ hex. FPU_MVFR1 FPU_MVFR1 1b. ;
+: FPU.
+FPU_CPACR.
+FPU_FPCCR.
+FPU_FPCAR.
+FPU_FPDSCR.
+FPU_MVFR0.
+FPU_MVFR1.
+;
+
+$E0042000 constant DBGMCU
+DBGMCU $0 +  constant  DBGMCU_IDCODE
+DBGMCU $4 +  constant  DBGMCU_CR
+DBGMCU $8 +  constant  DBGMCU_APB1FZ
+DBGMCU $C +  constant  DBGMCU_APB2FZ
+: DBGMCU_IDCODE. ." DBGMCU_IDCODE (read-only) $" DBGMCU_IDCODE @ hex. DBGMCU_IDCODE DBGMCU_IDCODE 1b. ;
+: DBGMCU_CR. ." DBGMCU_CR (read-write) $" DBGMCU_CR @ hex. DBGMCU_CR DBGMCU_CR 1b. ;
+: DBGMCU_APB1FZ. ." DBGMCU_APB1FZ (read-write) $" DBGMCU_APB1FZ @ hex. DBGMCU_APB1FZ DBGMCU_APB1FZ 1b. ;
+: DBGMCU_APB2FZ. ." DBGMCU_APB2FZ (read-write) $" DBGMCU_APB2FZ @ hex. DBGMCU_APB2FZ DBGMCU_APB2FZ 1b. ;
+: DBGMCU.
+DBGMCU_IDCODE.
+DBGMCU_CR.
+DBGMCU_APB1FZ.
+DBGMCU_APB2FZ.
+;
+
+$40012C00 constant TIM1
+TIM1 $0 +  constant  TIM1_CR1
+TIM1 $4 +  constant  TIM1_CR2
+TIM1 $8 +  constant  TIM1_SMCR
+TIM1 $C +  constant  TIM1_DIER
+TIM1 $10 +  constant  TIM1_SR
+TIM1 $14 +  constant  TIM1_EGR
+TIM1 $18 +  constant  TIM1_CCMR1_Output
+TIM1 $18 +  constant  TIM1_CCMR1_Input
+TIM1 $1C +  constant  TIM1_CCMR2_Output
+TIM1 $1C +  constant  TIM1_CCMR2_Input
+TIM1 $20 +  constant  TIM1_CCER
+TIM1 $24 +  constant  TIM1_CNT
+TIM1 $28 +  constant  TIM1_PSC
+TIM1 $2C +  constant  TIM1_ARR
+TIM1 $30 +  constant  TIM1_RCR
+TIM1 $34 +  constant  TIM1_CCR1
+TIM1 $38 +  constant  TIM1_CCR2
+TIM1 $3C +  constant  TIM1_CCR3
+TIM1 $40 +  constant  TIM1_CCR4
+TIM1 $44 +  constant  TIM1_BDTR
+TIM1 $48 +  constant  TIM1_DCR
+TIM1 $4C +  constant  TIM1_DMAR
+TIM1 $54 +  constant  TIM1_CCMR3_Output
+TIM1 $58 +  constant  TIM1_CCR5
+TIM1 $5C +  constant  TIM1_CCR6
+TIM1 $60 +  constant  TIM1_OR
+: TIM1_CR1. ." TIM1_CR1 (read-write) $" TIM1_CR1 @ hex. TIM1_CR1 TIM1_CR1 1b. ;
+: TIM1_CR2. ." TIM1_CR2 (read-write) $" TIM1_CR2 @ hex. TIM1_CR2 TIM1_CR2 1b. ;
+: TIM1_SMCR. ." TIM1_SMCR (read-write) $" TIM1_SMCR @ hex. TIM1_SMCR TIM1_SMCR 1b. ;
+: TIM1_DIER. ." TIM1_DIER (read-write) $" TIM1_DIER @ hex. TIM1_DIER TIM1_DIER 1b. ;
+: TIM1_SR. ." TIM1_SR (read-write) $" TIM1_SR @ hex. TIM1_SR TIM1_SR 1b. ;
+: TIM1_EGR. ." TIM1_EGR (write-only) $" TIM1_EGR @ hex. TIM1_EGR TIM1_EGR 1b. ;
+: TIM1_CCMR1_Output. ." TIM1_CCMR1_Output (read-write) $" TIM1_CCMR1_Output @ hex. TIM1_CCMR1_Output TIM1_CCMR1_Output 1b. ;
+: TIM1_CCMR1_Input. ." TIM1_CCMR1_Input (read-write) $" TIM1_CCMR1_Input @ hex. TIM1_CCMR1_Input TIM1_CCMR1_Input 1b. ;
+: TIM1_CCMR2_Output. ." TIM1_CCMR2_Output (read-write) $" TIM1_CCMR2_Output @ hex. TIM1_CCMR2_Output TIM1_CCMR2_Output 1b. ;
+: TIM1_CCMR2_Input. ." TIM1_CCMR2_Input (read-write) $" TIM1_CCMR2_Input @ hex. TIM1_CCMR2_Input TIM1_CCMR2_Input 1b. ;
+: TIM1_CCER. ." TIM1_CCER (read-write) $" TIM1_CCER @ hex. TIM1_CCER TIM1_CCER 1b. ;
+: TIM1_CNT. ." TIM1_CNT () $" TIM1_CNT @ hex. TIM1_CNT TIM1_CNT 1b. ;
+: TIM1_PSC. ." TIM1_PSC (read-write) $" TIM1_PSC @ hex. TIM1_PSC TIM1_PSC 1b. ;
+: TIM1_ARR. ." TIM1_ARR (read-write) $" TIM1_ARR @ hex. TIM1_ARR TIM1_ARR 1b. ;
+: TIM1_RCR. ." TIM1_RCR (read-write) $" TIM1_RCR @ hex. TIM1_RCR TIM1_RCR 1b. ;
+: TIM1_CCR1. ." TIM1_CCR1 (read-write) $" TIM1_CCR1 @ hex. TIM1_CCR1 TIM1_CCR1 1b. ;
+: TIM1_CCR2. ." TIM1_CCR2 (read-write) $" TIM1_CCR2 @ hex. TIM1_CCR2 TIM1_CCR2 1b. ;
+: TIM1_CCR3. ." TIM1_CCR3 (read-write) $" TIM1_CCR3 @ hex. TIM1_CCR3 TIM1_CCR3 1b. ;
+: TIM1_CCR4. ." TIM1_CCR4 (read-write) $" TIM1_CCR4 @ hex. TIM1_CCR4 TIM1_CCR4 1b. ;
+: TIM1_BDTR. ." TIM1_BDTR (read-write) $" TIM1_BDTR @ hex. TIM1_BDTR TIM1_BDTR 1b. ;
+: TIM1_DCR. ." TIM1_DCR (read-write) $" TIM1_DCR @ hex. TIM1_DCR TIM1_DCR 1b. ;
+: TIM1_DMAR. ." TIM1_DMAR (read-write) $" TIM1_DMAR @ hex. TIM1_DMAR TIM1_DMAR 1b. ;
+: TIM1_CCMR3_Output. ." TIM1_CCMR3_Output (read-write) $" TIM1_CCMR3_Output @ hex. TIM1_CCMR3_Output TIM1_CCMR3_Output 1b. ;
+: TIM1_CCR5. ." TIM1_CCR5 (read-write) $" TIM1_CCR5 @ hex. TIM1_CCR5 TIM1_CCR5 1b. ;
+: TIM1_CCR6. ." TIM1_CCR6 (read-write) $" TIM1_CCR6 @ hex. TIM1_CCR6 TIM1_CCR6 1b. ;
+: TIM1_OR. ." TIM1_OR (read-write) $" TIM1_OR @ hex. TIM1_OR TIM1_OR 1b. ;
+: TIM1.
+TIM1_CR1.
+TIM1_CR2.
+TIM1_SMCR.
+TIM1_DIER.
+TIM1_SR.
+TIM1_EGR.
+TIM1_CCMR1_Output.
+TIM1_CCMR1_Input.
+TIM1_CCMR2_Output.
+TIM1_CCMR2_Input.
+TIM1_CCER.
+TIM1_CNT.
+TIM1_PSC.
+TIM1_ARR.
+TIM1_RCR.
+TIM1_CCR1.
+TIM1_CCR2.
+TIM1_CCR3.
+TIM1_CCR4.
+TIM1_BDTR.
+TIM1_DCR.
+TIM1_DMAR.
+TIM1_CCMR3_Output.
+TIM1_CCR5.
+TIM1_CCR6.
+TIM1_OR.
+;
+
+$40015000 constant TIM20
+TIM20 $0 +  constant  TIM20_CR1
+TIM20 $4 +  constant  TIM20_CR2
+TIM20 $8 +  constant  TIM20_SMCR
+TIM20 $C +  constant  TIM20_DIER
+TIM20 $10 +  constant  TIM20_SR
+TIM20 $14 +  constant  TIM20_EGR
+TIM20 $18 +  constant  TIM20_CCMR1_Output
+TIM20 $18 +  constant  TIM20_CCMR1_Input
+TIM20 $1C +  constant  TIM20_CCMR2_Output
+TIM20 $1C +  constant  TIM20_CCMR2_Input
+TIM20 $20 +  constant  TIM20_CCER
+TIM20 $24 +  constant  TIM20_CNT
+TIM20 $28 +  constant  TIM20_PSC
+TIM20 $2C +  constant  TIM20_ARR
+TIM20 $30 +  constant  TIM20_RCR
+TIM20 $34 +  constant  TIM20_CCR1
+TIM20 $38 +  constant  TIM20_CCR2
+TIM20 $3C +  constant  TIM20_CCR3
+TIM20 $40 +  constant  TIM20_CCR4
+TIM20 $44 +  constant  TIM20_BDTR
+TIM20 $48 +  constant  TIM20_DCR
+TIM20 $4C +  constant  TIM20_DMAR
+TIM20 $54 +  constant  TIM20_CCMR3_Output
+TIM20 $58 +  constant  TIM20_CCR5
+TIM20 $5C +  constant  TIM20_CCR6
+TIM20 $60 +  constant  TIM20_OR
+: TIM20_CR1. ." TIM20_CR1 (read-write) $" TIM20_CR1 @ hex. TIM20_CR1 TIM20_CR1 1b. ;
+: TIM20_CR2. ." TIM20_CR2 (read-write) $" TIM20_CR2 @ hex. TIM20_CR2 TIM20_CR2 1b. ;
+: TIM20_SMCR. ." TIM20_SMCR (read-write) $" TIM20_SMCR @ hex. TIM20_SMCR TIM20_SMCR 1b. ;
+: TIM20_DIER. ." TIM20_DIER (read-write) $" TIM20_DIER @ hex. TIM20_DIER TIM20_DIER 1b. ;
+: TIM20_SR. ." TIM20_SR (read-write) $" TIM20_SR @ hex. TIM20_SR TIM20_SR 1b. ;
+: TIM20_EGR. ." TIM20_EGR (write-only) $" TIM20_EGR @ hex. TIM20_EGR TIM20_EGR 1b. ;
+: TIM20_CCMR1_Output. ." TIM20_CCMR1_Output (read-write) $" TIM20_CCMR1_Output @ hex. TIM20_CCMR1_Output TIM20_CCMR1_Output 1b. ;
+: TIM20_CCMR1_Input. ." TIM20_CCMR1_Input (read-write) $" TIM20_CCMR1_Input @ hex. TIM20_CCMR1_Input TIM20_CCMR1_Input 1b. ;
+: TIM20_CCMR2_Output. ." TIM20_CCMR2_Output (read-write) $" TIM20_CCMR2_Output @ hex. TIM20_CCMR2_Output TIM20_CCMR2_Output 1b. ;
+: TIM20_CCMR2_Input. ." TIM20_CCMR2_Input (read-write) $" TIM20_CCMR2_Input @ hex. TIM20_CCMR2_Input TIM20_CCMR2_Input 1b. ;
+: TIM20_CCER. ." TIM20_CCER (read-write) $" TIM20_CCER @ hex. TIM20_CCER TIM20_CCER 1b. ;
+: TIM20_CNT. ." TIM20_CNT () $" TIM20_CNT @ hex. TIM20_CNT TIM20_CNT 1b. ;
+: TIM20_PSC. ." TIM20_PSC (read-write) $" TIM20_PSC @ hex. TIM20_PSC TIM20_PSC 1b. ;
+: TIM20_ARR. ." TIM20_ARR (read-write) $" TIM20_ARR @ hex. TIM20_ARR TIM20_ARR 1b. ;
+: TIM20_RCR. ." TIM20_RCR (read-write) $" TIM20_RCR @ hex. TIM20_RCR TIM20_RCR 1b. ;
+: TIM20_CCR1. ." TIM20_CCR1 (read-write) $" TIM20_CCR1 @ hex. TIM20_CCR1 TIM20_CCR1 1b. ;
+: TIM20_CCR2. ." TIM20_CCR2 (read-write) $" TIM20_CCR2 @ hex. TIM20_CCR2 TIM20_CCR2 1b. ;
+: TIM20_CCR3. ." TIM20_CCR3 (read-write) $" TIM20_CCR3 @ hex. TIM20_CCR3 TIM20_CCR3 1b. ;
+: TIM20_CCR4. ." TIM20_CCR4 (read-write) $" TIM20_CCR4 @ hex. TIM20_CCR4 TIM20_CCR4 1b. ;
+: TIM20_BDTR. ." TIM20_BDTR (read-write) $" TIM20_BDTR @ hex. TIM20_BDTR TIM20_BDTR 1b. ;
+: TIM20_DCR. ." TIM20_DCR (read-write) $" TIM20_DCR @ hex. TIM20_DCR TIM20_DCR 1b. ;
+: TIM20_DMAR. ." TIM20_DMAR (read-write) $" TIM20_DMAR @ hex. TIM20_DMAR TIM20_DMAR 1b. ;
+: TIM20_CCMR3_Output. ." TIM20_CCMR3_Output (read-write) $" TIM20_CCMR3_Output @ hex. TIM20_CCMR3_Output TIM20_CCMR3_Output 1b. ;
+: TIM20_CCR5. ." TIM20_CCR5 (read-write) $" TIM20_CCR5 @ hex. TIM20_CCR5 TIM20_CCR5 1b. ;
+: TIM20_CCR6. ." TIM20_CCR6 (read-write) $" TIM20_CCR6 @ hex. TIM20_CCR6 TIM20_CCR6 1b. ;
+: TIM20_OR. ." TIM20_OR (read-write) $" TIM20_OR @ hex. TIM20_OR TIM20_OR 1b. ;
+: TIM20.
+TIM20_CR1.
+TIM20_CR2.
+TIM20_SMCR.
+TIM20_DIER.
+TIM20_SR.
+TIM20_EGR.
+TIM20_CCMR1_Output.
+TIM20_CCMR1_Input.
+TIM20_CCMR2_Output.
+TIM20_CCMR2_Input.
+TIM20_CCER.
+TIM20_CNT.
+TIM20_PSC.
+TIM20_ARR.
+TIM20_RCR.
+TIM20_CCR1.
+TIM20_CCR2.
+TIM20_CCR3.
+TIM20_CCR4.
+TIM20_BDTR.
+TIM20_DCR.
+TIM20_DMAR.
+TIM20_CCMR3_Output.
+TIM20_CCR5.
+TIM20_CCR6.
+TIM20_OR.
+;
+
+$40013400 constant TIM8
+TIM8 $0 +  constant  TIM8_CR1
+TIM8 $4 +  constant  TIM8_CR2
+TIM8 $8 +  constant  TIM8_SMCR
+TIM8 $C +  constant  TIM8_DIER
+TIM8 $10 +  constant  TIM8_SR
+TIM8 $14 +  constant  TIM8_EGR
+TIM8 $18 +  constant  TIM8_CCMR1_Output
+TIM8 $18 +  constant  TIM8_CCMR1_Input
+TIM8 $1C +  constant  TIM8_CCMR2_Output
+TIM8 $1C +  constant  TIM8_CCMR2_Input
+TIM8 $20 +  constant  TIM8_CCER
+TIM8 $24 +  constant  TIM8_CNT
+TIM8 $28 +  constant  TIM8_PSC
+TIM8 $2C +  constant  TIM8_ARR
+TIM8 $30 +  constant  TIM8_RCR
+TIM8 $34 +  constant  TIM8_CCR1
+TIM8 $38 +  constant  TIM8_CCR2
+TIM8 $3C +  constant  TIM8_CCR3
+TIM8 $40 +  constant  TIM8_CCR4
+TIM8 $44 +  constant  TIM8_BDTR
+TIM8 $48 +  constant  TIM8_DCR
+TIM8 $4C +  constant  TIM8_DMAR
+TIM8 $54 +  constant  TIM8_CCMR3_Output
+TIM8 $58 +  constant  TIM8_CCR5
+TIM8 $5C +  constant  TIM8_CCR6
+TIM8 $60 +  constant  TIM8_OR
+: TIM8_CR1. ." TIM8_CR1 (read-write) $" TIM8_CR1 @ hex. TIM8_CR1 TIM8_CR1 1b. ;
+: TIM8_CR2. ." TIM8_CR2 (read-write) $" TIM8_CR2 @ hex. TIM8_CR2 TIM8_CR2 1b. ;
+: TIM8_SMCR. ." TIM8_SMCR (read-write) $" TIM8_SMCR @ hex. TIM8_SMCR TIM8_SMCR 1b. ;
+: TIM8_DIER. ." TIM8_DIER (read-write) $" TIM8_DIER @ hex. TIM8_DIER TIM8_DIER 1b. ;
+: TIM8_SR. ." TIM8_SR (read-write) $" TIM8_SR @ hex. TIM8_SR TIM8_SR 1b. ;
+: TIM8_EGR. ." TIM8_EGR (write-only) $" TIM8_EGR @ hex. TIM8_EGR TIM8_EGR 1b. ;
+: TIM8_CCMR1_Output. ." TIM8_CCMR1_Output (read-write) $" TIM8_CCMR1_Output @ hex. TIM8_CCMR1_Output TIM8_CCMR1_Output 1b. ;
+: TIM8_CCMR1_Input. ." TIM8_CCMR1_Input (read-write) $" TIM8_CCMR1_Input @ hex. TIM8_CCMR1_Input TIM8_CCMR1_Input 1b. ;
+: TIM8_CCMR2_Output. ." TIM8_CCMR2_Output (read-write) $" TIM8_CCMR2_Output @ hex. TIM8_CCMR2_Output TIM8_CCMR2_Output 1b. ;
+: TIM8_CCMR2_Input. ." TIM8_CCMR2_Input (read-write) $" TIM8_CCMR2_Input @ hex. TIM8_CCMR2_Input TIM8_CCMR2_Input 1b. ;
+: TIM8_CCER. ." TIM8_CCER (read-write) $" TIM8_CCER @ hex. TIM8_CCER TIM8_CCER 1b. ;
+: TIM8_CNT. ." TIM8_CNT () $" TIM8_CNT @ hex. TIM8_CNT TIM8_CNT 1b. ;
+: TIM8_PSC. ." TIM8_PSC (read-write) $" TIM8_PSC @ hex. TIM8_PSC TIM8_PSC 1b. ;
+: TIM8_ARR. ." TIM8_ARR (read-write) $" TIM8_ARR @ hex. TIM8_ARR TIM8_ARR 1b. ;
+: TIM8_RCR. ." TIM8_RCR (read-write) $" TIM8_RCR @ hex. TIM8_RCR TIM8_RCR 1b. ;
+: TIM8_CCR1. ." TIM8_CCR1 (read-write) $" TIM8_CCR1 @ hex. TIM8_CCR1 TIM8_CCR1 1b. ;
+: TIM8_CCR2. ." TIM8_CCR2 (read-write) $" TIM8_CCR2 @ hex. TIM8_CCR2 TIM8_CCR2 1b. ;
+: TIM8_CCR3. ." TIM8_CCR3 (read-write) $" TIM8_CCR3 @ hex. TIM8_CCR3 TIM8_CCR3 1b. ;
+: TIM8_CCR4. ." TIM8_CCR4 (read-write) $" TIM8_CCR4 @ hex. TIM8_CCR4 TIM8_CCR4 1b. ;
+: TIM8_BDTR. ." TIM8_BDTR (read-write) $" TIM8_BDTR @ hex. TIM8_BDTR TIM8_BDTR 1b. ;
+: TIM8_DCR. ." TIM8_DCR (read-write) $" TIM8_DCR @ hex. TIM8_DCR TIM8_DCR 1b. ;
+: TIM8_DMAR. ." TIM8_DMAR (read-write) $" TIM8_DMAR @ hex. TIM8_DMAR TIM8_DMAR 1b. ;
+: TIM8_CCMR3_Output. ." TIM8_CCMR3_Output (read-write) $" TIM8_CCMR3_Output @ hex. TIM8_CCMR3_Output TIM8_CCMR3_Output 1b. ;
+: TIM8_CCR5. ." TIM8_CCR5 (read-write) $" TIM8_CCR5 @ hex. TIM8_CCR5 TIM8_CCR5 1b. ;
+: TIM8_CCR6. ." TIM8_CCR6 (read-write) $" TIM8_CCR6 @ hex. TIM8_CCR6 TIM8_CCR6 1b. ;
+: TIM8_OR. ." TIM8_OR (read-write) $" TIM8_OR @ hex. TIM8_OR TIM8_OR 1b. ;
+: TIM8.
+TIM8_CR1.
+TIM8_CR2.
+TIM8_SMCR.
+TIM8_DIER.
+TIM8_SR.
+TIM8_EGR.
+TIM8_CCMR1_Output.
+TIM8_CCMR1_Input.
+TIM8_CCMR2_Output.
+TIM8_CCMR2_Input.
+TIM8_CCER.
+TIM8_CNT.
+TIM8_PSC.
+TIM8_ARR.
+TIM8_RCR.
+TIM8_CCR1.
+TIM8_CCR2.
+TIM8_CCR3.
+TIM8_CCR4.
+TIM8_BDTR.
+TIM8_DCR.
+TIM8_DMAR.
+TIM8_CCMR3_Output.
+TIM8_CCR5.
+TIM8_CCR6.
+TIM8_OR.
+;
+
+$50000000 constant ADC1
+ADC1 $0 +  constant  ADC1_ISR
+ADC1 $4 +  constant  ADC1_IER
+ADC1 $8 +  constant  ADC1_CR
+ADC1 $C +  constant  ADC1_CFGR
+ADC1 $14 +  constant  ADC1_SMPR1
+ADC1 $18 +  constant  ADC1_SMPR2
+ADC1 $20 +  constant  ADC1_TR1
+ADC1 $24 +  constant  ADC1_TR2
+ADC1 $28 +  constant  ADC1_TR3
+ADC1 $30 +  constant  ADC1_SQR1
+ADC1 $34 +  constant  ADC1_SQR2
+ADC1 $38 +  constant  ADC1_SQR3
+ADC1 $3C +  constant  ADC1_SQR4
+ADC1 $40 +  constant  ADC1_DR
+ADC1 $4C +  constant  ADC1_JSQR
+ADC1 $60 +  constant  ADC1_OFR1
+ADC1 $64 +  constant  ADC1_OFR2
+ADC1 $68 +  constant  ADC1_OFR3
+ADC1 $6C +  constant  ADC1_OFR4
+ADC1 $80 +  constant  ADC1_JDR1
+ADC1 $84 +  constant  ADC1_JDR2
+ADC1 $88 +  constant  ADC1_JDR3
+ADC1 $8C +  constant  ADC1_JDR4
+ADC1 $A0 +  constant  ADC1_AWD2CR
+ADC1 $A4 +  constant  ADC1_AWD3CR
+ADC1 $B0 +  constant  ADC1_DIFSEL
+ADC1 $B4 +  constant  ADC1_CALFACT
+: ADC1_ISR. ." ADC1_ISR (read-write) $" ADC1_ISR @ hex. ADC1_ISR ADC1_ISR 1b. ;
+: ADC1_IER. ." ADC1_IER (read-write) $" ADC1_IER @ hex. ADC1_IER ADC1_IER 1b. ;
+: ADC1_CR. ." ADC1_CR (read-write) $" ADC1_CR @ hex. ADC1_CR ADC1_CR 1b. ;
+: ADC1_CFGR. ." ADC1_CFGR (read-write) $" ADC1_CFGR @ hex. ADC1_CFGR ADC1_CFGR 1b. ;
+: ADC1_SMPR1. ." ADC1_SMPR1 (read-write) $" ADC1_SMPR1 @ hex. ADC1_SMPR1 ADC1_SMPR1 1b. ;
+: ADC1_SMPR2. ." ADC1_SMPR2 (read-write) $" ADC1_SMPR2 @ hex. ADC1_SMPR2 ADC1_SMPR2 1b. ;
+: ADC1_TR1. ." ADC1_TR1 (read-write) $" ADC1_TR1 @ hex. ADC1_TR1 ADC1_TR1 1b. ;
+: ADC1_TR2. ." ADC1_TR2 (read-write) $" ADC1_TR2 @ hex. ADC1_TR2 ADC1_TR2 1b. ;
+: ADC1_TR3. ." ADC1_TR3 (read-write) $" ADC1_TR3 @ hex. ADC1_TR3 ADC1_TR3 1b. ;
+: ADC1_SQR1. ." ADC1_SQR1 (read-write) $" ADC1_SQR1 @ hex. ADC1_SQR1 ADC1_SQR1 1b. ;
+: ADC1_SQR2. ." ADC1_SQR2 (read-write) $" ADC1_SQR2 @ hex. ADC1_SQR2 ADC1_SQR2 1b. ;
+: ADC1_SQR3. ." ADC1_SQR3 (read-write) $" ADC1_SQR3 @ hex. ADC1_SQR3 ADC1_SQR3 1b. ;
+: ADC1_SQR4. ." ADC1_SQR4 (read-write) $" ADC1_SQR4 @ hex. ADC1_SQR4 ADC1_SQR4 1b. ;
+: ADC1_DR. ." ADC1_DR (read-only) $" ADC1_DR @ hex. ADC1_DR ADC1_DR 1b. ;
+: ADC1_JSQR. ." ADC1_JSQR (read-write) $" ADC1_JSQR @ hex. ADC1_JSQR ADC1_JSQR 1b. ;
+: ADC1_OFR1. ." ADC1_OFR1 (read-write) $" ADC1_OFR1 @ hex. ADC1_OFR1 ADC1_OFR1 1b. ;
+: ADC1_OFR2. ." ADC1_OFR2 (read-write) $" ADC1_OFR2 @ hex. ADC1_OFR2 ADC1_OFR2 1b. ;
+: ADC1_OFR3. ." ADC1_OFR3 (read-write) $" ADC1_OFR3 @ hex. ADC1_OFR3 ADC1_OFR3 1b. ;
+: ADC1_OFR4. ." ADC1_OFR4 (read-write) $" ADC1_OFR4 @ hex. ADC1_OFR4 ADC1_OFR4 1b. ;
+: ADC1_JDR1. ." ADC1_JDR1 (read-only) $" ADC1_JDR1 @ hex. ADC1_JDR1 ADC1_JDR1 1b. ;
+: ADC1_JDR2. ." ADC1_JDR2 (read-only) $" ADC1_JDR2 @ hex. ADC1_JDR2 ADC1_JDR2 1b. ;
+: ADC1_JDR3. ." ADC1_JDR3 (read-only) $" ADC1_JDR3 @ hex. ADC1_JDR3 ADC1_JDR3 1b. ;
+: ADC1_JDR4. ." ADC1_JDR4 (read-only) $" ADC1_JDR4 @ hex. ADC1_JDR4 ADC1_JDR4 1b. ;
+: ADC1_AWD2CR. ." ADC1_AWD2CR (read-write) $" ADC1_AWD2CR @ hex. ADC1_AWD2CR ADC1_AWD2CR 1b. ;
+: ADC1_AWD3CR. ." ADC1_AWD3CR (read-write) $" ADC1_AWD3CR @ hex. ADC1_AWD3CR ADC1_AWD3CR 1b. ;
+: ADC1_DIFSEL. ." ADC1_DIFSEL () $" ADC1_DIFSEL @ hex. ADC1_DIFSEL ADC1_DIFSEL 1b. ;
+: ADC1_CALFACT. ." ADC1_CALFACT (read-write) $" ADC1_CALFACT @ hex. ADC1_CALFACT ADC1_CALFACT 1b. ;
+: ADC1.
+ADC1_ISR.
+ADC1_IER.
+ADC1_CR.
+ADC1_CFGR.
+ADC1_SMPR1.
+ADC1_SMPR2.
+ADC1_TR1.
+ADC1_TR2.
+ADC1_TR3.
+ADC1_SQR1.
+ADC1_SQR2.
+ADC1_SQR3.
+ADC1_SQR4.
+ADC1_DR.
+ADC1_JSQR.
+ADC1_OFR1.
+ADC1_OFR2.
+ADC1_OFR3.
+ADC1_OFR4.
+ADC1_JDR1.
+ADC1_JDR2.
+ADC1_JDR3.
+ADC1_JDR4.
+ADC1_AWD2CR.
+ADC1_AWD3CR.
+ADC1_DIFSEL.
+ADC1_CALFACT.
+;
+
+$50000100 constant ADC2
+ADC2 $0 +  constant  ADC2_ISR
+ADC2 $4 +  constant  ADC2_IER
+ADC2 $8 +  constant  ADC2_CR
+ADC2 $C +  constant  ADC2_CFGR
+ADC2 $14 +  constant  ADC2_SMPR1
+ADC2 $18 +  constant  ADC2_SMPR2
+ADC2 $20 +  constant  ADC2_TR1
+ADC2 $24 +  constant  ADC2_TR2
+ADC2 $28 +  constant  ADC2_TR3
+ADC2 $30 +  constant  ADC2_SQR1
+ADC2 $34 +  constant  ADC2_SQR2
+ADC2 $38 +  constant  ADC2_SQR3
+ADC2 $3C +  constant  ADC2_SQR4
+ADC2 $40 +  constant  ADC2_DR
+ADC2 $4C +  constant  ADC2_JSQR
+ADC2 $60 +  constant  ADC2_OFR1
+ADC2 $64 +  constant  ADC2_OFR2
+ADC2 $68 +  constant  ADC2_OFR3
+ADC2 $6C +  constant  ADC2_OFR4
+ADC2 $80 +  constant  ADC2_JDR1
+ADC2 $84 +  constant  ADC2_JDR2
+ADC2 $88 +  constant  ADC2_JDR3
+ADC2 $8C +  constant  ADC2_JDR4
+ADC2 $A0 +  constant  ADC2_AWD2CR
+ADC2 $A4 +  constant  ADC2_AWD3CR
+ADC2 $B0 +  constant  ADC2_DIFSEL
+ADC2 $B4 +  constant  ADC2_CALFACT
+: ADC2_ISR. ." ADC2_ISR (read-write) $" ADC2_ISR @ hex. ADC2_ISR ADC2_ISR 1b. ;
+: ADC2_IER. ." ADC2_IER (read-write) $" ADC2_IER @ hex. ADC2_IER ADC2_IER 1b. ;
+: ADC2_CR. ." ADC2_CR (read-write) $" ADC2_CR @ hex. ADC2_CR ADC2_CR 1b. ;
+: ADC2_CFGR. ." ADC2_CFGR (read-write) $" ADC2_CFGR @ hex. ADC2_CFGR ADC2_CFGR 1b. ;
+: ADC2_SMPR1. ." ADC2_SMPR1 (read-write) $" ADC2_SMPR1 @ hex. ADC2_SMPR1 ADC2_SMPR1 1b. ;
+: ADC2_SMPR2. ." ADC2_SMPR2 (read-write) $" ADC2_SMPR2 @ hex. ADC2_SMPR2 ADC2_SMPR2 1b. ;
+: ADC2_TR1. ." ADC2_TR1 (read-write) $" ADC2_TR1 @ hex. ADC2_TR1 ADC2_TR1 1b. ;
+: ADC2_TR2. ." ADC2_TR2 (read-write) $" ADC2_TR2 @ hex. ADC2_TR2 ADC2_TR2 1b. ;
+: ADC2_TR3. ." ADC2_TR3 (read-write) $" ADC2_TR3 @ hex. ADC2_TR3 ADC2_TR3 1b. ;
+: ADC2_SQR1. ." ADC2_SQR1 (read-write) $" ADC2_SQR1 @ hex. ADC2_SQR1 ADC2_SQR1 1b. ;
+: ADC2_SQR2. ." ADC2_SQR2 (read-write) $" ADC2_SQR2 @ hex. ADC2_SQR2 ADC2_SQR2 1b. ;
+: ADC2_SQR3. ." ADC2_SQR3 (read-write) $" ADC2_SQR3 @ hex. ADC2_SQR3 ADC2_SQR3 1b. ;
+: ADC2_SQR4. ." ADC2_SQR4 (read-write) $" ADC2_SQR4 @ hex. ADC2_SQR4 ADC2_SQR4 1b. ;
+: ADC2_DR. ." ADC2_DR (read-only) $" ADC2_DR @ hex. ADC2_DR ADC2_DR 1b. ;
+: ADC2_JSQR. ." ADC2_JSQR (read-write) $" ADC2_JSQR @ hex. ADC2_JSQR ADC2_JSQR 1b. ;
+: ADC2_OFR1. ." ADC2_OFR1 (read-write) $" ADC2_OFR1 @ hex. ADC2_OFR1 ADC2_OFR1 1b. ;
+: ADC2_OFR2. ." ADC2_OFR2 (read-write) $" ADC2_OFR2 @ hex. ADC2_OFR2 ADC2_OFR2 1b. ;
+: ADC2_OFR3. ." ADC2_OFR3 (read-write) $" ADC2_OFR3 @ hex. ADC2_OFR3 ADC2_OFR3 1b. ;
+: ADC2_OFR4. ." ADC2_OFR4 (read-write) $" ADC2_OFR4 @ hex. ADC2_OFR4 ADC2_OFR4 1b. ;
+: ADC2_JDR1. ." ADC2_JDR1 (read-only) $" ADC2_JDR1 @ hex. ADC2_JDR1 ADC2_JDR1 1b. ;
+: ADC2_JDR2. ." ADC2_JDR2 (read-only) $" ADC2_JDR2 @ hex. ADC2_JDR2 ADC2_JDR2 1b. ;
+: ADC2_JDR3. ." ADC2_JDR3 (read-only) $" ADC2_JDR3 @ hex. ADC2_JDR3 ADC2_JDR3 1b. ;
+: ADC2_JDR4. ." ADC2_JDR4 (read-only) $" ADC2_JDR4 @ hex. ADC2_JDR4 ADC2_JDR4 1b. ;
+: ADC2_AWD2CR. ." ADC2_AWD2CR (read-write) $" ADC2_AWD2CR @ hex. ADC2_AWD2CR ADC2_AWD2CR 1b. ;
+: ADC2_AWD3CR. ." ADC2_AWD3CR (read-write) $" ADC2_AWD3CR @ hex. ADC2_AWD3CR ADC2_AWD3CR 1b. ;
+: ADC2_DIFSEL. ." ADC2_DIFSEL () $" ADC2_DIFSEL @ hex. ADC2_DIFSEL ADC2_DIFSEL 1b. ;
+: ADC2_CALFACT. ." ADC2_CALFACT (read-write) $" ADC2_CALFACT @ hex. ADC2_CALFACT ADC2_CALFACT 1b. ;
+: ADC2.
+ADC2_ISR.
+ADC2_IER.
+ADC2_CR.
+ADC2_CFGR.
+ADC2_SMPR1.
+ADC2_SMPR2.
+ADC2_TR1.
+ADC2_TR2.
+ADC2_TR3.
+ADC2_SQR1.
+ADC2_SQR2.
+ADC2_SQR3.
+ADC2_SQR4.
+ADC2_DR.
+ADC2_JSQR.
+ADC2_OFR1.
+ADC2_OFR2.
+ADC2_OFR3.
+ADC2_OFR4.
+ADC2_JDR1.
+ADC2_JDR2.
+ADC2_JDR3.
+ADC2_JDR4.
+ADC2_AWD2CR.
+ADC2_AWD3CR.
+ADC2_DIFSEL.
+ADC2_CALFACT.
+;
+
+$50000400 constant ADC3
+ADC3 $0 +  constant  ADC3_ISR
+ADC3 $4 +  constant  ADC3_IER
+ADC3 $8 +  constant  ADC3_CR
+ADC3 $C +  constant  ADC3_CFGR
+ADC3 $14 +  constant  ADC3_SMPR1
+ADC3 $18 +  constant  ADC3_SMPR2
+ADC3 $20 +  constant  ADC3_TR1
+ADC3 $24 +  constant  ADC3_TR2
+ADC3 $28 +  constant  ADC3_TR3
+ADC3 $30 +  constant  ADC3_SQR1
+ADC3 $34 +  constant  ADC3_SQR2
+ADC3 $38 +  constant  ADC3_SQR3
+ADC3 $3C +  constant  ADC3_SQR4
+ADC3 $40 +  constant  ADC3_DR
+ADC3 $4C +  constant  ADC3_JSQR
+ADC3 $60 +  constant  ADC3_OFR1
+ADC3 $64 +  constant  ADC3_OFR2
+ADC3 $68 +  constant  ADC3_OFR3
+ADC3 $6C +  constant  ADC3_OFR4
+ADC3 $80 +  constant  ADC3_JDR1
+ADC3 $84 +  constant  ADC3_JDR2
+ADC3 $88 +  constant  ADC3_JDR3
+ADC3 $8C +  constant  ADC3_JDR4
+ADC3 $A0 +  constant  ADC3_AWD2CR
+ADC3 $A4 +  constant  ADC3_AWD3CR
+ADC3 $B0 +  constant  ADC3_DIFSEL
+ADC3 $B4 +  constant  ADC3_CALFACT
+: ADC3_ISR. ." ADC3_ISR (read-write) $" ADC3_ISR @ hex. ADC3_ISR ADC3_ISR 1b. ;
+: ADC3_IER. ." ADC3_IER (read-write) $" ADC3_IER @ hex. ADC3_IER ADC3_IER 1b. ;
+: ADC3_CR. ." ADC3_CR (read-write) $" ADC3_CR @ hex. ADC3_CR ADC3_CR 1b. ;
+: ADC3_CFGR. ." ADC3_CFGR (read-write) $" ADC3_CFGR @ hex. ADC3_CFGR ADC3_CFGR 1b. ;
+: ADC3_SMPR1. ." ADC3_SMPR1 (read-write) $" ADC3_SMPR1 @ hex. ADC3_SMPR1 ADC3_SMPR1 1b. ;
+: ADC3_SMPR2. ." ADC3_SMPR2 (read-write) $" ADC3_SMPR2 @ hex. ADC3_SMPR2 ADC3_SMPR2 1b. ;
+: ADC3_TR1. ." ADC3_TR1 (read-write) $" ADC3_TR1 @ hex. ADC3_TR1 ADC3_TR1 1b. ;
+: ADC3_TR2. ." ADC3_TR2 (read-write) $" ADC3_TR2 @ hex. ADC3_TR2 ADC3_TR2 1b. ;
+: ADC3_TR3. ." ADC3_TR3 (read-write) $" ADC3_TR3 @ hex. ADC3_TR3 ADC3_TR3 1b. ;
+: ADC3_SQR1. ." ADC3_SQR1 (read-write) $" ADC3_SQR1 @ hex. ADC3_SQR1 ADC3_SQR1 1b. ;
+: ADC3_SQR2. ." ADC3_SQR2 (read-write) $" ADC3_SQR2 @ hex. ADC3_SQR2 ADC3_SQR2 1b. ;
+: ADC3_SQR3. ." ADC3_SQR3 (read-write) $" ADC3_SQR3 @ hex. ADC3_SQR3 ADC3_SQR3 1b. ;
+: ADC3_SQR4. ." ADC3_SQR4 (read-write) $" ADC3_SQR4 @ hex. ADC3_SQR4 ADC3_SQR4 1b. ;
+: ADC3_DR. ." ADC3_DR (read-only) $" ADC3_DR @ hex. ADC3_DR ADC3_DR 1b. ;
+: ADC3_JSQR. ." ADC3_JSQR (read-write) $" ADC3_JSQR @ hex. ADC3_JSQR ADC3_JSQR 1b. ;
+: ADC3_OFR1. ." ADC3_OFR1 (read-write) $" ADC3_OFR1 @ hex. ADC3_OFR1 ADC3_OFR1 1b. ;
+: ADC3_OFR2. ." ADC3_OFR2 (read-write) $" ADC3_OFR2 @ hex. ADC3_OFR2 ADC3_OFR2 1b. ;
+: ADC3_OFR3. ." ADC3_OFR3 (read-write) $" ADC3_OFR3 @ hex. ADC3_OFR3 ADC3_OFR3 1b. ;
+: ADC3_OFR4. ." ADC3_OFR4 (read-write) $" ADC3_OFR4 @ hex. ADC3_OFR4 ADC3_OFR4 1b. ;
+: ADC3_JDR1. ." ADC3_JDR1 (read-only) $" ADC3_JDR1 @ hex. ADC3_JDR1 ADC3_JDR1 1b. ;
+: ADC3_JDR2. ." ADC3_JDR2 (read-only) $" ADC3_JDR2 @ hex. ADC3_JDR2 ADC3_JDR2 1b. ;
+: ADC3_JDR3. ." ADC3_JDR3 (read-only) $" ADC3_JDR3 @ hex. ADC3_JDR3 ADC3_JDR3 1b. ;
+: ADC3_JDR4. ." ADC3_JDR4 (read-only) $" ADC3_JDR4 @ hex. ADC3_JDR4 ADC3_JDR4 1b. ;
+: ADC3_AWD2CR. ." ADC3_AWD2CR (read-write) $" ADC3_AWD2CR @ hex. ADC3_AWD2CR ADC3_AWD2CR 1b. ;
+: ADC3_AWD3CR. ." ADC3_AWD3CR (read-write) $" ADC3_AWD3CR @ hex. ADC3_AWD3CR ADC3_AWD3CR 1b. ;
+: ADC3_DIFSEL. ." ADC3_DIFSEL () $" ADC3_DIFSEL @ hex. ADC3_DIFSEL ADC3_DIFSEL 1b. ;
+: ADC3_CALFACT. ." ADC3_CALFACT (read-write) $" ADC3_CALFACT @ hex. ADC3_CALFACT ADC3_CALFACT 1b. ;
+: ADC3.
+ADC3_ISR.
+ADC3_IER.
+ADC3_CR.
+ADC3_CFGR.
+ADC3_SMPR1.
+ADC3_SMPR2.
+ADC3_TR1.
+ADC3_TR2.
+ADC3_TR3.
+ADC3_SQR1.
+ADC3_SQR2.
+ADC3_SQR3.
+ADC3_SQR4.
+ADC3_DR.
+ADC3_JSQR.
+ADC3_OFR1.
+ADC3_OFR2.
+ADC3_OFR3.
+ADC3_OFR4.
+ADC3_JDR1.
+ADC3_JDR2.
+ADC3_JDR3.
+ADC3_JDR4.
+ADC3_AWD2CR.
+ADC3_AWD3CR.
+ADC3_DIFSEL.
+ADC3_CALFACT.
+;
+
+$50000500 constant ADC4
+ADC4 $0 +  constant  ADC4_ISR
+ADC4 $4 +  constant  ADC4_IER
+ADC4 $8 +  constant  ADC4_CR
+ADC4 $C +  constant  ADC4_CFGR
+ADC4 $14 +  constant  ADC4_SMPR1
+ADC4 $18 +  constant  ADC4_SMPR2
+ADC4 $20 +  constant  ADC4_TR1
+ADC4 $24 +  constant  ADC4_TR2
+ADC4 $28 +  constant  ADC4_TR3
+ADC4 $30 +  constant  ADC4_SQR1
+ADC4 $34 +  constant  ADC4_SQR2
+ADC4 $38 +  constant  ADC4_SQR3
+ADC4 $3C +  constant  ADC4_SQR4
+ADC4 $40 +  constant  ADC4_DR
+ADC4 $4C +  constant  ADC4_JSQR
+ADC4 $60 +  constant  ADC4_OFR1
+ADC4 $64 +  constant  ADC4_OFR2
+ADC4 $68 +  constant  ADC4_OFR3
+ADC4 $6C +  constant  ADC4_OFR4
+ADC4 $80 +  constant  ADC4_JDR1
+ADC4 $84 +  constant  ADC4_JDR2
+ADC4 $88 +  constant  ADC4_JDR3
+ADC4 $8C +  constant  ADC4_JDR4
+ADC4 $A0 +  constant  ADC4_AWD2CR
+ADC4 $A4 +  constant  ADC4_AWD3CR
+ADC4 $B0 +  constant  ADC4_DIFSEL
+ADC4 $B4 +  constant  ADC4_CALFACT
+: ADC4_ISR. ." ADC4_ISR (read-write) $" ADC4_ISR @ hex. ADC4_ISR ADC4_ISR 1b. ;
+: ADC4_IER. ." ADC4_IER (read-write) $" ADC4_IER @ hex. ADC4_IER ADC4_IER 1b. ;
+: ADC4_CR. ." ADC4_CR (read-write) $" ADC4_CR @ hex. ADC4_CR ADC4_CR 1b. ;
+: ADC4_CFGR. ." ADC4_CFGR (read-write) $" ADC4_CFGR @ hex. ADC4_CFGR ADC4_CFGR 1b. ;
+: ADC4_SMPR1. ." ADC4_SMPR1 (read-write) $" ADC4_SMPR1 @ hex. ADC4_SMPR1 ADC4_SMPR1 1b. ;
+: ADC4_SMPR2. ." ADC4_SMPR2 (read-write) $" ADC4_SMPR2 @ hex. ADC4_SMPR2 ADC4_SMPR2 1b. ;
+: ADC4_TR1. ." ADC4_TR1 (read-write) $" ADC4_TR1 @ hex. ADC4_TR1 ADC4_TR1 1b. ;
+: ADC4_TR2. ." ADC4_TR2 (read-write) $" ADC4_TR2 @ hex. ADC4_TR2 ADC4_TR2 1b. ;
+: ADC4_TR3. ." ADC4_TR3 (read-write) $" ADC4_TR3 @ hex. ADC4_TR3 ADC4_TR3 1b. ;
+: ADC4_SQR1. ." ADC4_SQR1 (read-write) $" ADC4_SQR1 @ hex. ADC4_SQR1 ADC4_SQR1 1b. ;
+: ADC4_SQR2. ." ADC4_SQR2 (read-write) $" ADC4_SQR2 @ hex. ADC4_SQR2 ADC4_SQR2 1b. ;
+: ADC4_SQR3. ." ADC4_SQR3 (read-write) $" ADC4_SQR3 @ hex. ADC4_SQR3 ADC4_SQR3 1b. ;
+: ADC4_SQR4. ." ADC4_SQR4 (read-write) $" ADC4_SQR4 @ hex. ADC4_SQR4 ADC4_SQR4 1b. ;
+: ADC4_DR. ." ADC4_DR (read-only) $" ADC4_DR @ hex. ADC4_DR ADC4_DR 1b. ;
+: ADC4_JSQR. ." ADC4_JSQR (read-write) $" ADC4_JSQR @ hex. ADC4_JSQR ADC4_JSQR 1b. ;
+: ADC4_OFR1. ." ADC4_OFR1 (read-write) $" ADC4_OFR1 @ hex. ADC4_OFR1 ADC4_OFR1 1b. ;
+: ADC4_OFR2. ." ADC4_OFR2 (read-write) $" ADC4_OFR2 @ hex. ADC4_OFR2 ADC4_OFR2 1b. ;
+: ADC4_OFR3. ." ADC4_OFR3 (read-write) $" ADC4_OFR3 @ hex. ADC4_OFR3 ADC4_OFR3 1b. ;
+: ADC4_OFR4. ." ADC4_OFR4 (read-write) $" ADC4_OFR4 @ hex. ADC4_OFR4 ADC4_OFR4 1b. ;
+: ADC4_JDR1. ." ADC4_JDR1 (read-only) $" ADC4_JDR1 @ hex. ADC4_JDR1 ADC4_JDR1 1b. ;
+: ADC4_JDR2. ." ADC4_JDR2 (read-only) $" ADC4_JDR2 @ hex. ADC4_JDR2 ADC4_JDR2 1b. ;
+: ADC4_JDR3. ." ADC4_JDR3 (read-only) $" ADC4_JDR3 @ hex. ADC4_JDR3 ADC4_JDR3 1b. ;
+: ADC4_JDR4. ." ADC4_JDR4 (read-only) $" ADC4_JDR4 @ hex. ADC4_JDR4 ADC4_JDR4 1b. ;
+: ADC4_AWD2CR. ." ADC4_AWD2CR (read-write) $" ADC4_AWD2CR @ hex. ADC4_AWD2CR ADC4_AWD2CR 1b. ;
+: ADC4_AWD3CR. ." ADC4_AWD3CR (read-write) $" ADC4_AWD3CR @ hex. ADC4_AWD3CR ADC4_AWD3CR 1b. ;
+: ADC4_DIFSEL. ." ADC4_DIFSEL () $" ADC4_DIFSEL @ hex. ADC4_DIFSEL ADC4_DIFSEL 1b. ;
+: ADC4_CALFACT. ." ADC4_CALFACT (read-write) $" ADC4_CALFACT @ hex. ADC4_CALFACT ADC4_CALFACT 1b. ;
+: ADC4.
+ADC4_ISR.
+ADC4_IER.
+ADC4_CR.
+ADC4_CFGR.
+ADC4_SMPR1.
+ADC4_SMPR2.
+ADC4_TR1.
+ADC4_TR2.
+ADC4_TR3.
+ADC4_SQR1.
+ADC4_SQR2.
+ADC4_SQR3.
+ADC4_SQR4.
+ADC4_DR.
+ADC4_JSQR.
+ADC4_OFR1.
+ADC4_OFR2.
+ADC4_OFR3.
+ADC4_OFR4.
+ADC4_JDR1.
+ADC4_JDR2.
+ADC4_JDR3.
+ADC4_JDR4.
+ADC4_AWD2CR.
+ADC4_AWD3CR.
+ADC4_DIFSEL.
+ADC4_CALFACT.
+;
+
+$50000300 constant ADC1_2
+ADC1_2 $0 +  constant  ADC1_2_CSR
+ADC1_2 $8 +  constant  ADC1_2_CCR
+ADC1_2 $C +  constant  ADC1_2_CDR
+: ADC1_2_CSR. ." ADC1_2_CSR (read-only) $" ADC1_2_CSR @ hex. ADC1_2_CSR ADC1_2_CSR 1b. ;
+: ADC1_2_CCR. ." ADC1_2_CCR (read-write) $" ADC1_2_CCR @ hex. ADC1_2_CCR ADC1_2_CCR 1b. ;
+: ADC1_2_CDR. ." ADC1_2_CDR (read-only) $" ADC1_2_CDR @ hex. ADC1_2_CDR ADC1_2_CDR 1b. ;
+: ADC1_2.
+ADC1_2_CSR.
+ADC1_2_CCR.
+ADC1_2_CDR.
+;
+
+$50000700 constant ADC3_4
+ADC3_4 $0 +  constant  ADC3_4_CSR
+ADC3_4 $8 +  constant  ADC3_4_CCR
+ADC3_4 $C +  constant  ADC3_4_CDR
+: ADC3_4_CSR. ." ADC3_4_CSR (read-only) $" ADC3_4_CSR @ hex. ADC3_4_CSR ADC3_4_CSR 1b. ;
+: ADC3_4_CCR. ." ADC3_4_CCR (read-write) $" ADC3_4_CCR @ hex. ADC3_4_CCR ADC3_4_CCR 1b. ;
+: ADC3_4_CDR. ." ADC3_4_CDR (read-only) $" ADC3_4_CDR @ hex. ADC3_4_CDR ADC3_4_CDR 1b. ;
+: ADC3_4.
+ADC3_4_CSR.
+ADC3_4_CCR.
+ADC3_4_CDR.
+;
+
+$40010000 constant SYSCFG
+SYSCFG $0 +  constant  SYSCFG_CFGR1
+SYSCFG $8 +  constant  SYSCFG_EXTICR1
+SYSCFG $C +  constant  SYSCFG_EXTICR2
+SYSCFG $10 +  constant  SYSCFG_EXTICR3
+SYSCFG $14 +  constant  SYSCFG_EXTICR4
+SYSCFG $18 +  constant  SYSCFG_CFGR2
+SYSCFG $4 +  constant  SYSCFG_RCR
+: SYSCFG_CFGR1. ." SYSCFG_CFGR1 (read-write) $" SYSCFG_CFGR1 @ hex. SYSCFG_CFGR1 SYSCFG_CFGR1 1b. ;
+: SYSCFG_EXTICR1. ." SYSCFG_EXTICR1 (read-write) $" SYSCFG_EXTICR1 @ hex. SYSCFG_EXTICR1 SYSCFG_EXTICR1 1b. ;
+: SYSCFG_EXTICR2. ." SYSCFG_EXTICR2 (read-write) $" SYSCFG_EXTICR2 @ hex. SYSCFG_EXTICR2 SYSCFG_EXTICR2 1b. ;
+: SYSCFG_EXTICR3. ." SYSCFG_EXTICR3 (read-write) $" SYSCFG_EXTICR3 @ hex. SYSCFG_EXTICR3 SYSCFG_EXTICR3 1b. ;
+: SYSCFG_EXTICR4. ." SYSCFG_EXTICR4 (read-write) $" SYSCFG_EXTICR4 @ hex. SYSCFG_EXTICR4 SYSCFG_EXTICR4 1b. ;
+: SYSCFG_CFGR2. ." SYSCFG_CFGR2 (read-write) $" SYSCFG_CFGR2 @ hex. SYSCFG_CFGR2 SYSCFG_CFGR2 1b. ;
+: SYSCFG_RCR. ." SYSCFG_RCR (read-write) $" SYSCFG_RCR @ hex. SYSCFG_RCR SYSCFG_RCR 1b. ;
+: SYSCFG.
+SYSCFG_CFGR1.
+SYSCFG_EXTICR1.
+SYSCFG_EXTICR2.
+SYSCFG_EXTICR3.
+SYSCFG_EXTICR4.
+SYSCFG_CFGR2.
+SYSCFG_RCR.
+;
+
+$40010038 constant OPAMP
+OPAMP $0 +  constant  OPAMP_OPAMP1_CR
+OPAMP $4 +  constant  OPAMP_OPAMP2_CR
+OPAMP $8 +  constant  OPAMP_OPAMP3_CR
+OPAMP $C +  constant  OPAMP_OPAMP4_CR
+: OPAMP_OPAMP1_CR. ." OPAMP_OPAMP1_CR () $" OPAMP_OPAMP1_CR @ hex. OPAMP_OPAMP1_CR OPAMP_OPAMP1_CR 1b. ;
+: OPAMP_OPAMP2_CR. ." OPAMP_OPAMP2_CR () $" OPAMP_OPAMP2_CR @ hex. OPAMP_OPAMP2_CR OPAMP_OPAMP2_CR 1b. ;
+: OPAMP_OPAMP3_CR. ." OPAMP_OPAMP3_CR () $" OPAMP_OPAMP3_CR @ hex. OPAMP_OPAMP3_CR OPAMP_OPAMP3_CR 1b. ;
+: OPAMP_OPAMP4_CR. ." OPAMP_OPAMP4_CR () $" OPAMP_OPAMP4_CR @ hex. OPAMP_OPAMP4_CR OPAMP_OPAMP4_CR 1b. ;
+: OPAMP.
+OPAMP_OPAMP1_CR.
+OPAMP_OPAMP2_CR.
+OPAMP_OPAMP3_CR.
+OPAMP_OPAMP4_CR.
+;
+
