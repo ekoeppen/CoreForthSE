@@ -18,7 +18,21 @@
     .global putchar
     .global init_board
     .global readkey
+    .global readkey_int
+    .global readkey_polled
+    .global usart1_irq_handler
     .global generic_forth_handler
+
+    .type rom_start, %function
+    .type reset_handler, %function
+    .type putchar, %function
+    .type init_board, %function
+    .type readkey, %function
+    .type readkey_int, %function
+    .type readkey_polled, %function
+    .type usart1_irq_handler, %function
+    .type generic_forth_handler, %function
+
 rom_start:
     .long addr_TASK0TOS               /* Top of Stack                 */
     .long reset_handler + 1           /* Reset Handler                */
@@ -63,7 +77,7 @@ rom_start:
     .long generic_forth_handler + 1
     .long generic_forth_handler + 1
     .long generic_forth_handler + 1
-    .long generic_forth_handler + 1
+    .long usart1_irq_handler + 1
     .long generic_forth_handler + 1
     .long generic_forth_handler + 1
     .long generic_forth_handler + 1
@@ -138,17 +152,29 @@ init_board:
     ldr r0, =UART1
     ldr r1, =(48000000 / 230400)
     str r1, [r0, #UART_BRR]
-    ldr r1, =0x0000000d
+    ldr r1, =0x0000002d
     str r1, [r0, #UART_CR1]
     movs r1, #0
+    ldr r0, =addr_SBUF_HEAD
+    str r1, [r0]
+    ldr r0, =addr_SBUF_TAIL
+    str r1, [r0]
     subs r1, #1
     str r1, [r0, #UART_ICR]
 
+    @ enable NVIC UART1 IRQ
+    movs r0, #0
+    msr primask, r0
+    movs r0, #0
+    msr basepri, r0
+    ldr r0, =(NVIC + NVIC_SETENA_BASE)
+    ldr r1, =(1 << 27)
+    str r1, [r0]
     pop {pc}
 
     .ltorg
 
-readkey:
+readkey_polled:
     ldr r0, =CPUID
     ldr r0, [r0]
     cmp r0, #0
@@ -164,6 +190,32 @@ readkey:
     cmp r3, r2
     bne 2b
     ldr r0, [r1, #UART_RDR]
+    pop {r1, r2, r3, pc}
+
+readkey:
+readkey_irq:
+    ldr r0, =CPUID
+    ldr r0, [r0]
+    cmp r0, #0
+    bne 3f
+    ldr r0, =EMULATOR_UART
+    ldr r0, [r0]
+    bx lr
+3:  push {r1, r2, r3, lr}
+    ldr r1, =addr_SBUF_TAIL
+    ldr r3, [r1]
+2:  ldr r2, =addr_SBUF_HEAD
+    ldr r2, [r2]
+    cmp r2, r3
+    bne 1f
+    wfi
+    b 2b
+1:  ldr r0, =addr_SBUF
+    ldrb r0, [r0, r3]
+    adds r3, #1
+    movs r2, #0x7f
+    ands r3, r2
+    str r3, [r1]
     pop {r1, r2, r3, pc}
 
 putchar:
@@ -225,6 +277,30 @@ generic_forth_handler:
     pop {r4 - r7, pc}
 1:  bx lr
 
+usart1_irq_handler:
+    ldr r3, =UART1
+    ldr r1, [r3, UART_ISR]
+    movs r0, #0x08
+    ands r0, r1
+    bne 2f
+    movs r0, #0x20
+    ands r0, r1
+    beq 1f
+    ldr r0, =addr_SBUF
+    ldr r1, =addr_SBUF_HEAD
+    ldr r1, [r1]
+    ldr r2, [r3, UART_RDR]
+    strb r2, [r0, r1]
+    adds r1, #1
+    movs r0, 0x7F
+    ands r0, r1
+    ldr r1, =addr_SBUF_HEAD
+    str r0, [r1]
+1:  movs r1, #0x20
+    str r1, [r3, UART_ICR]
+    bx lr
+2:  b .
+
 nmi_handler:
     b .
 
@@ -276,20 +352,19 @@ systick_handler:
 
     defcode "KEY?", KEYQ
     movs r2, #0
-    ldr r0, =(UART1 + UART_ISR)
-    ldr r0, [r0]
-    movs r1, #32
+    ldr r0, =UART1
+    ldr r0, [r0, UART_ISR]
+    movs r1, #0x20
     tst r1, r0
     beq 1f
     subs r2, #1
 1:  ppush r2
     mov pc, lr
 
-    defvar "SBUF", SBUF, 16
+    defvar "SBUF", SBUF, 128
     defvar "SBUF-HEAD", SBUF_HEAD
     defvar "SBUF-TAIL", SBUF_TAIL
     defvar "IVT", IVT, 48 * 4
-    defvar "UART0-TASK", UARTZ_TASK
 
     defword "TURNKEY", TURNKEY
     bl ABORT
