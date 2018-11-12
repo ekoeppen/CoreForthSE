@@ -1,0 +1,3 @@
+: :noname   align latest @ here latest !  ,link $80 c, align here ] ;
+: @cell+  ( a -- a' n ) dup cell+ swap @ ;
+

@@ -1,0 +1,8 @@
+: h.4   base @ swap hex <# # # # # #> type base ! ;
+: h.2   base @ swap hex <# # # #> type base ! ;
+: hex.   base @ swap hex  <# # # # # # # # # #> type base ! ;
+: h, ,h ;
+: 2+ 2 + ;
+: 2- 2 - ;
+
+
