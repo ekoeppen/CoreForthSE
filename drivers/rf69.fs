@@ -48,25 +48,18 @@
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
   0200 h, \ packet mode, fsk
-  0302 h, 048A h, \ bit rate 49,261 hz
   0505 h, 06C3 h, \ 90.3kHzFdev -> modulation index = 2
-  0B20 h, \ low M
   1942 h, 1A42 h, \ RxBw 125khz, AFCBw 125khz
-  1E0C h, \ AFC auto-clear, auto-on
   2607 h, \ disable clkout
   29C4 h, \ RSSI thres -98dB
   2B40 h, \ RSSI timeout after 128 bytes
-  2D05 h, \ Preamble 5 bytes
-  2E90 h, \ sync size 3 bytes
-  2FAA h, \ sync1: 0xAA -- this is really the last preamble byte
-  302D h, \ sync2: 0x2D -- actual sync byte
-  312A h, \ sync3: network group
-  37D0 h, \ drop pkt if CRC fails \ 37D8 h, \ deliver even if CRC fails
-  3842 h, \ max 62 byte payload
-  3C8F h, \ fifo thres
-  3D12 h, \ PacketConfig2, interpkt = 1, autorxrestart on
-  6F20 h, \ Test DAGC
-  7102 h, \ RegTestAfc
+  2D06 h, \ Preamble 6 bytes
+  2E98 h, \ sync size 3 bytes
+  2FF0 h, \ sync1: 0xAA -- this is really the last preamble byte
+  3012 h, \ sync2: 0x2D -- actual sync byte
+  3178 h, \ sync3: network group
+  3710 h, \ drop pkt if CRC fails \ 37D8 h, \ deliver even if CRC fails
+  3840 h, \ max 64 byte payload
   0 h,  \ sentinel
 
 \ r/w access to the RF registers
@@ -148,7 +141,7 @@ create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
     0 rf.rssi !  0 rf.afc !
     RF:M_RX rf!mode
   else rf-rssi rf-status then
-  RF:IRQ2 rf@  RF:IRQ2_FIFO_NE and if
+  RF:IRQ2 rf@  RF:IRQ2_CRCOK and if
     rf.buf $40 rf-n@spi $40
   else 0 then ;
 
