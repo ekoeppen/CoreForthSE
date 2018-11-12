@@ -717,10 +717,30 @@ delay:
     defcode "BIC!", BITCLEARSTORE
     ldr r1, [PSP]
     ldr r2, [r0]
-    bics r1, r2
-    str r1, [r0]
+    bics r2, r1
+    str r2, [r0]
     ldr r0, [PSP, #4]
     adds PSP, #8
+    mov pc, lr
+
+    defcode "XOR!", XORSTORE
+    ldr r1, [PSP]
+    ldr r2, [r0]
+    eors r2, r1
+    str r2, [r0]
+    ldr r0, [PSP, #4]
+    adds PSP, #8
+    mov pc, lr
+
+    defcode "BIS", BITSET, F_INLINE
+    por
+    mov pc, lr
+
+    defcode "BIC", BITCLEAR, F_INLINE
+    ldr r1, [PSP]
+    bics r1, r0
+    mov r0, r1
+    adds PSP, #4
     mov pc, lr
 
     defcode "BIT@", BITFETCH
