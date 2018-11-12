@@ -1,0 +1,2 @@
+include ../../cpus/stm32/stm32f051/io.fs
+include peripherals.ft

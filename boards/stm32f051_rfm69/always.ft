@@ -1,0 +1,6 @@
+include ../../generic/mecrisp-compat.ft
+include ../../cpus/stm32/stm32f051/rcc.fs
+include ../../cpus/stm32/stm32f051/io.fs
+include ../../cpus/stm32/stm32f051/hal.fs
+include ../../cpus/stm32/stm32f051/pwr.ft
+include ../../cpus/stm32/stm32f051/spi.fs

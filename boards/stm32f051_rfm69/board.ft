@@ -1,0 +1,53 @@
+0  0 io constant button
+1  0 io constant led1
+1  1 io constant led2
+1  3 io constant led3
+
+0  9 io constant uart-tx
+0 10 io constant uart-rx
+
+0  4 io constant rf-ssel
+0  5 io constant rf-sclk
+0  6 io constant rf-miso
+0  7 io constant rf-mosi
+0  2 io constant rf-reset
+0  3 io constant rf-irq
+0  8 io constant rf-dio1
+0 11 io constant rf-dio2
+0 12 io constant rf-dio3
+0 15 io constant rf-dio5
+
+create pin-config
+  led1     , omode-pp       ,
+  led2     , omode-pp       ,
+  led3     , omode-pp       ,
+  button   , imode-float    ,
+  rf-ssel  , omode-pp       ,
+  rf-sclk  , omode-af-pp    ,
+  rf-mosi  , omode-af-pp    ,
+  rf-miso  , imode-af-float ,
+  rf-irq   , imode-float    ,
+  rf-reset , omode-pp       ,
+  -1       , -1             ,
+
+: pins-init   %101111 io-port-enable
+  pin-config begin
+    dup @ -1 <>
+  while
+    dup @ over cell+ @
+    swap io-mode!
+    cell+ cell+
+  repeat
+  drop
+;
+
+: +rf-spi   rf-ssel ioc! ;
+: -rf-spi   rf-ssel ios! ;
+: >rf-spi   >spi ;
+: rf-spi>   spi> ;
+: >rf-spi>   >spi> ;
+: rf-rr   +rf-spi >spi spi> -rf-spi . ;
+
+: board-init   pins-init spi-init ;
+: turnkey   board-init abort ;
+

@@ -1,0 +1,14 @@
+$80 $80 task: rx-listener
+$80 $80 task: rx-sender
+
+: rx-listener-init
+  rx-listener activate
+  begin
+    rf-recv ?dup if rf:buf swap dump then
+    pause
+  again
+  ;
+
+: core-init   board-init #868 rf-init ;
+: turnkey core-init abort ;
+
