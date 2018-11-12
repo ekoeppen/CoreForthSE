@@ -2439,8 +2439,10 @@ interpret_eol:
     beq 1f
     bl ROM; lit32 eval_words; bl EVALUATE
 1:  bl COPY_FARCALL;
-    bl FLASH_DP; bl SEEK_LATEST; pdup; bl LATEST; bl STORE;
+    @ bl FLASH_DP; bl SEEK_LATEST; pdup; bl LATEST; bl STORE;
+    bl LATEST; bl FETCH
     bl FROMLINK; bl EXECUTE
+    b ABORT
 
     defword "INTERPRET", INTERPRET
     bl TIB; bl XSOURCE; bl STORE;
