@@ -1403,7 +1403,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword "HEX.", HEXDOT
-    bl puthexnumber
+    bl puthexnumber; bl SPACE
     exit
 
     defword "READ-KEY", READ_KEY
@@ -2193,7 +2193,7 @@ DODATA:
     mov pc, lr
     exit
 
-    defword "BUFFER", BUFFER
+    defword "BUFFER:", BUFFER
     bl XCONSTANT
     lit8 F_BUFFER; bl SET_FLAGS;
     bl RAM_DP; bl FETCH; bl COMMA
