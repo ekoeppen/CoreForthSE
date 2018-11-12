@@ -25,9 +25,7 @@ coreforth.bin: coreforth.elf
 		-d ../../cpus/stm32/stm32f051/pwr.ft \
 		-d ../../cpus/stm32/stm32f051/spi.fs \
 		-d ../../generic/systick.ft \
-		-d board.ft \
-		-d ../../drivers/rf69.fs \
 		-d ../../generic/multitasking.ft \
-		-d core.ft \
+		-d board.ft \
 		-d ../../generic/rom-dump.ft
 	perl -pe "s/revision NNNNNNNN/revision $(REVISION)/" < $@ > $@.bak && mv $@.bak $@
