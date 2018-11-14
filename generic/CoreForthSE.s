@@ -297,15 +297,12 @@ PSP .req r6
 main:
 reset_handler:
     bl init_board
-    ldr r0, =addr_TASK0RTOS
+    ldr r0, =ram_top
     mov RSP, r0
-    ldr r0, =addr_TASK0TOS
+    ldr r0, =ram_top - 0x200
     mov PSP, r0
     movs r0, #0
     subs r0, #1
-    bl TASK0; bl UPSTORE
-    bl TASK0RTOS; bl R0; bl STORE
-    bl TASK0TOS; bl S0; bl STORE
     lit8 16; bl BASE; bl STORE
     bl RAM
     lit32 init_here; pfetch; bl ROM_DP; bl STORE
@@ -1326,10 +1323,16 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     exit
 
     defword ".S", PRINTSTACK
-    bl DEPTH; ppop r1; cmp r1, #0; beq 1f
-    bl SPFETCH; bl S0; pfetch; pcellsub; pcellsub; bl XPRINTSTACK; pdup; bl DOT;
+    bl DEPTH; ppop r1; cmp r1, #0; beq 1f; blt 2f
+    bl SPFETCH; bl S0; pcellsub; pcellsub; bl XPRINTSTACK; pdup; bl DOT;
     bl CR
 1:  exit
+2:  ldr r0, =underflow_error
+    movs r1, #17
+    bl putstring
+    exit
+underflow_error:
+    .ascii "Stack underflow!\n"
 
     defword ".R", PRINTRSTACK
     bl RPFETCH; bl R0; pfetch; pcellsub; bl XPRINTSTACK
@@ -2194,27 +2197,15 @@ DODATA:
     exit
 
     defword "BUFFER:", BUFFER
-    bl XCONSTANT
-    lit8 F_BUFFER; bl SET_FLAGS;
-    bl RAM_DP; bl FETCH; bl COMMA
-    pdup; bl COMMAH
-    bl ROM_ACTIVE; pfetch
-    bl RAM; pswap; bl ALLOT
-    bl ROM_ACTIVE; bl STORE
+    bl ROMQ; bl RAM; bl HERE;
+    bl ROT; bl DUP; bl ALLOT;
+    bl ROT; bl ROM_ACTIVE; bl STORE
+    bl SWAP; bl CONSTANT; bl COMMA
     exit
 
-    defcode "DOVAR", DOVAR
-    mov r1, lr
-    adds r1, #1
-    ppush r1
-    mov pc, lr
-
     defword "VARIABLE", VARIABLE
-    bl BUILDS
-    movs r1, #0xb5; lsls r1, #8; ppush r1; bl COMMAH;
-    bl LIT_XT; .word DOVAR; bl COMMAXT
-    movs r1, #0xbd; lsls r1, #8; ppush r1; bl COMMAH;
-    bl ALIGN; bl CELL; bl ALLOT
+    bl ROMQ; bl RAM; bl HERE; lit8 4; bl ALLOT; bl SWAP; bl ROM_ACTIVE; bl STORE
+    bl CONSTANT
     exit
 
     defword "DEFER", DEFER
@@ -2428,8 +2419,6 @@ interpret_eol:
     exit
 
     defword "COLD", COLD
-    bl TASK0TOS; bl DUP; bl TASK0UTOS; bl STORE; bl TASK0S0; bl STORE
-    bl TASK0RTOS; bl TASK0R0; bl STORE
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
     ldr r0, =eval_words
     ldrb r0, [r0]
@@ -2472,37 +2461,16 @@ interpret_eol:
 
     .ltorg
 
-@ ---------------------------------------------------------------------
-@ -- User variables  --------------------------------------------------
+    defconst "R0", R0, ram_top
+    defconst "S0", S0, ram_top - 0x200
 
-    defword "USER", USER
-    bl CREATE; bl COMMA; bl XDOES
-    pfetch; bl UPFETCH; padd;
-    exit
-
-    defword "UP@", UPFETCH
-    bl UP; pfetch
-    exit
-
-    defword "UP!", UPSTORE
-    bl UP; bl STORE
-    exit
-
-    defword "R0", R0
-    bl UPFETCH; adds r0, #4
-    exit
-
-    defword "S0", S0
-    bl UPFETCH; adds r0, #8
-    exit
-
-    defcode "DEPTH", DEPTH
-    ldr r2, =addr_TASK0TOS
-    mov r1, PSP
-    subs r2, r1
-    lsrs r2, #2
-    ppush r2
-    mov pc, lr
+    defword "DEPTH", DEPTH
+    bl S0
+    subs r0, PSP
+    subs r0, #4
+    blt 1f
+    lsrs r0, #2
+1:  exit
 
     .ltorg
 
@@ -2521,7 +2489,6 @@ interpret_eol:
     defvar "(SOURCE)", XSOURCE
     defvar "SOURCE#", SOURCECOUNT
     defvar ">IN", SOURCEINDEX
-    defvar "UP", UP
     defvar "HP", HP
     defvar "\047KEY", TICKKEY
     defvar "\047ACCEPT", TICKACCEPT
@@ -2531,20 +2498,6 @@ interpret_eol:
     defvar "\047FINISH-OUTPUT", TICKFINISH_OUTPUT
     defvar "FARCALL", FARCALL, 32
     defvar "WORDBUF", WORDBUF, WORDBUF_SIZE
-
-@ ---------------------------------------------------------------------
-@ -- Main task user variables -----------------------------------------
-
-    defvar "TASK0UTOS", TASK0UTOS
-    defvar "TASK0STATUS", TASK0STATUS
-    defvar "TASK0", TASK0, 0
-    defvar "TASK0FOLLOWER", TASK0FOLLOWER
-    defvar "TASK0R0", TASK0R0
-    defvar "TASK0S0", TASK0S0
-    defvar "TASK0RSTACK", TASK0RSTACK, 256
-    defvar "TASK0RTOS", TASK0RTOS, 0
-    defvar "TASK0STACK", TASK0STACK, 256
-    defvar "TASK0TOS", TASK0TOS, 0
 
     .ltorg
 
