@@ -1035,19 +1035,19 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     ppop r2
     ppop r1
     movs r3, #0
-    movs r4, #1
     movs r5, #1
+    movs r6, #1
     cmp r1, r3
     bge 1f
-    subs r4, #2
-    muls r1, r4
+    subs r5, #2
+    muls r1, r5
 1:  cmp r2, r3
     bge 2f
-    subs r5, #2
-    muls r2, r5
+    subs r6, #2
+    muls r2, r6
 2:  bl unsigned_div_mod
-    muls r3, r4
     muls r3, r5
+    muls r3, r6
     ppush r3
     exit
 
