@@ -2327,7 +2327,7 @@ interpret_eol:
     bl SOURCECOUNT; pfetch; bl XSOURCE; bl ADDSTORE; b 1b
 2:  bl TWODROP
     exit
-3:  pdrop; pdup; bl DOT; bl SPACE; bl COUNT; bl TYPE; lit8 '?'; bl EMIT; bl CR
+3:  pdup; bl DOT; bl SPACE; bl COUNT; bl TYPE; lit8 '?'; bl EMIT; bl CR
     exit
 
     defword "FORGET", FORGET
