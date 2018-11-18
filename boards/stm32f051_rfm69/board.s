@@ -296,9 +296,10 @@ usart1_irq_handler:
     ldr r1, =addr_SBUF_HEAD
     str r0, [r1]
 1:  movs r1, #0x20
-    str r1, [r3, UART_ICR]
+3:  str r1, [r3, UART_ICR]
     bx lr
-2:  b .
+2:  movs r1, #0x08
+    b 3b
 
 nmi_handler:
     b .
