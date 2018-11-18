@@ -15,9 +15,12 @@ board.s: $(ROOT)/generic/CoreForthSE.s
 coreforth.elf: $(OBJS)
 	arm-none-eabi-ld $(OBJS) -e reset_handler -o $@ -L$(ROOT)/cpus/stm32/stm32f051/ -Tstm32f051x8.ld
 	
-coreforth.bin: coreforth.elf
+coreforth.min: coreforth.elf
 	arm-none-eabi-objcopy -Obinary $< $@
-	thumbulator -o $@ -d $@ -m 00010000 \
+	perl -pe "s/revision NNNNNNNN/revision $(REVISION)/" < $@ > $@.bak && mv $@.bak $@
+coreforth.bin: coreforth.min
+	thumbulator -o $@ -d $< -m 00010000 \
+		-d ../../generic/common.ft \
 		-d ../../generic/mecrisp-compat.ft \
 		-d ../../cpus/stm32/stm32f051/rcc.fs \
 		-d ../../cpus/stm32/stm32f051/io.fs \
@@ -27,5 +30,6 @@ coreforth.bin: coreforth.elf
 		-d ../../generic/systick.ft \
 		-d ../../generic/multitasking.ft \
 		-d board.ft \
+		-d ../../drivers/rf69.fs \
+		-d core.ft \
 		-d ../../generic/rom-dump.ft
-	perl -pe "s/revision NNNNNNNN/revision $(REVISION)/" < $@ > $@.bak && mv $@.bak $@
