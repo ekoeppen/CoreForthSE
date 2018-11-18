@@ -1,113 +1,106 @@
-: USER   CREATE , DOES> @ UP@ + ;
+variable up
+: up@ up @ ;
+: up! up ! ;
 
-0      DUP   USER FOLLOWER      \ points to the follower's STATUS variable
-CELL - DUP   USER STATUS        \ PASS or WAKE - this needs to be one cell before FOLLOWER!
-CELL - DUP   USER TOS           \ task's top of stack when switching
-NEGATE CONSTANT USER#           \ save amount of allocated user variable space
+: user   create , does> @ up@ + ;
 
-: PAUSE   ( -- rp f'status )  \ suspend task at current execution point and switch to follower
-    CR ." Pause " CR
-    RP@ dup ." Old RP: " . \ push current rp
-    SP@ dup ." Old TOS: " . !                 \ save sp to task's TOS
-    FOLLOWER dup ." Follower address: " .
-    @ dup ." Follower: " .
-    DUP @ 1+ dup ." Follower word: " . cr >R    \ get follower's status and jump there
+0     dup   user status        \ pass or wake - this needs to be one cell before follower!
+cell+ dup   user follower      \ points to the follower's status variable
+cell+ dup   user tos           \ task's top of stack when switching
+cell+ dup   user task          \ pointer to defining word
+cell+ constant user#           \ save amount of allocated user variable space
+
+: 'u   status - + ;
+
+: task: ( s r "name" -- )( -- tid )
+    create ram-dp @ aligned 3 cells + dup ,  \ save tid
+           + user# + dup ,                   \ save r0
+           + dup ,                           \ save s0
+           ram-dp ! ;
+
+: tid @ ;
+: task-s0 ( task -- s0 ) cell+ @ ;
+: task-r0 ( task -- r0 ) 2 cells + @ ;
+
+: current-task ( -- task ) up@ task 'u @ ;
+: s0 ( -- s0 )   current-task 2 cells + @ ;
+: r0 ( -- s0 )   current-task cell+ @ ;
+: depth   s0 sp@ - cell- cell / ;
+: .s depth if depth 1+ 2 do s0 i cells - @ . loop dup . then ;
+
+: pause   ( -- rp f'status )  \ suspend task at current execution point and switch to follower
+    rp@                       \ push current rp
+    sp@ tos !                 \ save sp to task's tos
+    follower @ dup @ 1+       \ get follower's status and jump there
+    >r
 ;
 
-: 'U   FOLLOWER - + ;
-
-: (WAKE)   ( rp sp 'status -- )
-    CR ." Waking " dup . CR
-    CELL+ UP!           \ take [rp] pointing to FOLLOWER and convert to TID
-    TOS @ DUP ." New SP: " . SP!           \ restore sp for this task
-    DUP ." New RP: " .
-    DUP ." Continue at: " @ . CR
-    RP!                 \ rp was on the stack, restore it as well
+: (wake)   ( rp sp 'status -- )
+    up!           \ set up to new task
+    tos @ cell- @ rp!
+    tos @ sp!      \ restore sp for this task
+    drop
 ;
 
-' (WAKE) CONSTANT WAKE
+' (wake) constant wake
 
-: AWAKE   ( tid -- ) WAKE SWAP STATUS 'U ! ;
-
-: (PASS)  ( tid -- follower | -- r )
-    CR ." Passing " CR
-    CELL+ @ DUP @ 1+ RDROP >R   \ take [rp] pointing to FOLLOWER and jump there
+: (pass)  ( tid -- follower | -- r )
+    cell+ @ dup @ 1+ rdrop >r   \ take [rp] pointing to follower and jump there
 ;
 
-' (PASS) CONSTANT PASS
+' (pass) constant pass
 
-: STOP   PASS STATUS ! PAUSE ;
-: SLEEP   ( tid -- ) PASS SWAP STATUS 'U ! ;
+: stop   pass status ! pause ;
 
-: ACTIVATE   ( s: tid -- ) ( r: n' -- )
-     DUP S0 'U @ CELL-  ( tid sp )      \ get sp and decrement before push
-     OVER R0 'U @ CELL- ( tid sp rp )
-     R> ." Continue at " dup . cr OVER !          ( tid sp rp )   \ save next word to rp
-     OVER !             ( tid sp )      \ save rp to sp
-     OVER TOS 'U !      ( tid )         \ save sp in tos
-     AWAKE              ( -- )
+: awake   ( task -- ) tid wake swap status 'u ! ;
+: sleep   ( task -- ) tid pass swap status 'u ! ;
+
+: activate   ( s: task -- ) ( r: n' -- )
+     dup 2 cells + @ cell-    ( task sp )      \ get sp and decrement before push
+     over cell+ @ cell-       ( task sp rp )
+     r> over !                ( task sp rp )   \ save next word to rp
+     over cell- !                   ( task sp )      \ save rp to sp
+     over tid tos 'u !        ( task )         \ save sp in tos
+     awake                    ( -- )
 ;
 
-: ALSOTASK   ( tid -- )             \ link new task after current task
-     DUP SLEEP                      \ sleep new task
-     FOLLOWER @ OVER FOLLOWER 'U !  \ set new task's follower to this task's follower
-     STATUS 'U FOLLOWER !           \ set this task's follower to the new task's status
+: alsotask   ( task -- )             \ link new task after current task
+     dup sleep                      \ sleep new task
+     dup tid tuck
+         follower @ over follower 'u !  \ set new task's follower to this task's follower
+         status 'u follower !           \ set this task's follower to the new task's status
+         swap task 'u !
 ;
 
-: ONLYTASK   ( tid -- )
-    DUP SLEEP                           \ sleep this task
-    DUP STATUS 'U SWAP FOLLOWER 'U !    \ set task's follower to own stats
+: onlytask   ( task -- )
+    dup   tid up!   task !   status follower !   pass status !   s0 tos !
 ;
 
-: TASK:   ( s r "name" -- ) ( -- tid )
-    CREATE USER# CELL+  HERE +          \ reserve user space and calculate TID
-    DUP ,                               \ save TID
-    0 ,                                 \ clear TOS
-    PASS , ,                            \ set STATUS to PASS and FOLLOWER to STATUS
-    2DUP + -ROT
-    2 CELLS + HERE + DUP , + , ALLOT    \ set R0 and S0 and reserve stack space
-    DOES> @
-;
+: start-task ( task -- )   tid wake 1+ >r ;
 
-: .TASK
+: .task
     CR
-    DUP                 ." ID:       " . CR
-    DUP ANY>LINK LINK>NAME
-                        ." Name:     " COUNT TYPE CR
-    DUP S0 'U @         ." Stack:    " . CR
-    DUP TOS 'U @        ." TOS:      " . CR
-    DUP R0 'U @         ." R-Stack:  " . CR
-    DUP STATUS 'U @     ." Status:   " WAKE = IF ." WAKE" ELSE ." PASS" THEN CR
-    DUP FOLLOWER 'U @   ." Follower: " CELL+ .
-        FOLLOWER 'U @ @ ." = " . CR
+    dup tid             ." ID:       " . cr
+    dup any>link link>name
+                        ." Name:     " count type cr
+    dup cell+ @         ." R-Stack:  " . cr
+    dup 2 cells + @     ." Stack:    " . cr
+    tid
+    dup tos 'u @        ." TOS:      " . cr
+    dup task 'u @       ." Task:     " . cr
+    dup status 'u @     ." Status:   " wake = if ." wake" else ." pass" then cr
+    dup follower 'u @   ." Follower: " .
+        follower 'u @ @ ." = " . cr
 ;
 
-: .TASKS
-    UP@
-    BEGIN
-        DUP .TASK
-        FOLLOWER 'U @ CELL+
-        DUP UP@ =
-    UNTIL
-    DROP
+: .tasks
+    up@
+    begin
+        dup task 'u @ .task
+            follower 'u @ dup up@ =
+    until
+    drop
 ;
 
-: .td   dup s0 'u @ over - swap 2 cells - swap dumpw cr ;
-
-$80 $80 task: task1
-$80 $80 task: task2
-
-: task1-init   task1 activate begin ." Task 1" cr pause again ;
-
-: tasks-test
-    task1 up!
-    task1 onlytask
-    task2 alsotask
-    task1-init
-
-    ." Pass: " pass .
-    ." Wake: " wake . cr
-    task1 .td task2 .td
-    .tasks
-;
+$80 $80 task: task0
 
