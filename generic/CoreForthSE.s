@@ -1408,7 +1408,12 @@ underflow_error:
     exit
 
     defword "HEX.", HEXDOT
-    bl puthexnumber; bl SPACE
+    bl BASE; bl FETCH; bl SWAP; bl HEX
+    bl LTNUM;
+    bl NUM; bl NUM; bl NUM; bl NUM;
+    bl NUM; bl NUM; bl NUM; bl NUM;
+    bl NUMGT; bl TYPE
+    bl BASE; bl STORE
     exit
 
     defword "READ-KEY", READ_KEY

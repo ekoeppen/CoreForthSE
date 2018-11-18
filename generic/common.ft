@@ -1,3 +1,9 @@
 : :noname   align latest @ here latest !  ,link $80 c, align here ] ;
 : @cell+  ( a -- a' n ) dup cell+ swap @ ;
 
+: dumpw ( addr n -- )
+  $00 do
+    i dup $4 umod if space else cr 2dup cells + hex. $3A emit space then
+          cells over + @ hex.
+  loop cr drop ;
+
