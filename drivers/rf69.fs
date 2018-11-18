@@ -42,9 +42,7 @@
      variable rf.mode  \ last set chip mode
      variable rf.last  \ flag used to fetch RSSI only once per packet
      variable rf.rssi  \ RSSI signal strength of last reception
-     variable rf.lna   \ Low Noise Amplifier setting (set by AGC)
-     variable rf.afc   \ Auto Frequency Control offset
-     variable rf.buf rom-active @ ram #66 cell- allot rom-active !
+ #64 buffer:  rf.buf
 
 create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
   0200 h, \ packet mode, fsk
@@ -91,31 +89,13 @@ create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
   begin  dup RF:SYN1 rf!  RF:SYN1 rf@  over = until
   drop ;
 
-\ rf-rssi checks whether the rssi bit is set in IRQ1 reg and sets the LED to match.
-\ It also checks whether there is an rssi timeout and restarts the receiver if so.
-: rf-rssi ( -- )
-  RF:IRQ1 rf@
-  dup RF:IRQ1_RSSI and 3 rshift LED1 io!
-  dup RF:IRQ1_TIMEOUT and if
-      RF:M_FS rf!mode
-    then
-  drop ;
-
-\ rf-timeout checks whether there is an rssi timeout and restarts the receiver if so.
-: rf-timeout ( -- )
-  RF:IRQ1 rf@ RF:IRQ1_TIMEOUT and if
-    RF:M_FS rf!mode
-  then ;
-
 \ rf-status fetches the IRQ1 reg, checks whether rx_sync is set and was not set
-\ in rf.last. If so, it saves rssi, lna, and afc values; and then updates rf.last.
+\ in rf.last. If so, it saves rssi and then updates rf.last.
 \ rf.last ensures that the info is grabbed only once per packet.
 : rf-status ( -- )  \ update status values on sync match
   RF:IRQ1 rf@  RF:IRQ1_SYNC and  rf.last @ <> if
     rf.last  RF:IRQ1_SYNC over xor!  @ if
       RF:RSSI rf@  rf.rssi !
-      RF:LNA rf@  3 rshift  7 and  rf.lna !
-      RF:AFC rf@  8 lshift  RF:AFC 1+ rf@  or rf.afc !
     then
   then ;
 
@@ -137,24 +117,24 @@ create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 : rf-sleep ( -- ) RF:M_SLEEP rf!mode ;  \ put radio module to sleep
 
 : rf-recv ( -- b )  \ check whether a packet has been received, return #bytes
-  rf.mode @ RF:M_RX <> if
-    0 rf.rssi !  0 rf.afc !
+  rf.mode @ RF:M_RX <> if 0 rf.rssi !
     RF:M_RX rf!mode
-  else rf-rssi rf-status then
+  else
+    rf-status
+  then
   RF:IRQ2 rf@  RF:IRQ2_CRCOK and if
     rf.buf $40 rf-n@spi $40
   else 0 then ;
 
 : rf-send ( addr count -- )  \ send out one packet
   RF:M_STDBY rf!mode
-  over RF:FIFO rf!
   ( addr count ) rf-n!spi
   RF:M_TX rf!mode
   begin RF:IRQ2 rf@ RF:IRQ2_SENT and until
   RF:M_STDBY rf!mode ;
 
 : rf-info ( -- )  \ display reception parameters as hex string
-  rf.rssi @ h.2 rf.lna @ h.2 rf.afc @ h.4 ;
+  rf.rssi @ h.2 space ;
 
 : rf-listen ( -- )  \ init RFM69 and report incoming packets until key press
   0 rf.last !
@@ -163,7 +143,6 @@ create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
       ." RF69 " rf-info
       dup 0 do
         rf.buf i + c@ h.2
-        i 1 = if 2- h.2 space then
       loop  cr
     then
   key? until ;
@@ -179,4 +158,5 @@ create rf:init  \ initialise the radio, each 16-bit word is <reg#,val>
 
 : rf-txtest ( n -- )  \ send out a test packet with the number as ASCII chars
   #16 rf-power  pad $40 rf-send ;
+
 
