@@ -334,16 +334,17 @@ systick_handler:
     str r1, [r0]
     pop {r0, r1, r2, pc}
 
-    defcode "KEY?", KEYQ
-    movs r2, #0
-    ldr r0, =UART1
-    ldr r0, [r0, UART_ISR]
-    movs r1, #0x20
-    tst r1, r0
+    defword "KEY?", KEYQ
+    movs r3, #0
+    ldr r1, =addr_SBUF_HEAD
+    ldr r1, [r1]
+    ldr r2, =addr_SBUF_TAIL
+    ldr r2, [r2]
+    cmp r1, r2
     beq 1f
-    subs r2, #1
-1:  ppush r2
-    mov pc, lr
+    subs r3, #1
+1:  ppush r3
+    exit
 
     defvar "SBUF", SBUF, 128
     defvar "SBUF-HEAD", SBUF_HEAD
