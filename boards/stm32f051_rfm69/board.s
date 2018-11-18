@@ -254,25 +254,9 @@ generic_forth_handler:
     beq 1f
 
     push {r4 - r7, lr}
-    mov r4, r8
-    push {r4}
-    mov r4, r9
-    push {r4}
-    mov r4, r10
-    push {r4}
-    mov r4, r11
-    push {r4}
     movs r1, #1
     orrs r2, r1
     blx r2
-    pop {r4}
-    mov r11, r4
-    pop {r4}
-    mov r10, r4
-    pop {r4}
-    mov r9, r4
-    pop {r4}
-    mov r8, r4
     pop {r4 - r7, pc}
 1:  bx lr
 
