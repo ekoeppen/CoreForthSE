@@ -537,7 +537,9 @@ delay:
 
     defcode "SP!", SPSTORE
     mov PSP, r0
-    ldr r0, [PSP]
+    mov r1, PSP
+    subs r1, #4
+    ldr r0, [r1]
     mov pc, lr
 
     defcode "RP!", RPSTORE
