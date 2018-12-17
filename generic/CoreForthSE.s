@@ -1362,16 +1362,20 @@ underflow_error:
     exit
 
     defword "ACCEPT", ACCEPT
-    lit8 0; bl TIBINDEX; bl STORE
-2:  bl KEY; cmp r0, #10; beq 1f
-    cmp r0, #8; bne 3f
-    bl EMIT; lit8 32; bl EMIT; lit8 8; bl EMIT
-    lit8 1; bl TIBINDEX; bl SUBSTORE
+    bl TOR
+    lit8 0
+2:  bl RFETCH; bl OVER; bl EQU; ppop r1; cmp r1, #0; bne 1f
+    bl TWODUP; bl ADD; bl KEY; cmp r0, #10; beq 3f
+    movs r1, #127; cmp r0, r1; beq 4f
+    pdup; bl EMIT
+    bl SWAP; bl STOREBYTE; adds r0, #1
     b 2b
-3:  pdup; bl EMIT; bl TIB; bl TIBINDEX; bl FETCH; bl ADD; bl STOREBYTE
-    lit8 1; bl TIBINDEX; bl ADDSTORE
+4:  pdrop; pdrop; cmp r0, #0; beq 2b
+    subs r0, #1; lit8 8; bl EMIT; lit8 32; bl EMIT; lit8 8; bl EMIT
     b 2b
-1:  pdrop; bl TIBINDEX; bl FETCH
+3:  pdrop; pdrop
+1:  bl NIP
+    bl RDROP
     exit
 
     defword "4NUM", FOURNUM
@@ -2320,25 +2324,10 @@ interpret_eol:
 1:  ppush r0
     exit
 
-    defword "COLD", COLD
-    bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
-    ldr r0, =eval_words
-    ldrb r0, [r0]
-    cmp r0, #0xff
-    beq 1f
-    cmp r0, #0
-    beq 1f
-    bl ROM; lit32 eval_words; bl EVALUATE
-1:  bl COPY_FARCALL;
-    @ bl FLASH_DP; bl SEEK_LATEST; pdup; bl LATEST; bl STORE;
-    bl LATEST; bl FETCH
-    bl FROMLINK; bl EXECUTE
-    b ABORT
-
     defword "INTERPRET", INTERPRET
-    bl TIB; bl XSOURCE; bl STORE;
     lit8 0; bl SOURCEINDEX; bl STORE;
-    bl ACCEPT; bl SOURCECOUNT; bl STORE; bl SPACE;
+    bl TIB; pdup; bl XSOURCE; bl STORE;
+    bl TIBSIZE; bl ACCEPT; bl SOURCECOUNT; bl STORE; bl SPACE;
     bl XINTERPRET; ppop r1; cmp r1, #0; beq 1f
     pdrop; lit32 3f; lit8 4; bl TYPE; b 2f
 1:  bl COUNT; bl TYPE; lit8 63; bl EMIT;
@@ -2418,8 +2407,6 @@ init_last_word:
     defvar "LATEST", LATEST
     defvar "BASE", BASE
     defvar "TIB", TIB, 132
-    defvar ">TIB", TIBINDEX
-    defvar "TIB#", TIBCOUNT
     defvar "(SOURCE)", XSOURCE
     defvar "SOURCE#", SOURCECOUNT
     defvar ">IN", SOURCEINDEX
