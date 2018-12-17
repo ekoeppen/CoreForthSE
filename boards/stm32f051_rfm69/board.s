@@ -18,8 +18,6 @@
     .global putchar
     .global init_board
     .global readkey
-    .global readkey_int
-    .global readkey_polled
     .global usart1_irq_handler
     .global generic_forth_handler
 
@@ -27,8 +25,6 @@
     .type putchar, %function
     .type init_board, %function
     .type readkey, %function
-    .type readkey_int, %function
-    .type readkey_polled, %function
     .type usart1_irq_handler, %function
     .type generic_forth_handler, %function
 
@@ -173,34 +169,23 @@ init_board:
 
     .ltorg
 
-readkey_polled:
-    ldr r0, =CPUID
-    ldr r0, [r0]
-    cmp r0, #0
-    bne 1f
-    ldr r0, =EMULATOR_UART
-    ldr r0, [r0]
-    bx lr
-1:  push {r1, r2, r3, lr}
-    ldr r1, =UART1
-    movs r2, #32
-2:  ldr r3, [r1, #UART_ISR]
-    ands r3, r2
-    cmp r3, r2
-    bne 2b
-    ldr r0, [r1, #UART_RDR]
-    pop {r1, r2, r3, pc}
+haskey:
+    push {lr}
+    movs r3, #0
+    ldr r1, =addr_SBUF_TAIL
+    ldr r1, [r1]
+    ldr r2, =addr_SBUF_HEAD
+    ldr r2, [r2]
+    cmp r2, r1
+    beq 1f
+    subs r3, #1
+1:  subs r6, #4
+    str r0, [r6]
+    movs r0, r3
+    pop {pc}
 
 readkey:
-readkey_irq:
-    ldr r0, =CPUID
-    ldr r0, [r0]
-    cmp r0, #0
-    bne 3f
-    ldr r0, =EMULATOR_UART
-    ldr r0, [r0]
-    bx lr
-3:  push {r1, r2, r3, lr}
+3:  push {lr}
     ldr r1, =addr_SBUF_TAIL
     ldr r3, [r1]
 2:  ldr r2, =addr_SBUF_HEAD
@@ -209,23 +194,19 @@ readkey_irq:
     bne 1f
     wfi
     b 2b
-1:  ldr r0, =addr_SBUF
-    ldrb r0, [r0, r3]
+1:  ldr r4, =addr_SBUF
+    ldrb r4, [r4, r3]
     adds r3, #1
     movs r2, #0x7f
     ands r3, r2
     str r3, [r1]
-    pop {r1, r2, r3, pc}
+    subs r6, #4
+    str r0, [r6]
+    movs r0, r4
+    pop {pc}
 
 putchar:
-    push {r1, r2, r3, lr}
-    ldr r1, =CPUID
-    ldr r1, [r1]
-    cmp r1, #0
-    bne 1f
-    ldr r1, =EMULATOR_UART
-    str r0, [r1]
-    b 3f
+    push {lr}
 1:  ldr r3, =UART1
     str r0, [r3, #UART_TDR]
     movs r2, #0x40
@@ -233,7 +214,9 @@ putchar:
     ands r1, r2
     cmp r1, r2
     bne 2b
-3:  pop {r1, r2, r3, pc}
+    ldr r0, [r6]
+    adds r6, #4
+3:  pop {pc}
 
     .ltorg
 @ ---------------------------------------------------------------------
@@ -333,18 +316,6 @@ systick_handler:
     orrs r1, r2
     str r1, [r0]
     pop {r0, r1, r2, pc}
-
-    defword "KEY?", KEYQ
-    movs r3, #0
-    ldr r1, =addr_SBUF_HEAD
-    ldr r1, [r1]
-    ldr r2, =addr_SBUF_TAIL
-    ldr r2, [r2]
-    cmp r1, r2
-    beq 1f
-    subs r3, #1
-1:  ppush r3
-    exit
 
     defvar "SBUF", SBUF, 128
     defvar "SBUF-HEAD", SBUF_HEAD

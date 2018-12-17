@@ -291,124 +291,7 @@ PSP .req r6
     .endm
 
 @ ---------------------------------------------------------------------
-@ -- Entry point ------------------------------------------------------
-
-    .type reset_handler, %function
-main:
-reset_handler:
-    bl init_board
-    ldr r0, =ram_top
-    mov RSP, r0
-    ldr r0, =ram_top - 0x200
-    mov PSP, r0
-    movs r0, #0
-    subs r0, #1
-    lit8 16; bl BASE; bl STORE
-    bl RAM
-    lit32 init_here; pfetch; bl ROM_DP; bl STORE
-    lit32 init_data_start; pfetch; bl RAM_DP; bl STORE
-    lit32 init_last_word; pfetch; bl LATEST; bl STORE
-    bl SERIAL_CON
-    bl COLD
-    .size reset_handler, . - reset_handler
-    .ltorg
-
-init_here:
-    .word here
-init_data_start:
-    .word data_start
-init_last_word:
-    .word last_word
-
-@ ---------------------------------------------------------------------
 @ -- Helper code ------------------------------------------------------
-
-    .type putstring, %function
-putstring:
-    cmp r1, #0
-    bgt 1f
-    mov pc, lr
-1:  push {r4, r5, lr}
-    mov r5, r0
-    mov r4, r1
-putstring_loop:
-    ldrb r0, [r5]
-    adds r5, r5, #1
-    bl putchar
-    subs r4, r4, #1
-    bgt putstring_loop
-    pop {r4, r5, pc}
-
-    .type reset_handler, %function
-readline:
-    push {r3, r4, r5, lr}
-    mov r4, r0
-    mov r5, r0
-    movs r3, r1
-    beq readline_end
-readline_loop:
-    bl readkey
-    cmp r0, #10
-    beq readline_end
-    cmp r0, #13
-    beq readline_end
-    cmp r0, #127
-    beq readline_backpspace
-    cmp r0, #8
-    bne readline_addchar
-readline_backpspace:
-    cmp r4, r5
-    beq readline_loop
-    movs r0, #32
-    strb r0, [r5]
-    subs r5, r5, #1
-    adds r3, r3, #1
-    movs r0, #8
-    bl putchar
-    movs r0, #32
-    bl putchar
-    movs r0, #8
-    bl putchar
-    b readline_loop
-readline_addchar:
-    bl putchar
-    strb r0, [r5]
-    adds r5, r5, #1
-    subs r3, r3, #1
-    bgt readline_loop
-readline_end:
-    subs r0, r5, r4
-    pop {r3, r4, r5, pc}
-
-    .type puthexnumber, %function
-puthexnumber:
-    push {r3, r4, r5, r6, r7, lr}
-    movs r3, #0
-    movs r5, #8
-    movs r6, #15
-    movs r7, #28
-puthexnumber_loop:
-    rors r0, r7
-    mov r4, r0
-    ands r0, r6
-    cmp r3, #0
-    bgt 3f
-    cmp r0, #0
-    beq 2f
-    movs r3, #1
-3:  adds r0, r0, #'0'
-    cmp r0, #'9'
-    ble 1f
-    adds r0, r0, #'A' - '0' - 10
-1:  bl putchar
-2:  mov r0, r4
-    subs r5, r5, #1
-    bne puthexnumber_loop
-    cmp r3, #0
-    bne 4f
-    movs r0, #'0'
-    bl putchar
-4:  pop {r3, r4, r5, r6, r7, pc}
 
     @ Busy delay with three ticks per count
     .type delay, %function
@@ -416,6 +299,31 @@ delay:
     subs r0, #1
     bne delay
     mov pc, lr
+
+haskey_emulator:
+    ldr r1, =EMULATOR_UART + 4
+    ldr r1, [r1]
+    ppush r1
+    bx lr
+
+waitkey_emulator:
+    movs r1, #0x82; push {r1}; bkpt 0xab
+    bx lr
+
+readkey_emulator:
+    movs r1, #0x82; push {r1}; bkpt 0xab
+    ldr r1, =EMULATOR_UART
+    ldr r1, [r1]
+    ppush r1
+    bx lr
+
+putchar_emulator:
+    ldr r1, =EMULATOR_UART
+    ppop r2
+    str r2, [r1]
+    bx lr
+
+    .ltorg
 
 @ ---------------------------------------------------------------------
 @ -- Stack manipulation -----------------------------------------------
@@ -1329,9 +1237,7 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     bl SPFETCH; bl S0; pcellsub; pcellsub; bl XPRINTSTACK; pdup; bl DOT;
     bl CR
 1:  exit
-2:  ldr r0, =underflow_error
-    movs r1, #17
-    bl putstring
+2:  lit32 underflow_error; lit8 17; bl TYPE
     exit
 underflow_error:
     .ascii "Stack underflow!\n"
@@ -1416,76 +1322,60 @@ underflow_error:
     bl BASE; bl STORE
     exit
 
-    defword "READ-KEY", READ_KEY
-    subs PSP, #4
-    str r0, [PSP]
-    bl readkey
-    exit
-
-    defword "READ-LINE", READ_LINE
-    push {r0}
-    ldr r0, =constaddr_TIB
-    ldr r0, [r0]
-    ldr r1, =constaddr_TIBSIZE
-    ldr r1, [r1]
-    bl readline
-    movs r1, r0
-    pop {r0}
-    ppush r1
-    exit
-
     .ltorg
 
-    defword "WAIT-KEY", WAIT_KEY
-    bl TICKWAIT_KEY; pfetch; bl EXECUTE
-    exit
-
-    defword "FINISH-OUTPUT", FINISH_OUTPUT
-    bl TICKFINISH_OUTPUT; pfetch; bl EXECUTE
-    exit
-
-    defword "(KEY)", XKEY
-    bl WAIT_KEY; bl READ_KEY
+    defword "KEY?", KEYQ
+    bl TICKKEYQ; pfetch; bl EXECUTE
     exit
 
     defword "KEY", KEY
     bl TICKKEY; pfetch; bl EXECUTE
     exit
 
-    defword "(EMIT)", XEMIT
-    bl FINISH_OUTPUT; bl PUTCHAR
-    exit
-
-    defword "(TYPE)", XTYPE
-    movs r1, r0
-    ldr r0, [PSP]
-    bl putstring
-    ldr r0, [PSP, #4]
-    adds PSP, #8
-    exit
-
-    defword "ACCEPT", ACCEPT
-    bl TICKACCEPT; pfetch; bl EXECUTE
+    defword "FINISH-OUTPUT", FINISH_OUTPUT
+    bl TICKFINISH_OUTPUT; pfetch; bl EXECUTE
     exit
 
     defword "EMIT", EMIT
     bl TICKEMIT; pfetch; bl EXECUTE
     exit
 
+    defword "SERIAL-CON", SERIAL_CON
+    bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
+    bl LIT_XT; .word haskey_emulator; bl TICKKEYQ; bl STORE
+    bl LIT_XT; .word readkey_emulator; bl TICKKEY; bl STORE
+    bl LIT_XT; .word NOOP; bl TICKFINISH_OUTPUT; bl STORE
+    bl LIT_XT; .word putchar_emulator; bl TICKEMIT; bl STORE
+    exit
+1:  bl LIT_XT; .word haskey; bl TICKKEYQ; bl STORE
+    bl LIT_XT; .word readkey; bl TICKKEY; bl STORE
+    bl LIT_XT; .word NOOP; bl TICKFINISH_OUTPUT; bl STORE
+    bl LIT_XT; .word putchar; bl TICKEMIT; bl STORE
+    exit
+
     defword "TYPE", TYPE
-    bl TICKTYPE; pfetch; bl EXECUTE
+2:  cmp r0, #0
+    ble 1f
+    pswap; pdup; ldrb r0, [r0]; bl EMIT; adds r0, #1; pswap; subs r0, #1
+    b 2b
+1:  pdrop; pdrop
+    exit
+
+    defword "ACCEPT", ACCEPT
+    lit8 0; bl TIBINDEX; bl STORE
+2:  bl KEY; cmp r0, #10; beq 1f
+    cmp r0, #8; bne 3f
+    bl EMIT; lit8 32; bl EMIT; lit8 8; bl EMIT
+    lit8 1; bl TIBINDEX; bl SUBSTORE
+    b 2b
+3:  pdup; bl EMIT; bl TIB; bl TIBINDEX; bl FETCH; bl ADD; bl STOREBYTE
+    lit8 1; bl TIBINDEX; bl ADDSTORE
+    b 2b
+1:  pdrop; bl TIBINDEX; bl FETCH
     exit
 
     defword "4NUM", FOURNUM
     bl NUM; bl NUM; bl NUM; bl NUM
-    exit
-
-    defword "SERIAL-CON", SERIAL_CON
-    bl LIT_XT; .word NOOP; pdup; bl TICKWAIT_KEY; bl STORE; bl TICKFINISH_OUTPUT; bl STORE
-    bl LIT_XT; .word XKEY; bl TICKKEY; bl STORE
-    bl LIT_XT; .word XEMIT; bl TICKEMIT; bl STORE
-    bl LIT_XT; .word XTYPE; bl TICKTYPE; bl STORE
-    bl LIT_XT; .word READ_LINE; bl TICKACCEPT; bl STORE
     exit
 
     defword "(DUMP-ADDR)", XDUMP_ADDR
@@ -2320,7 +2210,10 @@ interpret_eol:
     bl XSOURCE; bl STORE
     lit8 0; bl STATE; bl STORE
 1:  bl XSOURCE; pfetch;
-5:  pdup; pfetchbyte; pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq 2f; lit8 10; bl EQU; ppop r1; cmp r1, #0; beq 7f
+5:  pdup; pfetchbyte
+          pdup; bl ZNEQU; ppop r1; cmp r1, #0; beq 2f
+          pdup; lit32 255; bl EQU; ppop r1; cmp r1, #0; bne 2f
+          lit8 10; bl EQU; ppop r1; cmp r1, #0; beq 7f
     pincr; b 5b
 7:  pdup
 6:  pdup; pfetchbyte; lit8 10; bl NEQU; ppop r1; cmp r1, #0; beq 4f
@@ -2334,6 +2227,8 @@ interpret_eol:
     exit
 3:  pdup; bl DOT; bl SPACE; bl COUNT; bl TYPE; lit8 '?'; bl EMIT; bl CR
     exit
+
+    .ltorg
 
     defword "FORGET", FORGET
     bl BL; bl WORD; bl FIND
@@ -2451,6 +2346,38 @@ interpret_eol:
     exit
 3:  .ascii " ok "
 
+@ ---------------------------------------------------------------------
+@ -- Entry point ------------------------------------------------------
+
+    defcode "COLD", reset_handler
+    bl init_board
+    ldr r0, =ram_top
+    mov RSP, r0
+    ldr r0, =ram_top - 0x200
+    mov PSP, r0
+    movs r0, #0
+    subs r0, #1
+    lit8 16; bl BASE; bl STORE
+    bl RAM
+    lit32 init_here; pfetch; bl ROM_DP; bl STORE
+    lit32 init_data_start; pfetch; bl RAM_DP; bl STORE
+    lit32 init_last_word; pfetch; bl LATEST; bl STORE
+    bl SERIAL_CON
+    bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
+    bl ROM; lit32 eval_words; bl EVALUATE
+1:  bl COPY_FARCALL;
+    bl LATEST; bl FETCH
+    bl FROMLINK; bl EXECUTE
+    b ABORT
+    .ltorg
+
+init_here:
+    .word here
+init_data_start:
+    .word data_start
+init_last_word:
+    .word last_word
+
     defword "QUIT", QUIT
     lit8 0; bl STATE; bl STORE;
 1:  bl INTERPRET
@@ -2498,10 +2425,8 @@ interpret_eol:
     defvar ">IN", SOURCEINDEX
     defvar "HP", HP
     defvar "\047KEY", TICKKEY
-    defvar "\047ACCEPT", TICKACCEPT
+    defvar "\047KEY?", TICKKEYQ
     defvar "\047EMIT", TICKEMIT
-    defvar "\047TYPE", TICKTYPE
-    defvar "\047WAIT-KEY", TICKWAIT_KEY
     defvar "\047FINISH-OUTPUT", TICKFINISH_OUTPUT
     defvar "FARCALL", FARCALL, 32
     defvar "WORDBUF", WORDBUF, WORDBUF_SIZE
