@@ -8,11 +8,10 @@
 
     .set F_IMMED,           0x01
     .set F_INLINE,          0x02
-    .set F_VAR,             0x04
     .set F_BUFFER,          0x08
     .set F_HIDDEN,          0x20
     .set F_LENMASK,         0x1f
-    .set F_MARKER,          0x80
+    .set F_MARKER,          0xff
 
     .set link,                 0
     .set link_host,            0
@@ -198,7 +197,8 @@ PSP .req r6
     .set name_\label , .
     .int link
     .set link, name_\label
-    .byte \flags | F_MARKER
+    .byte F_MARKER
+    .byte \flags
     .byte (99f - 98f)
 98:
     .ascii "\name"
@@ -218,7 +218,8 @@ PSP .req r6
     .set name_\label , .
     .int link
     .set link, name_\label
-    .byte \flags | F_MARKER
+    .byte F_MARKER
+    .byte \flags
     .byte (99f - 98f)
 98:
     .ascii "\name"
@@ -239,7 +240,8 @@ PSP .req r6
     .set name_\label , .
     .int link
     .set link, name_\label
-    .byte \flags | F_MARKER
+    .byte F_MARKER
+    .byte \flags
     .byte (99f - 98f)
 98:
     .ascii "\name"
@@ -1967,7 +1969,7 @@ is_positive:
     exit
 
     defword "LINK>", FROMLINK
-    bl LINKTONAME; pdup; pfetchbyte; lit8 F_LENMASK; pand; pcharadd; padd; bl ALIGNED
+    bl LINKTONAME; pdup; pfetchbyte; padd; adds r0, #2
     exit
 
     defcode ">FLAGS", TOFLAGS
@@ -1978,13 +1980,13 @@ is_positive:
     mov pc, lr
 
     defword ">NAME", TONAME
-    bl TOFLAGS; pcharadd
+    bl TOFLAGS; adds r0, #2
     exit
 
     .ltorg
 
     defword ">LINK", TOLINK
-    bl TONAME; subs r0, #5
+    bl TONAME; subs r0, #6
     exit
 
     defcode ">BODY", TOBODY
@@ -1992,7 +1994,7 @@ is_positive:
     mov pc, lr
 
     defcode "LINK>NAME", LINKTONAME
-    adds r0, #5
+    adds r0, #6
     mov pc, lr
 
     defcode "LINK>FLAGS", LINKTOFLAGS
@@ -2052,10 +2054,10 @@ is_positive:
     bl LATEST; pfetch
     bl HERE; bl LATEST; bl STORE
     bl COMMALINK
-    lit8 F_MARKER; bl CCOMMA
+    lit8 F_MARKER; bl COMMAH
     bl BL; bl WORD; pdup;
     pdup; pfetchbyte; pincr; bl HERE; pswap; bl CDICTMOVE
-    pfetchbyte; pincr; pincr; bl ALIGNED; pdecr; bl ALLOT
+    pfetchbyte; pincr; bl ALLOT; bl ALIGN
     exit
 
     defword "SET-FLAGS", SET_FLAGS
@@ -2135,7 +2137,7 @@ DODATA:
     pdrop; pfetch; pdup
 1:  bl ZEQU; ppop r1; cmp r1, #0; beq 2b
     pdup; ppop r1; cmp r1, #0; beq 3f
-    pnip; pdup; bl FROMLINK; pswap; bl LINKTOFLAGS; bl FETCHBYTE; lit8 0x1; pand; bl ZEQU; lit8 0x1; por
+    pnip; pdup; bl FROMLINK; pswap; bl LINKTOFLAGS; pincr; bl FETCHBYTE; lit8 F_IMMED; pand; bl ZEQU; lit8 0x1; por
 3:  exit
 
     defword "FIND", FIND
@@ -2244,19 +2246,19 @@ interpret_eol:
     exit
 
     defword "HIDE", HIDE
-    bl LATEST; pfetch; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; por; pswap; bl STOREBYTE
+    bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_HIDDEN; por; pswap; bl STOREBYTE
     exit
 
     defword "REVEAL", REVEAL
-    bl LATEST; pfetch; bl LINKTONAME; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; pswap; bl STOREBYTE
+    bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; pswap; bl STOREBYTE
     exit
 
     defword "IMMEDIATE", IMMEDIATE
-    bl LATEST; pfetch; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_IMMED; por; pswap; bl STOREBYTE
+    bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_IMMED; por; pswap; bl STOREBYTE
     exit
 
     defword "INLINE", INLINE
-    bl LATEST; pfetch; bl LINKTOFLAGS; pdup; pfetchbyte; lit8 F_INLINE; por; pswap; bl STOREBYTE
+    bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_INLINE; por; pswap; bl STOREBYTE
     exit
 
     defword "[", LBRACKET, F_IMMED
