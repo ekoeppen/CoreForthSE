@@ -2329,11 +2329,13 @@ interpret_eol:
     defword "INTERPRET", INTERPRET
     lit8 0; bl SOURCEINDEX; bl STORE;
     bl TIB; pdup; bl XSOURCE; bl STORE;
+    lit8 0x13; bl EMIT;
     bl TIBSIZE; bl ACCEPT; bl SOURCECOUNT; bl STORE; bl SPACE;
     bl XINTERPRET; ppop r1; cmp r1, #0; beq 1f
     pdrop; lit32 3f; lit8 4; bl TYPE; b 2f
 1:  bl COUNT; bl TYPE; lit8 63; bl EMIT;
 2:  bl CR;
+    lit8 0x11; bl EMIT;
     exit
 3:  .ascii " ok "
 
