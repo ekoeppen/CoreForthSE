@@ -6,12 +6,11 @@
 @ ---------------------------------------------------------------------
 @ -- Variable definitions ---------------------------------------------
 
-    .set F_IMMED,           0x01
-    .set F_INLINE,          0x02
-    .set F_BUFFER,          0x08
-    .set F_HIDDEN,          0x20
-    .set F_LENMASK,         0x1f
-    .set F_MARKER,          0xff
+    .set F_IMMED,           0xFE
+    .set F_INLINE,          0xFD
+    .set F_BUFFER,          0xFB
+    .set F_HIDDEN,          0xF7
+    .set F_MARKER,          0xFF
 
     .set link,                 0
     .set link_host,            0
@@ -20,6 +19,7 @@
     .set ENABLE_COMPILER,      1
     .set WORDBUF_SIZE,        32
 
+TOS .req r0
 RSP .req sp
 PSP .req r6
 
@@ -197,8 +197,8 @@ PSP .req r6
     .set name_\label , .
     .int link
     .set link, name_\label
-    .byte F_MARKER
     .byte \flags
+    .byte F_MARKER
     .byte (99f - 98f)
 98:
     .ascii "\name"
@@ -218,8 +218,8 @@ PSP .req r6
     .set name_\label , .
     .int link
     .set link, name_\label
-    .byte F_MARKER
     .byte \flags
+    .byte F_MARKER
     .byte (99f - 98f)
 98:
     .ascii "\name"
@@ -240,8 +240,8 @@ PSP .req r6
     .set name_\label , .
     .int link
     .set link, name_\label
-    .byte F_MARKER
     .byte \flags
+    .byte F_MARKER
     .byte (99f - 98f)
 98:
     .ascii "\name"
@@ -492,9 +492,10 @@ putchar_emulator:
     adds PSP, #8
     mov pc, lr
 
-    defcode "CDICT!", CDICTSTORE
+    defcode "IC!", ICSTORE
     ldr r1, [PSP]
-    strb r1, [r0]
+    strb r1, [r0] @ :FIXME:
+    b .
     ldr r0, [PSP, #4]
     adds PSP, #8
     mov pc, lr
@@ -510,7 +511,7 @@ putchar_emulator:
     adds PSP, #8
     mov pc, lr
 
-    defcode "HDICT!", HDICTSTORE
+    defcode "IH!", IHSTORE
     ldr r1, [PSP]
     strh r1, [r0]
     ldr r0, [PSP, #4]
@@ -539,55 +540,32 @@ putchar_emulator:
 1:  pfetch
     mov pc, lr
 
-    defcode "~!", MISALIGNEDSTORE
-    ppop r2
-    ppop r1
-    .ifndef THUMB1
-    str r1, [r2]
-    mov pc, lr
-    .else
-    movs r3, #3
-    ands r3, r2
-    bne 1f
-    str r1, [r2]
-    mov pc, lr
-1:  strh r1, [r2]
-    adds r2, #2
-    lsrs r1, #16
-    strh r1, [r2]
-    mov pc, lr
-    .endif
-
-    defcode "~DICT!", MISALIGNEDDICTSTORE
-    ppop r2
-    ppop r1
-    .ifndef THUMB1
-    str r1, [r2]
-    mov pc, lr
-    .else
-    movs r3, #3
-    ands r3, r2
-    bne 1f
-    str r1, [r2]
-    mov pc, lr
-1:  strh r1, [r2]
-    adds r2, #2
-    lsrs r1, #16
-    strh r1, [r2]
-    mov pc, lr
-    .endif
-
     defcode "!", STORE
-    .ifdef THUMB1
-    movs r2, #3
-    ands r2, r0
-    beq 1f
-    b .
+    ppop r2
+    ppop r1
+    .ifndef THUMB1
+    str r1, [r2]
+    mov pc, lr
+    .else
+    movs r3, #3
+    ands r3, r2
+    bne 1f
+    str r1, [r2]
+    mov pc, lr
+1:  strh r1, [r2]
+    adds r2, #2
+    lsrs r1, #16
+    strh r1, [r2]
+    mov pc, lr
     .endif
-1:  ldr r1, [PSP]
-    str r1, [r0]
-    ldr r0, [PSP, #4]
-    adds PSP, #8
+
+    defcode "I!", ISTORE
+    ppop r2
+    ppop r1
+    strh r1, [r2]
+    adds r2, #2
+    lsrs r1, #16
+    strh r1, [r2]
     mov pc, lr
 
     defword "2!", TWOSTORE
@@ -704,17 +682,21 @@ putchar_emulator:
     b 3b
 4:  mov pc, lr
 
-    defcode "CDICTMOVE", CDICTMOVE
+    defcode "IMOVE", IMOVE
     ppop r1
     ppop r2
     ppop r3
-3:  subs r1, #1
+    movs r4, #1
+    mvns r4, r4
+    adds r1, #1
+    ands r1, r4
+3:  subs r1, #2
     cmp r1, #0
     blt 4f
-    ldrb r4, [r3]
-    strb r4, [r2]
-    adds r2, #1
-    adds r3, #1
+    ldrh r4, [r3]
+    strh r4, [r2]
+    adds r2, #2
+    adds r3, #2
     b 3b
 4:  mov pc, lr
 
@@ -782,7 +764,7 @@ putchar_emulator:
 
     defword "S\"", SQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD
-    pdup; pdup; pfetchbyte; pincr; bl HERE; pswap; bl CDICTMOVE
+    pdup; pdup; pfetchbyte; pincr; bl HERE; pswap; bl IMOVE
     pfetchbyte; pincr; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
@@ -798,7 +780,7 @@ putchar_emulator:
     defword "SZ\"", SZQUOT, F_IMMED
     bl LIT_XT; .word XSQUOTE; bl COMMAXT; lit8 '"'; bl WORD; pdup
     lit8 1; bl OVER; bl ADDSTORE; lit8 0; bl OVER; pdup; pfetchbyte; padd; bl STOREBYTE
-    pdup; pfetchbyte; pincr; bl HERE; pswap; bl CDICTMOVE
+    pdup; pfetchbyte; pincr; bl HERE; pswap; bl IMOVE
     pfetchbyte; pincr; bl ALLOT; bl ALIGN
     bl GTGTSOURCE
     exit
@@ -814,7 +796,7 @@ putchar_emulator:
     exit
 
     defword "PAD", PAD
-    bl HERE; lit8 128; padd
+    bl RAM_DP; bl FETCH; lit8 128; padd
     exit
 
 @ ---------------------------------------------------------------------
@@ -948,18 +930,18 @@ unsigned_div_mod:               @ r1 / r2 = r3, remainder = r1
     ppop r1
     movs r3, #0
     movs r5, #1
-    movs r6, #1
+    movs r7, #1
     cmp r1, r3
     bge 1f
     subs r5, #2
     muls r1, r5
 1:  cmp r2, r3
     bge 2f
-    subs r6, #2
-    muls r2, r6
+    subs r7, #2
+    muls r2, r7
 2:  bl unsigned_div_mod
     muls r3, r5
-    muls r3, r6
+    muls r3, r7
     ppush r3
     exit
 
@@ -1650,17 +1632,24 @@ is_positive:
     .align 2
 1:  ppop r1
     cmp r1, #0
-    beq 1b
+    .short 0xffff
 
     defword "ELSE", ELSE, F_IMMED
-    movs r1, #0xe0; lsls r1, #8; ppush r1; bl COMMAH
-    bl HERE; pdecr; pdecr;
+    movs r1, #0; subs r1, #1; ppush r1; bl COMMAH
+    bl HERE; pdecr; pdecr; mvns r0, r0
     pswap; bl THEN
     exit
 
     defword "THEN", THEN, F_IMMED
-    bl HERE; bl OVER; psub; pcellsub; ptwodiv; pswap
-    bl CDICTSTORE
+    cmp r0, #0; blt 1f
+    movs r1, #0xd0; b 2f
+1:  mvns r0, r0
+    movs r1, #0xe0
+2:  lsls r1, #8; ppush r1
+    bl OVER; bl HERE; pswap
+    psub; pcellsub; ptwodiv; por
+    pswap
+    bl IHSTORE
     exit
 
     defword "WHILE", WHILE, F_IMMED
@@ -1842,22 +1831,7 @@ is_positive:
     mov pc, r4
 
     defcode "LIT_XT", LIT_XT
-    mov r4, lr
-    subs r4, r4, #1
-    .ifdef THUMB1
-    ldrh r1, [r4]
-    adds r4, #2
-    ldrh r2, [r4]
-    lsls r2, #16
-    orrs r1, r2
-    adds r4, #3
-    .else
-    ldr r1, [r4]
-    adds r4, #5
-    .endif
-    adds r1, r1, #1
-    ppush r1
-    mov pc, r4
+    b LIT
 
     defword "ROM", ROM
     bl TRUE; bl ROM_ACTIVE; bl STORE
@@ -1895,11 +1869,11 @@ is_positive:
     exit
 
     defword ",", COMMA
-    bl HERE; bl MISALIGNEDDICTSTORE; bl CELL; bl ALLOT
+    bl HERE; bl ISTORE; bl CELL; bl ALLOT
     exit
 
     defword ",H", COMMAH
-    bl HERE; bl HDICTSTORE; lit8 2; bl ALLOT
+    bl HERE; bl IHSTORE; lit8 2; bl ALLOT
     exit
 
     defword ",XT-FAR", COMMAXT_FAR
@@ -1947,7 +1921,7 @@ is_positive:
     exit
 
     defword "C,", CCOMMA
-    bl HERE; bl CDICTSTORE; lit8 1; bl ALLOT
+    bl HERE; bl ICSTORE; lit8 1; bl ALLOT
     exit
 
     defword ">UPPER", GTUPPER
@@ -1969,7 +1943,7 @@ is_positive:
     exit
 
     defword "LINK>", FROMLINK
-    bl LINKTONAME; pdup; pfetchbyte; padd; adds r0, #2
+    bl LINKTONAME; pdup; pfetchbyte; padd; pincr; bl ALIGNED
     exit
 
     defcode ">FLAGS", TOFLAGS
@@ -1977,6 +1951,7 @@ is_positive:
     ldrb r1, [r0]
     cmp r1, #F_MARKER
     blo 1b
+    subs r0, #1
     mov pc, lr
 
     defword ">NAME", TONAME
@@ -2054,14 +2029,10 @@ is_positive:
     bl LATEST; pfetch
     bl HERE; bl LATEST; bl STORE
     bl COMMALINK
-    lit8 F_MARKER; bl COMMAH
+    lit32 0xffff; bl COMMAH
     bl BL; bl WORD; pdup;
-    pdup; pfetchbyte; pincr; bl HERE; pswap; bl CDICTMOVE
+    pdup; pfetchbyte; pincr; bl HERE; pswap; bl IMOVE
     pfetchbyte; pincr; bl ALLOT; bl ALIGN
-    exit
-
-    defword "SET-FLAGS", SET_FLAGS
-    bl LATEST; bl FETCH; bl LINKTOFLAGS; bl TUCK; bl FETCHBYTE; por; pswap; bl CDICTSTORE
     exit
 
     defword "(CONSTANT)", XCONSTANT
@@ -2137,7 +2108,7 @@ DODATA:
     pdrop; pfetch; pdup
 1:  bl ZEQU; ppop r1; cmp r1, #0; beq 2b
     pdup; ppop r1; cmp r1, #0; beq 3f
-    pnip; pdup; bl FROMLINK; pswap; bl LINKTOFLAGS; pincr; bl FETCHBYTE; lit8 F_IMMED; pand; bl ZEQU; lit8 0x1; por
+    pnip; pdup; bl FROMLINK; pswap; bl LINKTOFLAGS; bl FETCHBYTE; lit8 F_IMMED; bl NEQU; lit8 0x1; por
 3:  exit
 
     defword "FIND", FIND
@@ -2165,7 +2136,7 @@ noskip_delim:
     bl RFROM; bl RFROM; bl ROT; psub; bl SOURCEINDEX; bl ADDSTORE
     bl TUCK; psub
     pdup; bl WORDBUF; bl STOREBYTE
-    bl WORDBUF; pincr; pswap; bl CDICTMOVE
+    bl WORDBUF; pincr; pswap; bl MOVE
     bl WORDBUF
     exit
 
@@ -2189,6 +2160,7 @@ noskip_delim:
     mov pc, lr
 
     defword "(INTERPRET)", XINTERPRET
+    bl ROM_UNLOCK
 interpret_loop:
     bl BL; bl WORD; pdup; pfetchbyte; ppop r1; cmp r1, #0; beq interpret_eol
     bl FIND; bl QDUP; ppop r1; cmp r1, #0; beq interpret_check_number
@@ -2204,9 +2176,11 @@ interpret_check_number:
     bl STATE; pfetch; ppop r1; cmp r1, #0; beq interpret_loop
     bl LITERAL; b interpret_loop
 interpret_not_found:
+    bl ROM_LOCK
     lit8 0
     exit
 interpret_eol:
+    bl ROM_LOCK
     lit8 -1
     exit
 
@@ -2246,19 +2220,19 @@ interpret_eol:
     exit
 
     defword "HIDE", HIDE
-    bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_HIDDEN; por; pswap; bl STOREBYTE
+    @ bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_HIDDEN; por; pswap; bl ICSTORE
     exit
 
     defword "REVEAL", REVEAL
-    bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; pswap; bl STOREBYTE
+    @ bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_HIDDEN; pinvert; pand; pswap; bl ICSTORE
     exit
 
     defword "IMMEDIATE", IMMEDIATE
-    bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_IMMED; por; pswap; bl STOREBYTE
+    lit32 (0xff00 | F_IMMED); bl LATEST; pfetch; bl LINKTOFLAGS; bl IHSTORE
     exit
 
     defword "INLINE", INLINE
-    bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_INLINE; por; pswap; bl STOREBYTE
+    lit32 (0xff00 | F_INLINE); bl LATEST; pfetch; bl LINKTOFLAGS; bl IHSTORE
     exit
 
     defword "[", LBRACKET, F_IMMED
@@ -2291,7 +2265,7 @@ interpret_eol:
     defword "LIST", LIST
     bl LATEST; pfetch
 1:
-    pdup; bl FROMLINK; bl UDOT; pdup; bl CELLADD; pcharadd; bl COUNT; bl TYPE; bl CR
+    pdup; bl FROMLINK; bl UDOT; pdup; bl CELLADD; adds r0, #2; bl COUNT; bl TYPE; bl CR
     pfetch; bl QDUP; bl ZEQU; ppop r1; cmp r1, #0; beq 1b
     exit
 
@@ -2299,7 +2273,7 @@ interpret_eol:
     bl BL; bl WORD; bl FIND; pnip
     exit
 
-    defword "FLASH-DP", FLASH_DP
+    defword "ERASED-START", ERASED_START
     ppush r0
     ldr r0, =rom_top
     movs r2, #0
@@ -2312,12 +2286,12 @@ interpret_eol:
     exit
 
     defword "SEEK-LATEST", SEEK_LATEST
-    ppop r3
+    ldr r3, =rom_top
     ldr r0, =last_core_word
 3:  movs r4, r0
 2:  adds r4, #4
     cmp r4, r3
-    bgt 1f
+    beq 1f
     ldr r2, [r4]
     cmp r2, r0
     bne 2b
@@ -2343,6 +2317,7 @@ interpret_eol:
 @ -- Entry point ------------------------------------------------------
 
     defcode "COLD", reset_handler
+main:
     bl init_board
     ldr r0, =ram_top
     mov RSP, r0
@@ -2352,9 +2327,9 @@ interpret_eol:
     subs r0, #1
     lit8 16; bl BASE; bl STORE
     bl RAM
-    lit32 init_here; pfetch; bl ROM_DP; bl STORE
+    bl ERASED_START; bl ROM_DP; bl STORE
+    bl SEEK_LATEST; bl LATEST; bl STORE
     lit32 init_data_start; pfetch; bl RAM_DP; bl STORE
-    lit32 init_last_word; pfetch; bl LATEST; bl STORE
     bl SERIAL_CON
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
     bl ROM; lit32 eval_words; bl EVALUATE
