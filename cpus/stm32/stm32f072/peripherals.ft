@@ -1,17 +1,17 @@
 \ TEMPLATE FILE for STM32F072x
 \ created by svdcutter for Mecrisp-Stellaris Forth by Matthias Koch
-\ sdvcutter  takes a CMSIS-SVD file plus a hand edited config.xml file as input 
+\ sdvcutter  takes a CMSIS-SVD file plus a hand edited config.xml file as input
 \ By Terry Porter "terry@tjporter.com.au", released under the GPL V2
 
 
 
 \ pretty printing words
 
-rom
+\ rom
 
-: b32loop. ( u -- ) <# #32 0 DO # BL HOLD LOOP #> TYPE ; 
+: b32loop. ( u -- ) <# #32 0 DO # BL HOLD LOOP #> TYPE ;
 
-: 1b. ( u -- ) cr 
+: 1b. ( u -- ) cr
 ."  3|3|2|2|2|2|2|2|2|2|2|2|1|1|1|1|1|1|1|1|1|1" cr
 ."  1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0 " cr
 @ binary b32loop. decimal cr ;
