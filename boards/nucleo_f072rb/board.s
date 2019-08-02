@@ -297,25 +297,43 @@ systick_handler:
 
     .include "CoreForthSE.s"
 
-    defcode "UNLOCK-FLASH", UNLOCK_FLASH
-    push {r0, r1, lr}
-    ldr r0, =FPEC
+    defcode "ROM-UNLOCK", ROM_UNLOCK
+    ldr r2, =FPEC
     ldr r1, =0x45670123
-    str r1, [r0, #FLASH_KEYR]
+    str r1, [r2, #FLASH_KEYR]
     ldr r1, =0xCDEF89AB
-    str r1, [r0, #FLASH_KEYR]
+    str r1, [r2, #FLASH_KEYR]
     movs r1, #1
-    str r1, [r0, #FLASH_CR]
-    pop {r0, r1, pc}
+    str r1, [r2, #FLASH_CR]
+    mov pc, lr
 
-    defcode "LOCK-FLASH", LOCK_FLASH
-    push {r0, r1, r2, lr}
-    ldr r0, =FPEC
-    ldr r1, [r0]
-    movs r2, #128
-    orrs r1, r2
-    str r1, [r0]
-    pop {r0, r1, r2, pc}
+    defcode "ROM-LOCK", ROM_LOCK
+    ldr r2, =FPEC
+    ldr r1, [r2]
+    movs r3, #128
+    orrs r1, r3
+    str r1, [r2]
+    mov pc, lr
+
+    defcode "ROM-ERASE", ROM_ERASE
+    ldr r2, =FPEC
+    ldr r1, =0x45670123
+    str r1, [r2, #FLASH_KEYR]
+    ldr r1, =0xCDEF89AB
+    str r1, [r2, #FLASH_KEYR]
+    movs r1, #2
+    str r1, [r2, #FLASH_CR]
+    str r0, [r2, #FLASH_AR]
+    movs r1, #66
+    str r1, [r2, #FLASH_CR]
+    nop
+    movs r3, #32
+1:  ldr r1, [r2, #FLASH_SR]
+    ands r1, r3
+    beq 1b
+    str r3, [r2, #FLASH_SR]
+    b ROM_LOCK
+
 
     defvar "SBUF", SBUF, 128
     defvar "SBUF-HEAD", SBUF_HEAD
