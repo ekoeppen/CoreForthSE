@@ -340,10 +340,6 @@ systick_handler:
     defvar "SBUF-TAIL", SBUF_TAIL
     defvar "IVT", IVT, 48 * 4
 
-    defword "TURNKEY", TURNKEY
-    bl ABORT
-    exit
-
     .ltorg
 
     .set last_word, link

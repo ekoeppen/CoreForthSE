@@ -2316,6 +2316,10 @@ interpret_eol:
 @ ---------------------------------------------------------------------
 @ -- Entry point ------------------------------------------------------
 
+    defword "TURNKEY", TURNKEY
+    bl ABORT
+    exit
+
     defcode "COLD", reset_handler
 main:
     bl init_board
