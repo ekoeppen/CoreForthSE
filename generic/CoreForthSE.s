@@ -2334,9 +2334,12 @@ main:
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
     bl ROM; lit32 eval_words; bl EVALUATE
 1:  bl COPY_FARCALL;
-    bl LATEST; bl FETCH
-    bl FROMLINK; bl EXECUTE
+    ldr r1, =2f; ppush r1; bl FIND; bl EXECUTE
     b ABORT
+
+2:
+    .byte 7
+    .ascii "TURNKEY"
     .ltorg
 
 init_here:
