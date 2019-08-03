@@ -190,7 +190,7 @@ PSP .req r6
     .endif
     .endm
 
-    .macro defword name, label, flags=0
+    .macro defword name, label, flags=0xFF
     .align 2, 0
     checkdef \label
     .global name_\label
@@ -211,7 +211,7 @@ PSP .req r6
     @ code field follows
     .endm
 
-    .macro defcode name, label, flags=0
+    .macro defcode name, label, flags=0xFF
     .align 2, 0
     .global name_\label
     checkdef \label
@@ -232,7 +232,7 @@ PSP .req r6
     @ code field follows
     .endm
 
-    .macro defconst name, label, value, flags=0
+    .macro defconst name, label, value, flags=0xFF
     .align 2, 0
     .global name_\label
     checkdef \label
@@ -798,6 +798,31 @@ putchar_emulator:
     defword "PAD", PAD
     bl RAM_DP; bl FETCH; lit8 128; padd
     exit
+
+    defword "ROM-UNLOCK", ROM_UNLOCK
+    bl unlock_flash
+    exit
+
+    defword "ROM-LOCK", ROM_LOCK
+    bl lock_flash
+    exit
+
+    defword "ROM-ERASE", ROM_ERASE
+    bl erase_flash
+    ppop r0
+    exit
+
+    defword "FORGET", FORGET
+    bl BL; bl WORD; bl FIND; ppop r1; cmp r1, #0; beq 1f
+    bl TOLINK; bl DUP; bl DUP; bl FETCH; bl SWAP;
+    bl ROM_ERASE
+    bl LATEST; bl STORE
+    bl ORG
+    beq 2f
+1:  pdrop; lit8 '?'; bl EMIT;
+2:  exit
+
+    .ltorg
 
 @ ---------------------------------------------------------------------
 @ -- Arithmetic ------------------------------------------------------
@@ -1947,10 +1972,11 @@ is_positive:
     exit
 
     defcode ">FLAGS", TOFLAGS
+    subs r0, #2
 1:  subs r0, #1
     ldrb r1, [r0]
     cmp r1, #F_MARKER
-    blo 1b
+    bne 1b
     subs r0, #1
     mov pc, lr
 
@@ -2210,15 +2236,6 @@ interpret_eol:
 
     .ltorg
 
-    defword "FORGET", FORGET
-    bl BL; bl WORD; bl FIND
-    cmp r0, #0; beq 1f
-    pdrop
-    bl TOLINK; pfetch; bl LATEST; bl STORE
-    exit
-1:  pdrop
-    exit
-
     defword "HIDE", HIDE
     @ bl LATEST; pfetch; bl LINKTOFLAGS; pincr; pdup; pfetchbyte; lit8 F_HIDDEN; por; pswap; bl ICSTORE
     exit
@@ -2330,15 +2347,15 @@ main:
     movs r0, #0
     subs r0, #1
     lit8 16; bl BASE; bl STORE
-    bl RAM
+    bl ROM
     bl ERASED_START; bl ROM_DP; bl STORE
     bl SEEK_LATEST; bl LATEST; bl STORE
     lit32 init_data_start; pfetch; bl RAM_DP; bl STORE
     bl SERIAL_CON
     bl EMULATIONQ; ppop r1; cmp r1, #0; beq 1f
-    bl ROM; lit32 eval_words; bl EVALUATE
+    lit32 eval_words; bl EVALUATE
 1:  bl COPY_FARCALL;
-    ldr r1, =2f; ppush r1; bl FIND; bl EXECUTE
+    ldr r1, =2f; ppush r1; bl FIND; bl DROP; bl EXECUTE
     b ABORT
 
 2:

@@ -20,6 +20,9 @@
     .global readkey
     .global usart2_irq_handler
     .global generic_forth_handler
+    .global unlock_flash
+    .global lock_flash
+    .global erase_flash
 
     .type reset_handler, %function
     .type putchar, %function
@@ -27,6 +30,9 @@
     .type readkey, %function
     .type usart2_irq_handler, %function
     .type generic_forth_handler, %function
+    .type unlock_flash, %function
+    .type lock_flash, %function
+    .type erase_flash, %function
 
 rom_start:
     .long ram_top                     /* Top of Stack                 */
@@ -219,6 +225,77 @@ putchar:
 3:  pop {pc}
 
     .ltorg
+
+unlock_flash:
+    ldr r2, =FPEC
+    ldr r1, =0x45670123
+    str r1, [r2, #FLASH_KEYR]
+    ldr r1, =0xCDEF89AB
+    str r1, [r2, #FLASH_KEYR]
+    movs r1, #1
+    str r1, [r2, #FLASH_CR]
+    mov pc, lr
+
+lock_flash:
+    ldr r2, =FPEC
+    ldr r1, [r2]
+    movs r3, #128
+    orrs r1, r3
+    str r1, [r2]
+    mov pc, lr
+
+erase_flash:
+    push {r0, lr}
+    movs r1, r0
+    ldr r2, =0xFFFFF800
+    ands r1, r2
+    subs r2, r0, r1
+    ldr r0,=constaddr_RAM_DP
+    ldr r0, [r0]
+    ldr r0, [r0]
+    adds r0, #128
+    movs r3, r0
+    movs r5, r1
+    movs r7, r2
+1:  ldr r4, [r1]
+    str r4, [r0]
+    adds r0, #4
+    adds r1, #4
+    subs r2, #4
+    bgt 1b
+
+    ldr r2, =FPEC
+    ldr r1, =0x45670123
+    str r1, [r2, #FLASH_KEYR]
+    ldr r1, =0xCDEF89AB
+    str r1, [r2, #FLASH_KEYR]
+    movs r1, #2
+    str r1, [r2, #FLASH_CR]
+    str r5, [r2, #FLASH_AR]
+    movs r1, #66
+    str r1, [r2, #FLASH_CR]
+    nop
+    movs r4, #32
+1:  ldr r1, [r2, #FLASH_SR]
+    ands r1, r4
+    beq 1b
+    str r4, [r2, #FLASH_SR]
+
+    movs r0, #1
+    str r0, [r2, #FLASH_CR]
+
+2:  ldrh r4, [r3]
+    strh r4, [r5]
+3:  ldr r1, [r2, #FLASH_SR]
+    ands r1, r0
+    bne 3b
+    adds r3, #2
+    adds r5, #2
+    subs r7, #2
+    bgt 2b
+    bl lock_flash
+    pop {r0, pc}
+
 @ ---------------------------------------------------------------------
 @ -- IRQ handlers -----------------------------------------------------
 
@@ -296,44 +373,6 @@ systick_handler:
     b .
 
     .include "CoreForthSE.s"
-
-    defcode "ROM-UNLOCK", ROM_UNLOCK
-    ldr r2, =FPEC
-    ldr r1, =0x45670123
-    str r1, [r2, #FLASH_KEYR]
-    ldr r1, =0xCDEF89AB
-    str r1, [r2, #FLASH_KEYR]
-    movs r1, #1
-    str r1, [r2, #FLASH_CR]
-    mov pc, lr
-
-    defcode "ROM-LOCK", ROM_LOCK
-    ldr r2, =FPEC
-    ldr r1, [r2]
-    movs r3, #128
-    orrs r1, r3
-    str r1, [r2]
-    mov pc, lr
-
-    defcode "ROM-ERASE", ROM_ERASE
-    ldr r2, =FPEC
-    ldr r1, =0x45670123
-    str r1, [r2, #FLASH_KEYR]
-    ldr r1, =0xCDEF89AB
-    str r1, [r2, #FLASH_KEYR]
-    movs r1, #2
-    str r1, [r2, #FLASH_CR]
-    str r0, [r2, #FLASH_AR]
-    movs r1, #66
-    str r1, [r2, #FLASH_CR]
-    nop
-    movs r3, #32
-1:  ldr r1, [r2, #FLASH_SR]
-    ands r1, r3
-    beq 1b
-    str r3, [r2, #FLASH_SR]
-    b ROM_LOCK
-
 
     defvar "SBUF", SBUF, 128
     defvar "SBUF-HEAD", SBUF_HEAD
